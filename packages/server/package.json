@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "build-w": "tsc --watch"
+    "build-w": "tsc --watch",
+    "package": "node ../scripts/src/bin/package.js package-server"
   },
   "keywords": [],
   "author": "",

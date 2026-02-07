@@ -1,0 +1,19 @@
+{
+  "name": "mp-assistant-scripts",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "package": "./src/bin/package.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.14.0"
+  },
+  "dependencies": {
+    "commander": "^14.0.3"
+  }
+}
