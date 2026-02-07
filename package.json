@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "小程序助手",
   "type": "module",
+  "private": true,
   "scripts": {
     "build": "turbo run build",
     "prepare": "husky",
