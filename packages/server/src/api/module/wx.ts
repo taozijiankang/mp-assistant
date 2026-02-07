@@ -1,6 +1,6 @@
 import { Page } from "playwright";
 import { WXMP_HOST } from "../../constant/wx.js";
-import { WXMPItem } from "../interface/wx.js";
+import { WXMPItem } from "mp-assistant-common/dist/types/wx.js";
 
 /**
  * 获取用户的小程序列表

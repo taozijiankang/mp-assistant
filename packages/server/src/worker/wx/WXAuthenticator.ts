@@ -2,12 +2,8 @@ import { BrowserContext, Page } from "playwright";
 import { WXMP_HOST, WXMP_LOGIN_PATH, WXMP_HOME_URL, WXMP_USER_PAGE_PATH_REX } from "../../constant/wx.js";
 import { setPagePointerEventsNone } from "../../utils/browser.js";
 import { getWxaList } from "../../api/module/wx.js";
-import { WXMPItem } from "../../api/interface/wx.js";
-
-export enum AuthenticatorStatus {
-    LOGIN = 'login',
-    NOT_LOGIN = 'notLogin'
-}
+import { WXMPItem } from "mp-assistant-common/dist/types/wx.js";
+import { AuthenticatorStatus } from "mp-assistant-common/dist/constant/enum.js";
 
 export class WXAuthenticator {
     private browserContent: BrowserContext | null = null;
@@ -23,12 +19,16 @@ export class WXAuthenticator {
 
     private wxaList: WXMPItem[] = [];
 
-    async getStatus() {
+    getStatus() {
         return this.status;
     }
 
-    async getWxaList() {
-        return JSON.parse(JSON.stringify(this.wxaList));
+    getWxaList() {
+        return JSON.parse(JSON.stringify(this.wxaList)) as WXMPItem[];
+    }
+
+    getLoginQRCodeURL() {
+        return this.loginQRCodeURL;
     }
 
     async init(browserContent: BrowserContext) {

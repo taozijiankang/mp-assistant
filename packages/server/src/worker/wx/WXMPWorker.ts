@@ -7,4 +7,12 @@ export class WXMPWorker extends BaseWorker {
     protected async _init() {
         await this.authenticator.init(this.browserContent);
     }
+
+    getInfo() {
+        return {
+            status: this.authenticator.getStatus(),
+            wxaList: this.authenticator.getWxaList(),
+            loginQRCodeURL: this.authenticator.getLoginQRCodeURL(),
+        }
+    }
 }
