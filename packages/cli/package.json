@@ -16,7 +16,7 @@
     "mp-assistant-server": "workspace:*"
   },
   "devDependencies": {
-    "configuration": "workspace:*"
+    "mp-assistant-configuration": "workspace:*"
   },
   "repository": {
     "type": "git",

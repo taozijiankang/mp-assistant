@@ -15,7 +15,7 @@
     "puppeteer": "^24.37.2"
   },
   "devDependencies": {
-    "configuration": "workspace:*"
+    "mp-assistant-configuration": "workspace:*"
   },
   "repository": {
     "type": "git",

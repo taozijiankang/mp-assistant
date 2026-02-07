@@ -15,7 +15,7 @@
     "crypto-js": "^4.2.0"
   },
   "devDependencies": {
-    "configuration": "workspace:*",
+    "mp-assistant-configuration": "workspace:*",
     "@types/crypto-js": "^4.2.2"
   },
   "repository": {
