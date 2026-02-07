@@ -5,21 +5,23 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "dev": "tsc --watch",
     "build": "tsc",
-    "build-w": "tsc --watch",
     "package": "node ../scripts/src/bin/package.js --package-server"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "puppeteer": "^24.37.2"
-  },
   "devDependencies": {
     "mp-assistant-configuration": "workspace:*"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/taozijiankang/mp-assistant.git"
+  },
+  "dependencies": {
+    "mp-assistant-common": "workspace:*",
+    "@playwright/test": "^1.58.2",
+    "playwright": "^1.58.2"
   }
 }
