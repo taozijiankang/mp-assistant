@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "vue.volar",
+    "streetsidesoftware.code-spell-checker",
+    "esbenp.prettier-vscode",
+    "syler.sass-indented",
+    "mikestead.dotenv",
+    "editorconfig.editorconfig"
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "name": "mp-assistant",
+  "version": "1.0.0",
+  "description": "小程序助手",
+  "type": "module",
+  "scripts": {
+    "build": "turbo run build",
+    "prepare": "husky",
+    "commit": "cz"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-customizable"
+    },
+    "cz-customizable": {
+      "config": ".cz-config.cjs"
+    }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taozijiankang/mp-assistant.git",
+    "owner": "taozijiankang",
+    "repo": "mp-assistant"
+  },
+  "packageManager": "pnpm@9.11.0",
+  "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
+    "@types/node": "^22.14.0",
+    "@types/semver": "^7.7.1",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "cz-customizable": "^7.5.1",
+    "husky": "^9.1.7",
+    "turbo": "^2.5.0"
+  },
+  "dependencies": {
+    "commander": "^14.0.3",
+    "semver": "^7.7.3"
+  }
+}
