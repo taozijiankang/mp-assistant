@@ -16,5 +16,9 @@
   },
   "devDependencies": {
     "configuration": "workspace:*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taozijiankang/mp-assistant.git"
   }
 }
