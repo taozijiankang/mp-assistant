@@ -1,5 +1,5 @@
 {
-  "name": "mp-assistant-common",
+  "name": "mp-assistant-cli",
   "version": "1.0.0",
   "description": "",
   "type": "module",
@@ -12,10 +12,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "crypto-js": "^4.2.0"
+    "mp-assistant-common": "workspace:*",
+    "mp-assistant-server": "workspace:*"
   },
   "devDependencies": {
-    "configuration": "workspace:*",
-    "@types/crypto-js": "^4.2.2"
+    "configuration": "workspace:*"
   }
 }

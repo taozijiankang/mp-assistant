@@ -43,6 +43,19 @@ importers:
         specifier: ^2.5.0
         version: 2.5.0
 
+  packages/cli:
+    dependencies:
+      mp-assistant-common:
+        specifier: workspace:*
+        version: link:../common
+      mp-assistant-server:
+        specifier: workspace:*
+        version: link:../server
+    devDependencies:
+      configuration:
+        specifier: workspace:*
+        version: link:../configuration
+
   packages/common:
     dependencies:
       crypto-js:
@@ -52,12 +65,21 @@ importers:
       '@types/crypto-js':
         specifier: ^4.2.2
         version: 4.2.2
+      configuration:
+        specifier: workspace:*
+        version: link:../configuration
+
+  packages/configuration: {}
 
   packages/server:
     dependencies:
       puppeteer:
         specifier: ^24.37.2
         version: 24.37.2(typescript@5.8.3)
+    devDependencies:
+      configuration:
+        specifier: workspace:*
+        version: link:../configuration
 
   packages/web:
     dependencies:
