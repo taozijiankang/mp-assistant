@@ -5,8 +5,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build-package": "turbo run build package",
-    "bp": "turbo run build package",
+    "build": "turbo run build",
+    "package": "turbo run package",
     "prepare": "husky",
     "commit": "cz"
   },

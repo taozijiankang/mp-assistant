@@ -40,7 +40,9 @@ jobs:
         run: pnpm install
 
       - name: 构建
-        run: pnpm run build-package
+        run: |
+          pnpm run build
+          pnpm run package
 
       - name: 迭代版本号
         run: node ./.node/iteration-version.js -m ${{vars.MAJOR_VN}} -n ${{vars.MINOR_VN}}
