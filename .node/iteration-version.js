@@ -61,6 +61,8 @@ async function iterationVersion(options) {
 
   const newVersion = semver.inc(semver.maxSatisfying([remoteMaxVersion, `${major}.${minor}.0`], `*`) || defaultVersion, "patch");
 
+  console.log("newVersion:", newVersion);
+
   /**
    * 更新根包和各个子包的版本号
    */

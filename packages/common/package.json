@@ -17,5 +17,9 @@
   "devDependencies": {
     "configuration": "workspace:*",
     "@types/crypto-js": "^4.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taozijiankang/mp-assistant.git"
   }
 }
