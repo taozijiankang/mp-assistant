@@ -8,6 +8,7 @@ const executablePath = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const wxMPWorker = new WXMPWorker();
 await wxMPWorker.init(path.join(getChromeUserDataDir(), 'one'), {
     executablePath: executablePath,
+    headless: true,
 });
 
 let status = AuthenticatorStatus.NOT_LOGIN;
