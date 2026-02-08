@@ -1,4 +1,4 @@
-import { Browser, BrowserContext } from "playwright";
+import { Browser, BrowserContext, chromium, LaunchOptions } from "playwright";
 import { getUUID } from "mp-assistant-common/dist/utils/index.js";
 
 export class BaseWorker {
@@ -16,9 +16,11 @@ export class BaseWorker {
     return this.browserContent_!;
   }
 
-  async init(browser: Browser) {
-    this.browserContent_ = await browser.newContext({
+  async init(userDataDir: string, options: Pick<LaunchOptions, 'executablePath'>) {
+    this.browserContent_ = await chromium.launchPersistentContext(userDataDir, {
+      ...options,
       viewport: null,
+      headless: false,
     });
 
     this.browserContent_.on('close', () => {

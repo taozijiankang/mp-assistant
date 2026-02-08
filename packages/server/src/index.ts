@@ -1,16 +1,14 @@
-import { chromium } from 'playwright';
 import { WXMPWorker } from './worker/wx/WXMPWorker.js';
 import { AuthenticatorStatus } from 'mp-assistant-common/dist/constant/enum.js';
+import path from 'path';
+import { getChromeUserDataDir } from './pathManage.js';
 
 const executablePath = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 
-const browser = await chromium.launch({
-    executablePath: executablePath,
-    headless: false,
-});
-
 const wxMPWorker = new WXMPWorker();
-await wxMPWorker.init(browser);
+await wxMPWorker.init(path.join(getChromeUserDataDir(), 'one'), {
+    executablePath: executablePath,
+});
 
 let status = AuthenticatorStatus.NOT_LOGIN;
 setInterval(() => {

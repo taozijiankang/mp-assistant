@@ -44,6 +44,9 @@ export class WXAuthenticator {
             throw new Error('首页页面未初始化');
         }
         const page = await this.browserContent.newPage();
+        page.on('load', () => {
+            //
+        });
         await page.goto(this.homePage.url());
 
         // 判断页面路径
