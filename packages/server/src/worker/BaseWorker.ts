@@ -1,7 +1,7 @@
 import { BrowserContext, chromium, LaunchOptions } from "playwright";
 import { getUUID } from "mp-assistant-common/dist/utils/index.js";
 
-export class BaseWorker {
+export abstract class BaseWorker {
   key: string;
   private browserContent_: BrowserContext | null = null;
 
