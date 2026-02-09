@@ -17,13 +17,7 @@ export enum WXTaskType {
 /**
  * 任务执行状态类型
  */
-export enum TaskExecStatusType {
-    /** 闲置 */
-    IDLE = "idle",
-    /** 重置中（任务重置时使用） */
-    RESETING = "reseting",
-    /** 运行中 */
-    RUNNING = "running",
+export enum TaskExecResultType {
     /** 完成 */
     COMPLETED = "completed",
     /** 失败 */
