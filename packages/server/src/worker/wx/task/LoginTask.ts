@@ -6,23 +6,21 @@ import { expect } from "playwright/test";
 import { getWxaList } from "../../../api/module/wx.js";
 import { WXMPItem } from "mp-assistant-common/dist/types/wx.js";
 
+export interface LoginTaskOutput {
+    loginQRCodeURL: string;
+    wxaList: WXMPItem[];
+}
+
 /**
  * 登录任务
  */
-export class LoginTask extends BaseTask {
+export class LoginTask extends BaseTask<any, LoginTaskOutput> {
     readonly type = WXTaskType.LOGIN;
 
-    private loginQRCodeURL: string = '';
-
-    private wxaList: WXMPItem[] = [];
-
-    getWxaList() {
-        return JSON.parse(JSON.stringify(this.wxaList)) as WXMPItem[];
-    }
-
-    getLoginQRCodeURL() {
-        return this.loginQRCodeURL;
-    }
+    protected output: LoginTaskOutput = {
+        loginQRCodeURL: '',
+        wxaList: [],
+    };
 
     async exec(browserContent: BrowserContext): Promise<TaskExecResultType> {
         return new Promise<TaskExecResultType>((resolve) => {
@@ -53,7 +51,7 @@ export class LoginTask extends BaseTask {
                                 const buffer = await loginQRCodeLocator.screenshot();
                                 // 转成base64
                                 const base64 = Buffer.from(buffer).toString('base64');
-                                this.loginQRCodeURL = `data:image/png;base64,${base64}`;
+                                this.output.loginQRCodeURL = `data:image/png;base64,${base64}`;
                             } else {
                                 resolve(TaskExecResultType.FAILED);
                             }
@@ -62,7 +60,7 @@ export class LoginTask extends BaseTask {
                         // 用户页面
                         if (WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
                             const wxaList = await getWxaList(page);
-                            this.wxaList = wxaList;
+                            this.output.wxaList = wxaList;
                             await page.close();
                             complete();
                             return;
