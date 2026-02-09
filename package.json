@@ -5,6 +5,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "dev": "turbo run dev",
     "build": "turbo run build",
     "package": "turbo run package",
     "prepare": "husky",
@@ -37,7 +38,8 @@
     "cz-conventional-changelog": "^3.3.0",
     "cz-customizable": "^7.5.1",
     "husky": "^9.1.7",
-    "turbo": "^2.5.0"
+    "turbo": "^2.5.0",
+    "typescript": "~5.8.0"
   },
   "dependencies": {
     "commander": "^14.0.3",

@@ -23,7 +23,11 @@ export default defineConfig({
       message: await getGitInfo("%b"),
       messageFull: await getGitInfo("%B")
     }
-  }
+  },
+  server: {
+    open: false,
+    port: 3101,
+  },
 });
 
 /**

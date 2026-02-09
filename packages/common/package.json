@@ -5,18 +5,19 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "build-w": "tsc --watch"
+    "dev": "tsc --watch",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "crypto-js": "^4.2.0"
+    "crypto-js": "^4.2.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "mp-assistant-configuration": "workspace:*",
-    "@types/crypto-js": "^4.2.2"
+    "@types/crypto-js": "^4.2.2",
+    "mp-assistant-configuration": "workspace:*"
   },
   "repository": {
     "type": "git",
