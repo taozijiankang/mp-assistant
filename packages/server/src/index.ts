@@ -13,12 +13,17 @@ await devWXMPWorker.init({
     headless: false,
 });
 
-//添加任务
-devWXMPWorker.addTask(
-    new LoginTask({}),
-    new SwitchMPTask({
-        app_name: '广升誉健康商城',
-        username: 'gh_a20d71d10889',
-    }),
-    new AuditTask({})
+//添加工作
+devWXMPWorker.addJob(
+    {
+        title: '发布广升誉健康商城小程序',
+        taskList: [
+            new LoginTask({}),
+            new SwitchMPTask({
+                app_name: '广升誉健康商城',
+                username: 'gh_a20d71d10889',
+            }),
+            new AuditTask({})
+        ]
+    }
 );

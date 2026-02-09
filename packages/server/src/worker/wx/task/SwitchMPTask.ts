@@ -17,12 +17,7 @@ interface SwitchMPTaskConfig {
 export class SwitchMPTask extends BaseTask<SwitchMPTaskConfig> {
     readonly type = WXTaskType.SWITCH_MP;
 
-    async startExec(browserContent: BrowserContext): Promise<void> {
-        if (this.getExecStatus() === TaskExecStatusType.RUNNING) {
-            return;
-        }
-        this.setExecStatus(TaskExecStatusType.RUNNING);
-        //
+    async startExec_(browserContent: BrowserContext): Promise<void> {
         const page = await browserContent.newPage();
         page.goto(WXMP_HOME_URL);
         page.on('load', async () => {
@@ -105,7 +100,8 @@ export class SwitchMPTask extends BaseTask<SwitchMPTaskConfig> {
         });
 
     }
-    async stopExec(): Promise<void> {
-        throw new Error("Method not implemented.");
+    async resetExec_(): Promise<void> {
+        // 直接重来
+        this.setExecStatus(TaskExecStatusType.IDLE);
     }
 }

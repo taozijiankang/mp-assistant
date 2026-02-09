@@ -8,15 +8,11 @@ import { TaskExecStatusType, WXTaskType } from "mp-assistant-common/dist/constan
 export class AuditTask extends BaseTask {
     readonly type = WXTaskType.AUDIT;
 
-    async startExec(browserContent: BrowserContext): Promise<void> {
-        if (this.getExecStatus() === TaskExecStatusType.RUNNING) {
-            return;
-        }
-        this.setExecStatus(TaskExecStatusType.RUNNING);
-
+    async startExec_(browserContent: BrowserContext): Promise<void> {
         console.log('审核任务开始执行');
     }
-    async stopExec(): Promise<void> {
-        throw new Error("Method not implemented.");
+    async resetExec_(): Promise<void> {
+        console.log('审核任务重置执行');
+        this.setExecStatus(TaskExecStatusType.IDLE);
     }
 }

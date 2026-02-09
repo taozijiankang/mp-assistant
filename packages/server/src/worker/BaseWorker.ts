@@ -5,13 +5,28 @@ import path from "path";
 import { wait } from "mp-assistant-common/dist/utils/global.js";
 import { BaseTask } from "./BaseTask.js";
 
+export interface WorkerJob {
+  title: string;
+  taskList: BaseTask[];
+  key: string;
+}
+
 export abstract class BaseWorker {
-  private key: string;
+  private readonly key: string;
+
   private browserContent: BrowserContext | null = null;
 
-  private taskList: BaseTask[] = [];
+  protected jobList: WorkerJob[] = [];
 
-  protected onRunTask: BaseTask | null = null;
+  protected succeedJobList: WorkerJob[] = [];
+
+  private currentJobInfoKey: {
+    jobKey: string,
+    taskKey: string,
+  } = {
+      jobKey: '',
+      taskKey: '',
+    };
 
   constructor(options?: {
     key?: string;
@@ -33,12 +48,38 @@ export abstract class BaseWorker {
     return this.browserContent;
   }
 
-  getTaskList() {
-    return this.taskList;
+  getJobList() {
+    return this.jobList;
   }
 
-  getOnRunTask() {
-    return this.onRunTask;
+  getSucceedJobList() {
+    return this.succeedJobList;
+  }
+
+  getCurrentJob() {
+    return this.jobList.find(job => job.key === this.currentJobInfoKey.jobKey);
+  }
+
+  getCurrentTask() {
+    const currentJob = this.getCurrentJob();
+    return currentJob?.taskList.find(task => task.key === this.currentJobInfoKey.taskKey);
+  }
+
+  protected setCurrentJobKey(key: string) {
+    const job = this.jobList.find(job => job.key === key);
+    if (job) {
+      this.currentJobInfoKey.jobKey = job.key;
+    }
+  }
+
+  protected setCurrentTaskKey(key: string) {
+    const currentJob = this.getCurrentJob();
+    if (currentJob) {
+      const task = currentJob.taskList.find(task => task.key === key);
+      if (task) {
+        this.currentJobInfoKey.taskKey = task.key;
+      }
+    }
   }
 
   async init(options: Pick<LaunchOptions, 'executablePath' | 'headless'>) {
@@ -56,8 +97,11 @@ export abstract class BaseWorker {
     await this._init();
   }
 
-  addTask(...task: BaseTask[]): this {
-    this.taskList.push(...task);
+  addJob(options: Omit<WorkerJob, 'key'>): this {
+    this.jobList.push({
+      ...options,
+      key: getUUID(),
+    });
     return this;
   }
 

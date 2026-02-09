@@ -24,12 +24,7 @@ export class LoginTask extends BaseTask {
         return this.loginQRCodeURL;
     }
 
-    async startExec(browserContent: BrowserContext): Promise<void> {
-        if (this.getExecStatus() === TaskExecStatusType.RUNNING) {
-            return;
-        }
-        this.setExecStatus(TaskExecStatusType.RUNNING);
-        //
+    async startExec_(browserContent: BrowserContext): Promise<void> {
         const openWXHome = async () => {
             const page = await browserContent.newPage();
             // 打开首页页面
@@ -53,8 +48,6 @@ export class LoginTask extends BaseTask {
                             // 转成base64
                             const base64 = Buffer.from(buffer).toString('base64');
                             this.loginQRCodeURL = `data:image/png;base64,${base64}`;
-                            //
-                            this.setExecStatus(TaskExecStatusType.WAITING);
                         } else {
                             this.setExecStatus(TaskExecStatusType.FAILED);
                         }
@@ -84,7 +77,8 @@ export class LoginTask extends BaseTask {
         openWXHome();
     }
 
-    async stopExec(): Promise<void> {
-        throw new Error("Method not implemented.");
+    async resetExec_(): Promise<void> {
+        // 直接重来
+        this.setExecStatus(TaskExecStatusType.IDLE);
     }
 }
