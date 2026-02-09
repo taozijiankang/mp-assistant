@@ -1,37 +1,80 @@
 import { BrowserContext, chromium, LaunchOptions } from "playwright";
 import { getUUID } from "mp-assistant-common/dist/utils/index.js";
+import { getChromeUserDataDir } from "../pathManage.js";
+import path from "path";
+import { wait } from "mp-assistant-common/dist/utils/global.js";
+import { BaseTask } from "./BaseTask.js";
 
 export abstract class BaseWorker {
-  key: string;
-  private browserContent_: BrowserContext | null = null;
+  private key: string;
+  private browserContent: BrowserContext | null = null;
 
-  constructor() {
-    this.key = getUUID();
+  private taskList: BaseTask[] = [];
+
+  protected onRunTask: BaseTask | null = null;
+
+  constructor(options?: {
+    key?: string;
+  }) {
+    const { key } = options ?? {};
+    this.key = key ?? getUUID();
+
+    this.taskCycle();
   }
 
-  get browserContent() {
-    if (!this.browserContent_) {
+  getKey() {
+    return this.key;
+  }
+
+  getBrowserContent() {
+    if (!this.browserContent) {
       throw new Error("Browser content not initialized");
     }
-    return this.browserContent_!;
+    return this.browserContent;
   }
 
-  async init(userDataDir: string, options: Pick<LaunchOptions, 'executablePath' | 'headless'>) {
-    this.browserContent_ = await chromium.launchPersistentContext(userDataDir, {
-      ...options,
-      viewport: null,
-    });
+  getTaskList() {
+    return this.taskList;
+  }
 
-    this.browserContent_.on('close', () => {
+  getOnRunTask() {
+    return this.onRunTask;
+  }
+
+  async init(options: Pick<LaunchOptions, 'executablePath' | 'headless'>) {
+    this.browserContent = await chromium.launchPersistentContext(
+      path.join(getChromeUserDataDir(), this.key),
+      {
+        ...options,
+        viewport: null,
+      });
+
+    this.browserContent.on('close', () => {
       this._onClose();
     });
 
     await this._init();
   }
 
-  close() {
-    this.browserContent_?.close();
+  addTask(...task: BaseTask[]): this {
+    this.taskList.push(...task);
+    return this;
   }
+
+  private async taskCycle() {
+    await this._taskCycle();
+    await wait(100);
+    this.taskCycle();
+  }
+
+  close() {
+    this.browserContent?.close();
+  }
+
+  /**
+   * 运行任务循环
+   */
+  protected async _taskCycle() { }
 
   protected async _onClose() { }
 

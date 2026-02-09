@@ -3,6 +3,17 @@ export enum AuthenticatorStatus {
     NOT_LOGIN = 'notLogin'
 }
 
+export enum WXTaskType {
+    /** 登录 */
+    LOGIN = 'login',
+    /** 切换小程序 */
+    SWITCH_MP = 'switchMP',
+    /** 审核 */
+    AUDIT = 'audit',
+    /** 发布 */
+    PUBLISH = 'publish',
+}
+
 /**
  * 任务执行状态类型
  */
@@ -13,8 +24,6 @@ export enum TaskExecStatusType {
     COMPLETED = 'completed',
     /** 失败 */
     FAILED = 'failed',
-    /** 跳过 */
-    SKIPPED = 'skipped',
     /** 等待 */
     WAITING = 'waiting',
 }

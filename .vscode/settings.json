@@ -30,12 +30,5 @@
   "[less]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "cSpell.words": [
-    "headimg",
-    "qrcode",
-    "uuidv",
-    "weixin",
-    "wxamp",
-    "WXMP"
-  ]
+  "cSpell.words": ["headimg", "qrcode", "scanloginqrcode", "uuidv", "weixin", "wxamp", "WXMP"]
 }

@@ -1,14 +1,20 @@
 import { BrowserContext } from "playwright";
 import { getUUID } from "mp-assistant-common/dist/utils/index.js";
-import { TaskExecStatusType } from "mp-assistant-common/dist/constant/enum.js";
+import { TaskExecStatusType, WXTaskType } from "mp-assistant-common/dist/constant/enum.js";
 
-export abstract class BaseTask {
+export abstract class BaseTask<C = any> {
+    readonly type: WXTaskType | null = null;
+
     key: string;
 
-    private execStatus: TaskExecStatusType | null = null;
+    execStatus: TaskExecStatusType | null = null;
 
-    constructor() {
+    config: C;
+
+    constructor(config: C) {
         this.key = getUUID();
+
+        this.config = config;
     }
 
     getExecStatus() {
@@ -22,10 +28,10 @@ export abstract class BaseTask {
     /**
      * 开始执行任务
      */
-    protected abstract startExec(browserContent: BrowserContext): Promise<void>;
+    abstract startExec(browserContent: BrowserContext): Promise<void>;
 
     /**
      * 停止执行任务
      */
-    protected abstract stopExec(): Promise<void>;
+    abstract stopExec(): Promise<void>;
 }
