@@ -1,4 +1,3 @@
-
 /**
  * 微信小程序管理后台域名
  */
@@ -23,3 +22,8 @@ export const WXMP_LOGIN_PATH = '/';
  * 微信小程序管理后台首页URL
  */
 export const WXMP_HOME_URL = `https://${WXMP_HOST}`
+
+/**
+ * 微信小程序管理后台版本管理页面URL
+ */
+export const WXMP_VERSION_MANAGEMENT_URL = `${WXMP_HOME_URL}/wxamp/wacodepage/getcodepage`

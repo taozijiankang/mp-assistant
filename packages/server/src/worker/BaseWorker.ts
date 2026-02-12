@@ -4,165 +4,86 @@ import { getChromeUserDataDir } from "../pathManage.js";
 import path from "path";
 import { wait } from "mp-assistant-common/dist/utils/global.js";
 import { BaseTask } from "./BaseTask.js";
-import { TaskExecResultType } from "mp-assistant-common/dist/constant/enum.js";
-
-export interface WorkerJob {
-  title: string;
-  taskList: BaseTask[];
-  key: string;
-}
+import { TaskStatus } from "mp-assistant-common/dist/constant/enum/task.js";
+import { WorkerType } from "mp-assistant-common/dist/constant/enum/worker.js";
 
 export abstract class BaseWorker {
-  private readonly key: string;
+  readonly type?: WorkerType;
 
-  private browserContent: BrowserContext | null = null;
+  private readonly __key: string;
 
-  protected jobList: WorkerJob[] = [];
+  private __browserContent: BrowserContext | null = null;
 
-  protected succeedJobList: WorkerJob[] = [];
+  private __taskList: BaseTask[] = [];
 
-  private currentJobInfoKey: {
-    jobKey: string,
-    taskKey: string,
-  } = {
-      jobKey: '',
-      taskKey: '',
-    };
+  private __succeedTaskList: BaseTask[] = [];
+
+  private __currentRunningTaskKey = '';
+
+  get key() {
+    return this.__key;
+  }
+
+  get browserContent() {
+    return this.__browserContent;
+  }
+
+  get taskList() {
+    return [...this.__taskList];
+  }
+
+  get currentRunningTask() {
+    return this.__taskList.find(task => task.key === this.__currentRunningTaskKey);
+  }
+  set currentRunningTaskKey(key: string) {
+    this.__currentRunningTaskKey = this.__taskList.find(task => task.key === key)?.key ?? '';
+  }
+
+  get succeedTaskList() {
+    return [...this.__succeedTaskList];
+  }
 
   constructor(options?: {
     key?: string;
   }) {
     const { key } = options ?? {};
-    this.key = key ?? getUUID();
-
-    this.taskCycle();
-  }
-
-  getKey() {
-    return this.key;
-  }
-
-  getBrowserContent() {
-    if (!this.browserContent) {
-      throw new Error("Browser content not initialized");
-    }
-    return this.browserContent;
-  }
-
-  getJobList() {
-    return this.jobList;
-  }
-
-  getSucceedJobList() {
-    return this.succeedJobList;
-  }
-
-  getCurrentJob() {
-    return this.jobList.find(job => job.key === this.currentJobInfoKey.jobKey);
-  }
-
-  getCurrentTask() {
-    const currentJob = this.getCurrentJob();
-    return currentJob?.taskList.find(task => task.key === this.currentJobInfoKey.taskKey);
-  }
-
-  protected setCurrentJobKey(key: string) {
-    const job = this.jobList.find(job => job.key === key);
-    if (job) {
-      this.currentJobInfoKey.jobKey = job.key;
-    }
-  }
-
-  protected setCurrentTaskKey(key: string) {
-    const currentJob = this.getCurrentJob();
-    if (currentJob) {
-      const task = currentJob.taskList.find(task => task.key === key);
-      if (task) {
-        this.currentJobInfoKey.taskKey = task.key;
-      }
-    }
+    this.__key = key ?? getUUID();
   }
 
   async init(options: Pick<LaunchOptions, 'executablePath' | 'headless'>) {
-    this.browserContent = await chromium.launchPersistentContext(
+    this.__browserContent = await chromium.launchPersistentContext(
       path.join(getChromeUserDataDir(), this.key),
       {
         ...options,
         viewport: null,
       });
 
-    this.browserContent.on('close', () => {
-      this._onClose();
-    });
-
-    await this._init();
+    // 开始任务循环
+    this.__taskCycle();
   }
 
-  addJob(options: Omit<WorkerJob, 'key'>): this {
-    this.jobList.push({
-      ...options,
-      key: getUUID(),
-    });
-    return this;
+  addTask(task: BaseTask) {
+    this.__taskList.push(task);
   }
 
-  private async taskCycle() {
-    await this.taskCycleRun();
-    await wait(100);
-    this.taskCycle();
-  }
-  private async taskCycleRun() {
-    // 默认运行第一个工作
-    if (!this.getCurrentJob()) {
-      this.setCurrentJobKey(this.jobList[0]?.key ?? '');
+  private async __taskCycle() {
+    try {
+      await this._taskCycleExecutor();
+    } catch (error) {
+      console.error('任务执行失败', error);
     }
-    const currentJob = this.getCurrentJob();
-    if (!currentJob) {
-      return;
-    }
-    // 默认运行第一个任务
-    if (!this.getCurrentTask()) {
-      this.setCurrentTaskKey(currentJob.taskList[0]?.key ?? '');
-    }
-    const currentTask = this.getCurrentTask();
-    if (!currentTask) {
-      return;
-    }
-    // 执行任务
-    const currentTaskExecResult = await currentTask.exec(this.getBrowserContent());
-    // 如果运行失败则重新执行整个job的任务
-    if (currentTaskExecResult === TaskExecResultType.FAILED) {
-      this.setCurrentTaskKey(currentJob.taskList[0]?.key ?? '');
-      //
-      return;
-    }
-    // 如果任务成功或者等待后续则跳到下一个任务或者下一个job
-    if (currentTaskExecResult === TaskExecResultType.COMPLETED || currentTaskExecResult === TaskExecResultType.WAITING_NEXT) {
-      const nextTaskIndex = currentJob.taskList.findIndex(task => task.key === currentTask.key) + 1;
-      if (nextTaskIndex < currentJob.taskList.length) {
-        this.setCurrentTaskKey(currentJob.taskList[nextTaskIndex]?.key ?? '');
-      }
-      // 当前job的任务全部完成 则跳到下一个job
-      else {
-        const currentJobIndex = this.jobList.findIndex(job => job.key === currentJob.key) + 1;
-        if (currentJobIndex < this.jobList.length) {
-          this.setCurrentJobKey(this.jobList[currentJobIndex]?.key ?? '');
-        } else {
-          // 回到第一个job 循环执行 直到任务全部完成
-          this.setCurrentJobKey('');
-        }
-        //
-        this.succeedJobList.push(currentJob);
-        this.jobList = this.jobList.filter(job => job.key !== currentJob.key);
-      }
+    finally {
+      await wait(0);
+      this.__taskCycle();
     }
   }
 
-  close() {
-    this.browserContent?.close();
+  protected _completeTask(task: BaseTask) {
+    if (this.__taskList.some(item => item.key === task.key) && task.status === TaskStatus.COMPLETED) {
+      this.__succeedTaskList.push(task);
+      this.__taskList = this.__taskList.filter(t => t.key !== task.key);
+    }
   }
 
-  protected async _onClose() { }
-
-  protected async _init() { }
+  protected abstract _taskCycleExecutor(): Promise<void>;
 }

@@ -1,16 +1,29 @@
-import { BaseTask } from "../../BaseTask.js";
 import { BrowserContext } from "playwright";
-import { TaskExecResultType, WXTaskType } from "mp-assistant-common/dist/constant/enum.js";
+import { WXTask } from "./WXTask.js";
+import { TaskStatus, TaskType } from "mp-assistant-common/dist/constant/enum/task.js";
+import { TaskExecResult } from "mp-assistant-common/dist/types/task.js";
+import { WXMP_VERSION_MANAGEMENT_URL } from "../../../constant/wx.js";
 
 /**
  * 检查小程序版本任务
  * 进入小程序版本管理页面，获取各个版本的信息
  */
-export class InspectVersionTask extends BaseTask {
-    readonly type = WXTaskType.INSPECT_VERSION;
+export class InspectVersionTask extends WXTask {
+    readonly type = TaskType.WX_INSPECT_VERSION;
 
-    async exec(browserContent: BrowserContext): Promise<TaskExecResultType> {
-        console.log('检查小程序版本任务执行成功');
-        return TaskExecResultType.COMPLETED;
+    protected async _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
+        const page = await this._switchMP(browserContent);
+        try {
+            await page.goto(`${WXMP_VERSION_MANAGEMENT_URL}${new URL(page.url()).search}`);
+            /**
+             * 获取版本管理页面中的版本列表
+             */
+            console.log('获取版本管理页面中的版本列表');
+            return {
+                status: TaskStatus.COMPLETED,
+            }
+        } catch (error) {
+            throw new Error('版本管理页面加载失败');
+        }
     }
 }
