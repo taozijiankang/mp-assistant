@@ -1,13 +1,12 @@
 {
-  "name": "mp-assistant-server",
-  "version": "1.0.0",
+  "name": "mp-assistant-core",
+  "version": "0.0.0",
   "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "dev": "tsc --watch",
-    "build": "tsc",
-    "package": "node ../scripts/src/bin/package.js package-server"
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",

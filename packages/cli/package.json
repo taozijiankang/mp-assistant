@@ -1,6 +1,6 @@
 {
   "name": "mp-assistant-cli",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "",
   "type": "module",
   "main": "index.js",
@@ -13,7 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "mp-assistant-common": "workspace:*",
-    "mp-assistant-server": "workspace:*"
+    "mp-assistant-core": "workspace:*"
   },
   "devDependencies": {
     "mp-assistant-configuration": "workspace:*"

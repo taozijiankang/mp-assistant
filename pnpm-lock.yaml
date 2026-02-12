@@ -51,9 +51,9 @@ importers:
       mp-assistant-common:
         specifier: workspace:*
         version: link:../common
-      mp-assistant-server:
+      mp-assistant-core:
         specifier: workspace:*
-        version: link:../server
+        version: link:../core
     devDependencies:
       mp-assistant-configuration:
         specifier: workspace:*
@@ -76,6 +76,22 @@ importers:
         version: link:../configuration
 
   packages/configuration: {}
+
+  packages/core:
+    dependencies:
+      '@playwright/test':
+        specifier: ^1.58.2
+        version: 1.58.2
+      mp-assistant-common:
+        specifier: workspace:*
+        version: link:../common
+      playwright:
+        specifier: ^1.58.2
+        version: 1.58.2
+    devDependencies:
+      mp-assistant-configuration:
+        specifier: workspace:*
+        version: link:../configuration
 
   packages/dashboard:
     dependencies:
@@ -141,22 +157,6 @@ importers:
       '@types/node':
         specifier: ^22.14.0
         version: 22.14.1
-
-  packages/server:
-    dependencies:
-      '@playwright/test':
-        specifier: ^1.58.2
-        version: 1.58.2
-      mp-assistant-common:
-        specifier: workspace:*
-        version: link:../common
-      playwright:
-        specifier: ^1.58.2
-        version: 1.58.2
-    devDependencies:
-      mp-assistant-configuration:
-        specifier: workspace:*
-        version: link:../configuration
 
 packages:
 
