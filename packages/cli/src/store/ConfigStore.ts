@@ -4,12 +4,16 @@ import { getStoreDir } from "../pathManage.js";
 export interface Config {
     executablePath: string;
     headless: boolean;
+    port: number;
 }
 
-const { get: getConfigLocalStore, set: setConfigLocalStore } = useLocalStore<Config>('config', {
+const DEFAULT_CONFIG: Config = {
     executablePath: '',
     headless: true,
-}, {
+    port: 3001,
+}
+
+const { get: getConfigLocalStore, set: setConfigLocalStore } = useLocalStore<Config>('config', DEFAULT_CONFIG, {
     storeDir: getStoreDir(),
 });
 
@@ -20,8 +24,7 @@ export class ConfigStore {
     }
 
     private __config: Config = {
-        executablePath: '',
-        headless: true,
+        ...DEFAULT_CONFIG,
     }
 
     get config() {
@@ -32,8 +35,11 @@ export class ConfigStore {
         this.__config = getConfigLocalStore();
     }
 
-    setConfig(config: Config) {
-        this.__config = config;
-        setConfigLocalStore(config);
+    setConfig(config: Partial<Config>) {
+        this.__config = {
+            ...this.__config,
+            ...config,
+        };
+        setConfigLocalStore(this.__config);
     }
 }
