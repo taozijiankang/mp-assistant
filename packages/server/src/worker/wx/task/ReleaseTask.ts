@@ -4,7 +4,8 @@ import { TaskExecResultType, WXTaskType } from "mp-assistant-common/dist/constan
 
 
 /**
- * 发布任务
+ * 发布小程序任务
+ * 进入小程序版本管理页面，选择要发布的小程序版本，并进行发布
  */
 export class ReleaseTask extends BaseTask {
     readonly type = WXTaskType.PUBLISH;

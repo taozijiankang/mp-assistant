@@ -1,5 +1,6 @@
 import { LoginTask } from "./LoginTask.js";
 import { SwitchMPTask } from "./SwitchMPTask.js";
+import { InspectVersionTask } from "./InspectVersionTask.js";
 import { AuditTask } from "./AuditTask.js";
 import { ReleaseTask } from "./ReleaseTask.js";
 import { BaseTask } from "../../BaseTask.js";
@@ -8,6 +9,7 @@ import { WXTaskType } from "mp-assistant-common/dist/constant/enum.js";
 export {
     LoginTask,
     SwitchMPTask,
+    InspectVersionTask,
     AuditTask,
     ReleaseTask,
 }
@@ -18,6 +20,10 @@ export const isLoginTask = (task: BaseTask): task is LoginTask => {
 
 export const isSwitchMPTask = (task: BaseTask): task is SwitchMPTask => {
     return task.type === WXTaskType.SWITCH_MP;
+}
+
+export const isInspectVersionTask = (task: BaseTask): task is InspectVersionTask => {
+    return task.type === WXTaskType.INSPECT_VERSION;
 }
 
 export const isAuditTask = (task: BaseTask): task is AuditTask => {

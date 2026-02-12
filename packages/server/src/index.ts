@@ -1,4 +1,5 @@
 import { AuditTask } from './worker/wx/task/AuditTask.js';
+import { InspectVersionTask } from './worker/wx/task/InspectVersionTask.js';
 import { LoginTask } from './worker/wx/task/LoginTask.js';
 import { SwitchMPTask } from './worker/wx/task/SwitchMPTask.js';
 import { WXMPWorker } from './worker/wx/WXMPWorker.js';
@@ -23,7 +24,7 @@ devWXMPWorker.addJob(
                 app_name: '广升誉健康商城',
                 username: 'gh_a20d71d10889',
             }),
-            new AuditTask({})
+            new InspectVersionTask({})
         ]
     }
 );

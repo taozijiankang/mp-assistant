@@ -3,14 +3,14 @@ import { BrowserContext } from "playwright";
 import { TaskExecResultType, WXTaskType } from "mp-assistant-common/dist/constant/enum.js";
 
 /**
- * 审核小程序任务
- * 进入小程序版本管理页面，选择要审核的小程序版本，并进行审核
+ * 检查小程序版本任务
+ * 进入小程序版本管理页面，获取各个版本的信息
  */
-export class AuditTask extends BaseTask {
-    readonly type = WXTaskType.AUDIT;
+export class InspectVersionTask extends BaseTask {
+    readonly type = WXTaskType.INSPECT_VERSION;
 
     async exec(browserContent: BrowserContext): Promise<TaskExecResultType> {
-        console.log('审核任务执行成功');
+        console.log('检查小程序版本任务执行成功');
         return TaskExecResultType.COMPLETED;
     }
 }
