@@ -33,3 +33,8 @@ export const TaskStatusDict = {
     [TaskStatus.COMPLETED]: '完成',
     [TaskStatus.FAILED]: '失败'
 }
+
+export const TaskTypeOptions = Object.values(TaskType).map(type => ({
+    label: TaskTypeDict[type],
+    value: type,
+}));

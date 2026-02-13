@@ -22,7 +22,7 @@ export class WXWorker extends BaseWorker {
     }
 
     protected async _init() {
-        await this.__verifyLoginStatus(this.browserContent!);
+        this.__verifyLoginStatus(this.browserContent!);
     }
 
     protected async _taskCycleExecutor() {
@@ -66,6 +66,7 @@ export class WXWorker extends BaseWorker {
             let isComplete = false;
             const complete = async (page: Page) => {
                 isComplete = true;
+                this.loginQRCodeURL = '';
                 await this.__loginSuccess(page);
                 resolve();
             }
