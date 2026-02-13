@@ -6,7 +6,7 @@ import { get, post } from "./request";
  */
 export function getConfig() {
     return get<Api.Config.GetConfig.ResponseData>(
-        Api.Config.GetConfig.url + 'fdsa'
+        Api.Config.GetConfig.url
     );
 }
 
