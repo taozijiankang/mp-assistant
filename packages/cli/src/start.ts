@@ -7,6 +7,8 @@ import fastifyWebsocket from '@fastify/websocket'
 import { ConfigStore } from './store/ConfigStore.js';
 import { registerWebSocket } from './server/ws/index.js';
 import { registerApi } from './server/api/index.js';
+import { ApiPrefix } from 'mp-assistant-common/dist/api/index.js';
+import { WorkerStore } from './store/WorkerStore.js';
 
 const require = createRequire(import.meta.url);
 
@@ -14,6 +16,20 @@ const require = createRequire(import.meta.url);
  * Run the server!
  */
 export const start = async () => {
+    startServer();
+
+    /**
+     * 初始化worker
+     */
+    for (const worker of WorkerStore.instance.workerList) {
+        await worker.init({
+            executablePath: ConfigStore.instance.config.executablePath,
+            headless: ConfigStore.instance.config.headless,
+        });
+    }
+}
+
+const startServer = async () => {
     const fastify = Fastify({
         // logger: true
     });
@@ -35,7 +51,7 @@ export const start = async () => {
     await fastify.register(registerWebSocket);
 
     // api 路由
-    await fastify.register(registerApi, { prefix: '/api' });
+    await fastify.register(registerApi, { prefix: ApiPrefix });
 
     try {
         await fastify.listen({ port: ConfigStore.instance.config.port })

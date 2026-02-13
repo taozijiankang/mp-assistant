@@ -1,4 +1,4 @@
-import { TaskExecResult } from "mp-assistant-common/dist/types/task.js";
+import { TaskExecResult } from "mp-assistant-common/dist/work/task/type.js";
 import { BrowserContext, Page } from "playwright";
 import { BaseTask } from "../../BaseTask.js";
 import { WXMP_HOME_URL, WXMP_USER_PAGE_PATH_REX } from "../../../constant/wx.js";
@@ -17,9 +17,10 @@ export class WXTask extends BaseTask<BaseWXTaskParams> {
     }
 
     protected async _switchMP(browserContent: BrowserContext) {
-        return new Promise<Page>(async (resolve) => {
-            const page = await browserContent.newPage();
+        return await (new Promise<Page>(async (resolve, reject) => {
+            let page: Page | null = null;
             try {
+                page = await browserContent.newPage();
                 await page.goto(WXMP_HOME_URL);
                 const url = new URL(page.url());
 
@@ -89,9 +90,9 @@ export class WXTask extends BaseTask<BaseWXTaskParams> {
                 resolve(page);
             }
             catch (error) {
-                await page.close();
-                throw error;
+                await page?.close();
+                reject(error);
             }
-        });
+        }));
     }
 }

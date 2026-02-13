@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
-import { ConfigStore } from "../../store/ConfigStore.js";
+import { registerConfigApi } from "./config.js";
+import { registerWorkerApi } from "./worker.js";
 
-export const registerApi = async (fastify: FastifyInstance) => {
-    fastify.get('/config', async (request, reply) => {
-        return ConfigStore.instance.config;
-    });
+export const registerApi = (fastify: FastifyInstance) => {
+    registerConfigApi(fastify);
+    registerWorkerApi(fastify);
 }

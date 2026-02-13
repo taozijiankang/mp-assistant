@@ -1,5 +1,5 @@
 import { WXWorker } from "./wx/WXWorker.js";
-import { WorkerType } from "mp-assistant-common/dist/constant/enum/worker.js";
+import { WorkerType } from "mp-assistant-common/dist/work/index.js";
 import { BaseWorker } from "./BaseWorker.js";
 
 export {
@@ -8,6 +8,7 @@ export {
 
 export const createWorker = (type: WorkerType, options?: {
     key?: string;
+    name?: string;
 }): BaseWorker => {
     switch (type) {
         case WorkerType.WX:

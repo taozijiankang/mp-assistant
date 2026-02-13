@@ -4,14 +4,26 @@ import { WXMP_HOME_URL, WXMP_HOST, WXMP_LOGIN_PATH, WXMP_USER_PAGE_PATH_REX } fr
 import { expect } from "playwright/test";
 import { getWxaList } from "../../api/module/wx.js";
 import { WXMPItem } from "mp-assistant-common/dist/types/wx.js";
-import { TaskStatus } from "mp-assistant-common/dist/constant/enum/task.js";
-import { WorkerType } from "mp-assistant-common/dist/constant/enum/worker.js";
+import { TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
+import { WorkerType } from "mp-assistant-common/dist/work/index.js";
 
 export class WXWorker extends BaseWorker {
     readonly type = WorkerType.WX;
 
     loginQRCodeURL: string = '';
     wxaList: WXMPItem[] = [];
+
+    info() {
+        return {
+            ...super.info(),
+            loginQRCodeURL: this.loginQRCodeURL,
+            wxaList: this.wxaList,
+        }
+    }
+
+    protected async _init() {
+        await this.__verifyLoginStatus(this.browserContent!);
+    }
 
     protected async _taskCycleExecutor() {
         if (!this.browserContent) {

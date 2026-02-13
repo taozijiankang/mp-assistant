@@ -4,13 +4,16 @@ import { getChromeUserDataDir } from "../pathManage.js";
 import path from "path";
 import { wait } from "mp-assistant-common/dist/utils/global.js";
 import { BaseTask } from "./BaseTask.js";
-import { TaskStatus } from "mp-assistant-common/dist/constant/enum/task.js";
-import { WorkerType } from "mp-assistant-common/dist/constant/enum/worker.js";
+import { TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
+import { WorkerType } from "mp-assistant-common/dist/work/index.js";
+import { BaseWorkInfo } from "mp-assistant-common/dist/work/type.js";
 
 export abstract class BaseWorker {
   readonly type?: WorkerType;
 
   private readonly __key: string;
+
+  private __name: string = '';
 
   private __browserContent: BrowserContext | null = null;
 
@@ -22,6 +25,14 @@ export abstract class BaseWorker {
 
   get key() {
     return this.__key;
+  }
+
+  get name() {
+    return this.__name;
+  }
+
+  set name(name: string) {
+    this.__name = name;
   }
 
   get browserContent() {
@@ -45,9 +56,22 @@ export abstract class BaseWorker {
 
   constructor(options?: {
     key?: string;
+    name?: string;
   }) {
-    const { key } = options ?? {};
+    const { key, name } = options ?? {};
     this.__key = key ?? getUUID();
+    this.__name = name ?? '';
+  }
+
+  info(): BaseWorkInfo {
+    return {
+      key: this.key,
+      name: this.name,
+      type: this.type!,
+      taskList: this.taskList.map(task => task.info()),
+      currentRunningTaskKey: this.__currentRunningTaskKey,
+      succeedTaskList: this.succeedTaskList.map(task => task.info()),
+    }
   }
 
   async init(options: Pick<LaunchOptions, 'executablePath' | 'headless'>) {
@@ -57,13 +81,25 @@ export abstract class BaseWorker {
         ...options,
         viewport: null,
       });
-
+    await this._init();
     // 开始任务循环
     this.__taskCycle();
   }
 
   addTask(task: BaseTask) {
     this.__taskList.push(task);
+  }
+
+  async removeTask(taskKey: string) {
+    const task = this.__taskList.find(t => t.key === taskKey);
+    if (task) {
+      await task.destroy();
+    }
+    this.__taskList = this.__taskList.filter(t => t.key !== taskKey);
+  }
+
+  destroy() {
+    this.__browserContent?.close();
   }
 
   private async __taskCycle() {
@@ -83,6 +119,10 @@ export abstract class BaseWorker {
       this.__succeedTaskList.push(task);
       this.__taskList = this.__taskList.filter(t => t.key !== task.key);
     }
+  }
+
+  protected async _init() {
+    //
   }
 
   protected abstract _taskCycleExecutor(): Promise<void>;

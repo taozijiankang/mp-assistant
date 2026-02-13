@@ -1,4 +1,4 @@
-import { WorkerType } from "mp-assistant-common/dist/constant/enum/worker.js";
+import { WorkerType } from "mp-assistant-common/dist/work/index.js";
 import { getStoreDir } from "../pathManage.js";
 import { useLocalStore } from "../hooks/useLocalStore.js";
 import type { BaseWorker } from "mp-assistant-core/dist/worker/BaseWorker.js";
@@ -7,6 +7,7 @@ import { createWorker } from "mp-assistant-core/dist/worker/index.js";
 interface WorkerStoreItem {
     key: string;
     type: WorkerType;
+    name: string;
 }
 
 const { get: getWorkerLocalStoreList, set: setWorkerLocalStoreList } = useLocalStore<WorkerStoreItem[]>('workerList', [], {
@@ -29,6 +30,7 @@ export class WorkerStore {
         this.__workerList = getWorkerLocalStoreList().map(item => {
             return createWorker(item.type, {
                 key: item.key,
+                name: item.name,
             });
         });
     }
@@ -38,6 +40,7 @@ export class WorkerStore {
         setWorkerLocalStoreList([...getWorkerLocalStoreList(), {
             key: worker.key,
             type: worker.type!,
+            name: worker.name,
         }]);
     }
 

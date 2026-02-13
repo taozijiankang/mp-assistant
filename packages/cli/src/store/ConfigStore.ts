@@ -1,11 +1,6 @@
 import { useLocalStore } from "../hooks/useLocalStore.js";
 import { getStoreDir } from "../pathManage.js";
-
-export interface Config {
-    executablePath: string;
-    headless: boolean;
-    port: number;
-}
+import { Config } from "mp-assistant-common/dist/types/config.js";
 
 const DEFAULT_CONFIG: Config = {
     executablePath: '',

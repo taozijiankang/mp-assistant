@@ -1,13 +1,11 @@
 import { BrowserContext } from "playwright";
 import { getUUID } from "mp-assistant-common/dist/utils/index.js";
-import { TaskStatus, TaskType } from "mp-assistant-common/dist/constant/enum/task.js";
-import { TaskRunningReport } from "mp-assistant-common/dist/types/task.js";
-import { TaskExecResult } from "mp-assistant-common/dist/types/task.js";
-
+import { TaskStatus, TaskType } from "mp-assistant-common/dist/work/task/index.js";
+import { BaseTaskInfo, TaskRunningReport } from "mp-assistant-common/dist/work/task/type.js";
+import { TaskExecResult } from "mp-assistant-common/dist/work/task/type.js";
 
 export abstract class BaseTask<
-    TParams = any,
-    TOutput = any
+    TParams = any
 > {
     readonly type?: TaskType;
 
@@ -17,20 +15,20 @@ export abstract class BaseTask<
 
     readonly params: TParams;
 
-    private __output?: TOutput;
-
     private __runningReportList: TaskRunningReport[] = [];
+
+    private __result?: TaskExecResult;
 
     get status() {
         return this.__status;
     }
 
-    get output() {
-        return this.__output;
+    get runningReportList() {
+        return [...this.__runningReportList];
     }
 
-    get runningReportList() {
-        return this.__runningReportList;
+    get result() {
+        return this.__result;
     }
 
     constructor(options: {
@@ -49,7 +47,18 @@ export abstract class BaseTask<
         this.__runningReportList.push(report);
     }
 
-    async run(browserContent: BrowserContext): Promise<TaskExecResult<TOutput>> {
+    info(): BaseTaskInfo {
+        return {
+            key: this.key,
+            type: this.type!,
+            status: this.status,
+            runningReportList: this.runningReportList,
+            params: this.params,
+            result: this.result,
+        };
+    }
+
+    async run(browserContent: BrowserContext): Promise<TaskExecResult> {
         if (this.status !== TaskStatus.NOT_STARTED) {
             throw new Error('Task already started');
         }
@@ -60,16 +69,21 @@ export abstract class BaseTask<
             // 执行任务
             const result = await this._executor(browserContent);
             this._setStatus(result.status);
-            this.__output = result.output;
-            return result
+            this.__result = result;
         } catch (error) {
             this._setStatus(TaskStatus.FAILED);
-            console.error('任务执行失败', error);
-            return {
+            this.__result = {
                 status: TaskStatus.FAILED,
                 message: error instanceof Error ? error.message : 'Unknown error',
             };
+            console.error('任务执行失败', error);
         }
+        return this.__result;
+    }
+
+    async destroy() {
+        this.__runningReportList = [];
+        this.__result = void 0;
     }
 
     protected abstract _executor(browserContent: BrowserContext): Promise<TaskExecResult>;

@@ -1,7 +1,7 @@
 import { BrowserContext } from "playwright";
 import { WXTask } from "./WXTask.js";
-import { TaskStatus, TaskType } from "mp-assistant-common/dist/constant/enum/task.js";
-import { TaskExecResult } from "mp-assistant-common/dist/types/task.js";
+import { TaskStatus, TaskType } from "mp-assistant-common/dist/work/task/index.js";
+import { TaskExecResult } from "mp-assistant-common/dist/work/task/type.js";
 import { WXMP_VERSION_MANAGEMENT_URL } from "../../../constant/wx.js";
 
 /**
