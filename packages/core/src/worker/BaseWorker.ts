@@ -19,7 +19,7 @@ export abstract class BaseWorker {
 
   private __taskList: BaseTask[] = [];
 
-  private __succeedTaskList: BaseTask[] = [];
+  private __completedTaskList: BaseTask[] = [];
 
   private __currentRunningTaskKey = '';
 
@@ -50,8 +50,8 @@ export abstract class BaseWorker {
     this.__currentRunningTaskKey = this.__taskList.find(task => task.key === key)?.key ?? '';
   }
 
-  get succeedTaskList() {
-    return [...this.__succeedTaskList];
+  get completedTaskList() {
+    return [...this.__completedTaskList];
   }
 
   constructor(options?: {
@@ -70,7 +70,7 @@ export abstract class BaseWorker {
       type: this.type!,
       taskList: this.taskList.map(task => task.info()),
       currentRunningTaskKey: this.__currentRunningTaskKey,
-      succeedTaskList: this.succeedTaskList.map(task => task.info()),
+      completedTaskList: this.completedTaskList.map(task => task.info()),
     }
   }
 
@@ -116,7 +116,7 @@ export abstract class BaseWorker {
 
   protected _completeTask(task: BaseTask) {
     if (this.__taskList.some(item => item.key === task.key) && task.status === TaskStatus.COMPLETED) {
-      this.__succeedTaskList.push(task);
+      this.__completedTaskList.push(task);
       this.__taskList = this.__taskList.filter(t => t.key !== task.key);
     }
   }

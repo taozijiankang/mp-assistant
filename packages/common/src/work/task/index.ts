@@ -1,3 +1,6 @@
+import { BaseTaskInfo, WXTaskInfo } from "./type.js";
+
+
 export enum TaskType {
     /** 检查小程序版本 */
     WX_INSPECT_VERSION = "wxnInspectVersion",
@@ -38,3 +41,7 @@ export const TaskTypeOptions = Object.values(TaskType).map(type => ({
     label: TaskTypeDict[type],
     value: type,
 }));
+
+export const isWXTaskInfo = (info: BaseTaskInfo): info is WXTaskInfo => {
+    return info.type === TaskType.WX_INSPECT_VERSION || info.type === TaskType.WX_AUDIT || info.type === TaskType.WX_PUBLISH;
+}

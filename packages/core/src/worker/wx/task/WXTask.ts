@@ -3,13 +3,7 @@ import { BrowserContext, Page } from "playwright";
 import { BaseTask } from "../../BaseTask.js";
 import { WXMP_HOME_URL, WXMP_USER_PAGE_PATH_REX } from "../../../constant/wx.js";
 import { expect } from "playwright/test";
-
-export interface BaseWXTaskParams {
-    /** 小程序名称 */
-    app_name: string;
-    /** 小程序原始id */
-    username: string;
-}
+import { BaseWXTaskParams } from "mp-assistant-common/dist/work/task/type.js";
 
 export class WXTask extends BaseTask<BaseWXTaskParams> {
     protected _executor(browserContent: BrowserContext): Promise<TaskExecResult> {

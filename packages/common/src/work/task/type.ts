@@ -19,4 +19,16 @@ export interface BaseTaskInfo {
     runningReportList: TaskRunningReport[];
     params?: any;
     result?: TaskExecResult;
-}   
+}
+
+export interface BaseWXTaskParams {
+    /** 小程序名称 */
+    app_name: string;
+    /** 小程序原始id */
+    username: string;
+}
+
+export interface WXTaskInfo extends BaseTaskInfo {
+    type: TaskType.WX_INSPECT_VERSION | TaskType.WX_AUDIT | TaskType.WX_PUBLISH;
+    params: BaseWXTaskParams;
+}

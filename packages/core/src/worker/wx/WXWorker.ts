@@ -37,25 +37,23 @@ export class WXWorker extends BaseWorker {
         if (!currentRunningTask) {
             return;
         }
-        // 当前任务未执行就去执行
-        if (currentRunningTask.status === TaskStatus.NOT_STARTED) {
-            // 所有任务开始前先验证登录状态
+        if (
+            currentRunningTask.status === TaskStatus.NOT_STARTED ||
+            currentRunningTask.status === TaskStatus.WAITING_RESULT) {
             await this.__verifyLoginStatus(this.browserContent);
-            // 执行任务
             console.log('执行任务', currentRunningTask.type, currentRunningTask.key);
             currentRunningTask.run(this.browserContent);
         }
-        // 当前任务执行完成或失败就去执行下一个任务
         else if (
             currentRunningTask.status === TaskStatus.COMPLETED ||
-            currentRunningTask.status === TaskStatus.FAILED ||
-            // 等待结果
-            currentRunningTask.status === TaskStatus.WAITING_RESULT
+            currentRunningTask.status === TaskStatus.FAILED
         ) {
-            this.currentRunningTaskKey = this.taskList[this.taskList.indexOf(currentRunningTask) + 1]?.key ?? '';
-            if (currentRunningTask.status === TaskStatus.COMPLETED) {
-                this._completeTask(currentRunningTask);
+            let nextTaskIndex = this.taskList.indexOf(currentRunningTask) + 1;
+            if (nextTaskIndex >= this.taskList.length) {
+                nextTaskIndex = 0;
             }
+            this.currentRunningTaskKey = this.taskList[nextTaskIndex]?.key ?? '';
+            this._completeTask(currentRunningTask);
         }
     }
 

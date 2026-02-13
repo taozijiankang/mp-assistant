@@ -8,10 +8,11 @@ export interface BaseWorkInfo {
     key: string;
     taskList: BaseTaskInfo[];
     currentRunningTaskKey: string;
-    succeedTaskList: BaseTaskInfo[];
+    completedTaskList: BaseTaskInfo[];
 }
 
 export interface WXWorkInfo extends BaseWorkInfo {
+    type: WorkerType.WX;
     loginQRCodeURL: string;
     wxaList: WXMPItem[];
 }
