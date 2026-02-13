@@ -9,7 +9,8 @@ export namespace WorkerApi {
         export const url = '/workerInfos';
         export const method = 'GET';
 
-        export type Response = ApiResponse<BaseWorkInfo[]>;
+        export type ResponseData = BaseWorkInfo[];
+        export type Response = ApiResponse<ResponseData>;
     }
 
     export namespace GetWorkerInfo {
@@ -19,7 +20,8 @@ export namespace WorkerApi {
         export type RequestParams = {
             key: string;
         };
-        export type Response = ApiResponse<BaseWorkInfo>;
+        export type ResponseData = BaseWorkInfo;
+        export type Response = ApiResponse<ResponseData>;
     }
 
     export namespace AddWorker {
@@ -29,7 +31,8 @@ export namespace WorkerApi {
         export type RequestBody = {
             type: WorkerType;
         };
-        export type Response = ApiResponse<BaseWorkInfo>;
+        export type ResponseData = BaseWorkInfo;
+        export type Response = ApiResponse<ResponseData>;
     }
 
     export namespace RemoveWorker {
@@ -39,7 +42,8 @@ export namespace WorkerApi {
         export type RequestParams = {
             key: string;
         };
-        export type Response = ApiResponse<void>;
+        export type ResponseData = void;
+        export type Response = ApiResponse<ResponseData>;
     }
 
     export namespace UpdateWorker {
@@ -53,7 +57,8 @@ export namespace WorkerApi {
         export type RequestBody = {
             name: string;
         };
-        export type Response = ApiResponse<BaseWorkInfo>;
+        export type ResponseData = BaseWorkInfo;
+        export type Response = ApiResponse<ResponseData>;
     }
 
     export namespace AddTask {
@@ -68,7 +73,8 @@ export namespace WorkerApi {
             type: TaskType;
             params: any;
         };
-        export type Response = ApiResponse<BaseWorkInfo>;
+        export type ResponseData = BaseWorkInfo;
+        export type Response = ApiResponse<ResponseData>;
     }
 
     export namespace RemoveTask {
@@ -80,7 +86,8 @@ export namespace WorkerApi {
             taskKey: string;
         };
 
-        export type Response = ApiResponse<BaseWorkInfo>;
+        export type ResponseData = BaseWorkInfo;
+        export type Response = ApiResponse<ResponseData>;
     }
 
     export namespace TaskInfo {
@@ -91,6 +98,7 @@ export namespace WorkerApi {
             key: string;
             taskKey: string;
         };
-        export type Response = ApiResponse<BaseTaskInfo>;
+        export type ResponseData = BaseTaskInfo;
+        export type Response = ApiResponse<ResponseData>;
     }
 }

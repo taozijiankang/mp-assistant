@@ -6,7 +6,8 @@ export namespace ConfigApi {
         export const url = '/config';
         export const method = 'GET';
 
-        export type Response = ApiResponse<Config>;
+        export type ResponseData = Config;
+        export type Response = ApiResponse<ResponseData>;
     }
 
     export namespace SetConfig {
@@ -14,6 +15,7 @@ export namespace ConfigApi {
         export const method = 'POST';
 
         export type Request = Partial<Config>;
-        export type Response = ApiResponse<Config>;
+        export type ResponseData = Config;
+        export type Response = ApiResponse<ResponseData>;
     }
 }
