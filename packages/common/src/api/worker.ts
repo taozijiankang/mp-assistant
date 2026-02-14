@@ -3,6 +3,7 @@ import { BaseWorkInfo } from "../work/type.js";
 import { WorkerType } from "../work/index.js";
 import { TaskType } from "../work/task/index.js";
 import { BaseTaskInfo } from "../work/task/type.js";
+import { WXMPItem } from "../types/wx.js";
 
 export namespace WorkerApi {
     export namespace GetWorkerInfos {
@@ -30,6 +31,7 @@ export namespace WorkerApi {
 
         export type RequestBody = {
             type: WorkerType;
+            name: string;
         };
         export type ResponseData = BaseWorkInfo;
         export type Response = ApiResponse<ResponseData>;
@@ -58,6 +60,27 @@ export namespace WorkerApi {
             name: string;
         };
         export type ResponseData = BaseWorkInfo;
+        export type Response = ApiResponse<ResponseData>;
+    }
+
+    export namespace WorkerLogin {
+        export const url = '/worker/login/:key';
+        export const method = 'POST';
+
+        export type RequestParams = {
+            key: string;
+        };
+        export type ResponseData = void;
+        export type Response = ApiResponse<ResponseData>;
+    }
+
+    export namespace WorkerGetWxaList {
+        export const url = '/worker/getWxaList/:key';
+        export const method = 'GET';
+        export type RequestParams = {
+            key: string;
+        };
+        export type ResponseData = WXMPItem[];
         export type Response = ApiResponse<ResponseData>;
     }
 

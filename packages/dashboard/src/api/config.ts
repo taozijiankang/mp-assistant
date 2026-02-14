@@ -4,7 +4,7 @@ import { get, post } from "./request";
 /**
  * 获取配置
  */
-export function getConfig() {
+export function requestGetConfig() {
     return get<Api.Config.GetConfig.ResponseData>(
         Api.Config.GetConfig.url
     );
@@ -13,7 +13,7 @@ export function getConfig() {
 /**
  * 设置配置
  */
-export function setConfig(config: Api.Config.SetConfig.Request) {
+export function requestSetConfig(config: Api.Config.SetConfig.Request) {
     return post<Api.Config.SetConfig.ResponseData>(
         Api.Config.SetConfig.url,
         { body: config }

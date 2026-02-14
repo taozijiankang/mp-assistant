@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { WorkerStore } from "../../store/WorkerStore.js";
 import { Api, getApiResponse } from "mp-assistant-common/dist/api/index.js";
-import { createWorker } from "mp-assistant-core/dist/worker/index.js";
+import { createWorker, isWXWorker } from "mp-assistant-core/dist/worker/index.js";
 import { ConfigStore } from "../../store/ConfigStore.js";
 import { createTask } from "mp-assistant-core/dist/worker/wx/task/index.js";
 
@@ -40,8 +40,10 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
      * 添加worker
      */
     fastify.post(Api.Worker.AddWorker.url, async (request, reply): Promise<Api.Worker.AddWorker.Response> => {
-        const { type } = request.body as Api.Worker.AddWorker.RequestBody;
-        const worker = createWorker(type);
+        const { type, name } = request.body as Api.Worker.AddWorker.RequestBody;
+        const worker = createWorker(type, {
+            name,
+        });
         await worker.init({
             executablePath: ConfigStore.instance.config.executablePath,
             headless: ConfigStore.instance.config.headless,
@@ -86,6 +88,56 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         return getApiResponse({
             data: worker.info(),
         });
+    });
+
+    /**
+     * 登录worker
+     */
+    fastify.post(Api.Worker.WorkerLogin.url, async (request, reply): Promise<Api.Worker.WorkerLogin.Response> => {
+        const { key } = request.params as Api.Worker.WorkerLogin.RequestParams;
+        const worker = WorkerStore.instance.workerList.find(item => item.key === key);
+        if (!worker) {
+            return getApiResponse({
+                code: 404,
+                message: 'Worker not found',
+            });
+        }
+        if (isWXWorker(worker)) {
+            await worker.login();
+        }
+        else {
+            return getApiResponse({
+                code: 400,
+                message: 'Worker type not supported',
+            });
+        }
+        return getApiResponse();
+    });
+
+    /**
+     * 获取worker的小程序列表
+     */
+    fastify.get(Api.Worker.WorkerGetWxaList.url, async (request, reply): Promise<Api.Worker.WorkerGetWxaList.Response> => {
+        const { key } = request.params as Api.Worker.WorkerGetWxaList.RequestParams;
+        const worker = WorkerStore.instance.workerList.find(item => item.key === key);
+        if (!worker) {
+            return getApiResponse({
+                code: 404,
+                message: 'Worker not found',
+            });
+        }
+        if (isWXWorker(worker)) {
+            const wxaList = await worker.getWxaList();
+            return getApiResponse({
+                data: wxaList,
+            });
+        }
+        else {
+            return getApiResponse({
+                code: 400,
+                message: 'Worker type not supported',
+            });
+        }
     });
 
     /**

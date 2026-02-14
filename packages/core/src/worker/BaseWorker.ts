@@ -81,7 +81,6 @@ export abstract class BaseWorker {
         ...options,
         viewport: null,
       });
-    await this._init();
     // 开始任务循环
     this.__taskCycle();
   }
@@ -115,14 +114,17 @@ export abstract class BaseWorker {
   }
 
   protected _completeTask(task: BaseTask) {
-    if (this.__taskList.some(item => item.key === task.key) && task.status === TaskStatus.COMPLETED) {
+    if (
+      // 任务在任务列表中
+      this.__taskList.some(item => item.key === task.key) &&
+      // 任务状态为已完成或失败
+      [TaskStatus.COMPLETED, TaskStatus.FAILED].includes(task.status) &&
+      // 任务不在已完成任务列表中
+      !this.__completedTaskList.some(item => item.key === task.key)
+    ) {
       this.__completedTaskList.push(task);
       this.__taskList = this.__taskList.filter(t => t.key !== task.key);
     }
-  }
-
-  protected async _init() {
-    //
   }
 
   protected abstract _taskCycleExecutor(): Promise<void>;

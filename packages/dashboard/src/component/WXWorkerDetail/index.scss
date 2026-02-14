@@ -1,0 +1,14 @@
+.worker-detail-container {
+    display: flex;
+    .panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+    .current-running-task {
+        width: 300px;
+        display: flex;
+        flex-direction: column;
+    }
+}

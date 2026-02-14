@@ -46,8 +46,8 @@ async function request<T>(
         },
     };
 
-    if (method !== "GET" && body !== undefined) {
-        fetchOptions.body = JSON.stringify(body);
+    if (method !== "GET") {
+        fetchOptions.body = JSON.stringify(body || {});
     }
 
     const response = await fetch(resolvedURL, fetchOptions);
