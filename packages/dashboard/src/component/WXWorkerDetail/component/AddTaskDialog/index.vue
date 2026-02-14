@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="visible" title="Add Task" width="80%">
+    <el-dialog v-model="visible" title="添加任务" width="80%">
         <el-table :data="selectedWxaList" style="width: 100%">
             <el-table-column label="小程序头像" width="100">
                 <template #default="{ row }: { row: WXMPItem }">
@@ -101,5 +101,5 @@ defineExpose({
 
 </script>
 <style scoped lang="scss">
-@import "./index.scss";
+@use "./index.scss";
 </style>

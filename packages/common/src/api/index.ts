@@ -9,7 +9,7 @@ export function getApiResponse<T>(params: { code?: 200 | 400 | 401 | 403 | 404 |
     return {
         code,
         message: message ?? '',
-        data: data ?? undefined,
+        data: data ?? null,
     }
 }
 

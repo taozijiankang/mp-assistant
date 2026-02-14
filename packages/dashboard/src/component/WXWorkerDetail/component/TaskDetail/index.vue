@@ -1,8 +1,6 @@
 <template>
     <div class="task-detail">
         <div class="task-detail-header">
-            <span>{{ TaskTypeDict[task.type] }}</span>
-            <span>{{ TaskStatusDict[task.result?.status ?? TaskStatus.NOT_STARTED] }}</span>
             <span>{{ task.result?.message }}</span>
         </div>
         <div class="task-detail-content">
@@ -30,5 +28,5 @@ const props = defineProps<{
 </script>
 
 <style scoped lang="scss">
-@import "./index.scss";
+@use "./index.scss";
 </style>

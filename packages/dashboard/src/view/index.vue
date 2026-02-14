@@ -1,20 +1,20 @@
 <template>
   <div class="app-container">
     <div class="header">
-      <span>MP Assistant Dashboard</span>
+      <span>小程序助手 控制台</span>
     </div>
     <div class="content">
       <div class="left">
         <div class="left-header">
-          <span>workers</span>
-          <el-button type="primary" @click="addWorker">add</el-button>
+          <span>Worker列表</span>
+          <el-button type="primary" @click="addWorker">添加</el-button>
         </div>
         <div class="left-content">
           <div class="left-content-item" v-for="item in workers" :key="item.key"
             :class="{ 'selected': selectedWorkerKey === item.key }" @click="selectedWorkerKey = item.key">
-            <span>{{ item.name }}</span>
+            <span>{{ item.name || '未命名' }}</span>
             <span>{{ item.type }}</span>
-            <el-button type="danger" @click="removeWorker(item.key)">remove</el-button>
+            <el-button type="danger" @click="removeWorker(item.key)" :icon="Delete" circle></el-button>
           </div>
         </div>
       </div>
@@ -33,6 +33,7 @@ import AddWorkerDialog from '@/component/AddWorkerDialog/index.vue';
 import { ElMessageBox } from 'element-plus';
 import WXWorkerDetail from '@/component/WXWorkerDetail/index.vue';
 import { isWXWorkerInfo } from 'mp-assistant-common/dist/work/index.js';
+import { Delete } from '@element-plus/icons-vue';
 
 const addWorkerDialogRef = ref<InstanceType<typeof AddWorkerDialog>>();
 
@@ -46,9 +47,9 @@ const selectedWorker = computed(() => {
 
 const getWorkers = async () => {
   const { data } = await requestGetWorkerInfos();
-  workers.value = data;
+  workers.value = data ?? [];
   if (!selectedWorker.value) {
-    selectedWorkerKey.value = data[0]?.key ?? '';
+    selectedWorkerKey.value = workers.value[0]?.key ?? '';
   }
 }
 
@@ -57,9 +58,9 @@ const addWorker = () => {
 }
 
 const removeWorker = async (key: string) => {
-  ElMessageBox.confirm('Are you sure to remove this worker?', 'Confirm', {
-    confirmButtonText: 'Confirm',
-    cancelButtonText: 'Cancel',
+  ElMessageBox.confirm('确定要删除这个Worker吗？', '确认', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
     type: 'warning',
   })
     .then(async () => {
@@ -74,5 +75,5 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-@import "./index.scss";
+@use "./index.scss";
 </style>
