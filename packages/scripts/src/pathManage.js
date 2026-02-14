@@ -11,11 +11,3 @@ export function getProjectRootDir() {
 export function getPackagesDir() {
   return path.join(getProjectRootDir(), "packages");
 }
-
-export function getDashboardDir() {
-  return path.join(getPackagesDir(), "dashboard");
-}
-
-export function getServerDir() {
-  return path.join(getPackagesDir(), "server");
-}

@@ -1,6 +1,6 @@
 {
   "name": "mp-assistant-cli",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "",
   "type": "module",
   "main": "index.js",
@@ -12,8 +12,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@fastify/static": "^9.0.0",
+    "@fastify/websocket": "^11.2.0",
+    "commander": "^14.0.3",
+    "fastify": "^5.7.4",
     "mp-assistant-common": "workspace:*",
-    "mp-assistant-server": "workspace:*"
+    "mp-assistant-core": "workspace:*",
+    "mp-assistant-dashboard": "workspace:*"
   },
   "devDependencies": {
     "mp-assistant-configuration": "workspace:*"

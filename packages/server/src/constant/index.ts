@@ -1,1 +1,0 @@
-export const HIGHLIGHT_TIME = 300;

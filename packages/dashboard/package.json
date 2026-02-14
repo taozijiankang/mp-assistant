@@ -1,7 +1,6 @@
 {
-  "name": "mp-assistant-web",
+  "name": "mp-assistant-dashboard",
   "version": "0.0.0",
-  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",

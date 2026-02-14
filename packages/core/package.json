@@ -1,0 +1,26 @@
+{
+  "name": "mp-assistant-core",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "mp-assistant-configuration": "workspace:*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taozijiankang/mp-assistant.git"
+  },
+  "dependencies": {
+    "mp-assistant-common": "workspace:*",
+    "@playwright/test": "^1.58.2",
+    "playwright": "^1.58.2"
+  }
+}

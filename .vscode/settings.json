@@ -1,7 +1,7 @@
 {
   "editor.formatOnSave": true,
   "[vue]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "Vue.volar"
   },
   "[typescript]": {
     "editor.defaultFormatter": "vscode.typescript-language-features"
@@ -30,5 +30,15 @@
   "[less]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "cSpell.words": ["headimg", "qrcode", "RESETING", "scanloginqrcode", "uuidv", "weixin", "wxamp", "WXMP"]
+  "cSpell.words": [
+    "headimg",
+    "qrcode",
+    "RESETING",
+    "scanloginqrcode",
+    "taozijiankang",
+    "uuidv",
+    "weixin",
+    "wxamp",
+    "WXMP"
+  ]
 }

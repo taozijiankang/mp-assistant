@@ -7,7 +7,6 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "package": "turbo run package",
     "prepare": "husky",
     "commit": "cz"
   },
