@@ -69,7 +69,6 @@ export abstract class BaseWorker {
       name: this.name,
       type: this.type!,
       taskList: this.taskList.map(task => task.info()),
-      currentRunningTaskKey: this.__currentRunningTaskKey,
       completedTaskList: this.completedTaskList.map(task => task.info()),
     }
   }

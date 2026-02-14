@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="visible" title="Add Worker" width="30%">
+    <el-dialog v-model="visible" title="添加Worker" width="30%">
         <el-form :model="form" label-width="120px" :rules="rules">
             <el-form-item label="Type">
                 <el-select v-model="form.type">
@@ -72,5 +72,5 @@ defineExpose({
 
 </script>
 <style scoped lang="scss">
-@import "./index.scss";
+@use "./index.scss";
 </style>

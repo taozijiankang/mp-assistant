@@ -1,14 +1,44 @@
 .worker-detail-container {
     display: flex;
-    .panel {
+    flex-direction: column;
+    height: 100%;
+    .worker-detail-header {
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        padding-bottom: 0;
+        border-bottom: 1px solid #e0e0e0;
+
+        .el-tabs{
+            ::v-deep(.el-tabs__header.is-top){
+                margin-bottom: 0;
+            }
+        }
+    }
+    .wxa-list-container {
         flex: 1;
         display: flex;
         flex-direction: column;
-        min-width: 0;
+        min-height: 0;
+
+        .wxa-list-control {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .wxa-list-table {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+        }
     }
-    .current-running-task {
-        width: 300px;
-        display: flex;
-        flex-direction: column;
+    .task-list-container {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
     }
 }
