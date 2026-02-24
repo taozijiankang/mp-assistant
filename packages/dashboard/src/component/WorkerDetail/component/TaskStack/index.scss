@@ -1,0 +1,110 @@
+.task-stack {
+  display: flex;
+  gap: 10px;
+  height: 100%;
+  .task-list {
+    min-width: 0;
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #c5c5c5;
+    padding: 10px;
+    border-radius: 10px;
+    .controller {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .task-list-content {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+      padding: 10px 0;
+      box-sizing: border-box;
+      .task-item {
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        gap: 10px;
+        background-color: #ededed;
+        padding: 10px;
+        border-radius: 5px;
+
+        &.selected {
+          border: 1px solid #409eff;
+        }
+
+        &.pending {
+          .main {
+            color: #409eff;
+          }
+        }
+        &.not-started {
+          .main {
+            color: #909399;
+          }
+        }
+        &.running {
+          .main {
+            color: #67c23a;
+          }
+        }
+        &.waiting-result {
+          .main {
+            color: #e6a23c;
+          }
+        }
+        &.completed {
+          .main {
+            color: #67c23a;
+          }
+        }
+        &.failed {
+          .main {
+            color: #f56c6c;
+          }
+        }
+
+        .main {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          .task-type {
+            padding: 2px 6px;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+          }
+        }
+
+        .task-options {
+          display: flex;
+          gap: 4px;
+          align-items: center;
+          color: #606266;
+
+          .app-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+          }
+        }
+      }
+    }
+  }
+  .task-report {
+    flex: 1;
+    min-width: 0;
+    gap: 10px;
+    display: flex;
+    flex-direction: column;
+
+    .report-timeline {
+      padding: 0;
+    }
+  }
+}

@@ -7,7 +7,8 @@ import fastifyWebsocket from '@fastify/websocket'
 import { ConfigStore } from './store/ConfigStore.js';
 import { registerWebSocket } from './server/ws/index.js';
 import { registerApi } from './server/api/index.js';
-import { ApiPrefix, getApiResponse } from 'mp-assistant-common/dist/api/index.js';
+import { ApiPrefix } from 'mp-assistant-common/dist/api/index.js';
+import { getErrorApiResponse } from 'mp-assistant-common/dist/api/utils.js';
 import { WorkerStore } from './store/WorkerStore.js';
 import fastifyCors from '@fastify/cors';
 
@@ -45,23 +46,6 @@ const startServer = async () => {
         allowedHeaders: ['Content-Type', 'Authorization'],
     });
 
-    // 统一错误响应格式
-    fastify.setErrorHandler<Error & { statusCode?: number }>((error, request, reply) => {
-        const statusCode = error.statusCode ?? 500;
-        reply.status(200).send(getApiResponse({
-            code: ([400, 401, 403, 404, 500].includes(statusCode) ? statusCode : 500) as 400 | 401 | 403 | 404 | 500,
-            message: error.message || 'Internal Server Error',
-        }));
-    });
-
-    // 统一 404 响应格式
-    fastify.setNotFoundHandler((request, reply) => {
-        reply.status(200).send(getApiResponse({
-            code: 404,
-            message: `Route ${request.method} ${request.url} not found`,
-        }));
-    });
-
     // 注册静态目录，指向 mp-assistant-dashboard 包的 dist 目录
     const dashboardDir = path.join(
         path.dirname(require.resolve('mp-assistant-dashboard/package.json')),
@@ -77,6 +61,23 @@ const startServer = async () => {
 
     // api 路由
     await fastify.register(registerApi, { prefix: ApiPrefix });
+
+    // 统一错误响应格式
+    fastify.setErrorHandler<Error & { statusCode?: number }>((error, request, reply) => {
+        const statusCode = error.statusCode ?? 500;
+        reply.status(200).send(getErrorApiResponse(
+            error.message || 'Internal Server Error',
+            ([400, 401, 403, 404, 500].includes(statusCode) ? statusCode : 500) as 400 | 401 | 403 | 404 | 500
+        ));
+    });
+
+    // 统一 404 响应格式
+    fastify.setNotFoundHandler((request, reply) => {
+        reply.status(200).send(getErrorApiResponse(
+            `Route ${request.method} ${request.url} not found`,
+            404
+        ));
+    });
 
     try {
         await fastify.listen({ port: ConfigStore.instance.config.port })

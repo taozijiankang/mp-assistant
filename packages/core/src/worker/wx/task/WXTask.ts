@@ -3,9 +3,9 @@ import { BrowserContext, Page } from "playwright";
 import { BaseTask } from "../../BaseTask.js";
 import { WXMP_HOME_URL, WXMP_USER_PAGE_PATH_REX } from "../../../constant/wx.js";
 import { expect } from "playwright/test";
-import { BaseWXTaskParams } from "mp-assistant-common/dist/work/task/type.js";
+import { BaseWXTaskOptions } from "mp-assistant-common/dist/work/task/type.js";
 
-export class WXTask extends BaseTask<BaseWXTaskParams> {
+export class WXTask extends BaseTask<BaseWXTaskOptions> {
     protected _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
         throw new Error("Method not implemented.");
     }
@@ -61,10 +61,10 @@ export class WXTask extends BaseTask<BaseWXTaskParams> {
                 // 定位到小程序账号项
                 const mpItemLocator = switchAccountPanelLocator.locator(
                     page.locator('.account_item.account_item_gap', {
-                        has: page.getByText(this.params.app_name)
+                        has: page.getByText(this.options.app_name)
                     }).and(
                         page.locator('.account_item.account_item_gap', {
-                            has: page.getByText(this.params.username)
+                            has: page.getByText(this.options.username)
                         })
                     )
                 );
@@ -77,7 +77,7 @@ export class WXTask extends BaseTask<BaseWXTaskParams> {
                 }
                 this._addRunningReport({
                     title: '切换小程序',
-                    description: `切换小程序: ${this.params.app_name} - ${this.params.username}`,
+                    description: `切换小程序: ${this.options.app_name} - ${this.options.username}`,
                     timestamp: Date.now(),
                     images: [],
                 });

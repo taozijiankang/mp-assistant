@@ -4,7 +4,7 @@ import { getChromeUserDataDir } from "../pathManage.js";
 import path from "path";
 import { wait } from "mp-assistant-common/dist/utils/global.js";
 import { BaseTask } from "./BaseTask.js";
-import { taskCompleted, TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
+import { TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
 import { WorkerType } from "mp-assistant-common/dist/work/index.js";
 import { BaseWorkerParams, BaseWorkInfo } from "mp-assistant-common/dist/work/type.js";
 

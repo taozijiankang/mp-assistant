@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
-import { registerConfigApi } from "./config.js";
-import { registerWorkerApi } from "./worker.js";
+import { registerConfigApi } from "./modules/config.js";
+import { registerWorkerApi } from "./modules/worker.js";
 
 export const registerApi = (fastify: FastifyInstance) => {
     registerConfigApi(fastify);

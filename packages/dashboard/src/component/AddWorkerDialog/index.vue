@@ -1,17 +1,18 @@
 <template>
-    <el-dialog v-model="visible" title="添加Worker" width="30%">
-        <el-form :model="form" label-width="120px" :rules="rules">
-            <el-form-item label="Type">
+    <el-dialog v-model="visible" title="添加Worker" width="500px">
+        <el-form ref="elFormRef" :model="form" label-width="120px" :rules="rules">
+            <el-form-item label="type" prop="type">
                 <el-select v-model="form.type">
                     <el-option v-for="item in WorkerTypeOptions" :key="item.value" :label="item.label"
                         :value="item.value" />
                 </el-select>
             </el-form-item>
-            <el-form-item label="Name">
-                <el-input v-model="form.name" />
+            <el-form-item label="name" prop="name">
+                <el-input v-model="form.name" clearable />
             </el-form-item>
             <el-form-item>
-                <el-button type="primary" @click="addWorker">Add</el-button>
+                <el-button type="primary" @click="handleAddWorker">添加</el-button>
+                <el-button @click="visible = false">取消</el-button>
             </el-form-item>
         </el-form>
     </el-dialog>
@@ -19,11 +20,14 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { WorkerTypeOptions } from 'mp-assistant-common/dist/work/index.js';
-import { requestAddWorker } from '@/api/worker';
+import { requestAddWorker } from '@/api';
 import { WorkerType } from 'mp-assistant-common/dist/work/index.js';
 import type { Api } from 'mp-assistant-common/dist/api/index.js';
 import { ElMessage } from 'element-plus';
 import type { FormRules } from 'element-plus';
+import type { ElForm } from 'element-plus';
+
+const elFormRef = ref<InstanceType<typeof ElForm>>();
 
 const visible = ref(false);
 
@@ -47,7 +51,11 @@ const emit = defineEmits<{
     (e: 'onAddWorker'): void;
 }>();
 
-const addWorker = async () => {
+const handleAddWorker = async () => {
+    if (!(await elFormRef.value?.validate().catch(() => false))) {
+        return;
+    }
+
     loading.value = true;
     try {
         await requestAddWorker(form.value);
