@@ -116,7 +116,7 @@ export abstract class BaseWorker {
           // 序号大于当前任务
           index > currentRunningTaskIndex &&
           // 可执行
-          [TaskStatus.NOT_STARTED, TaskStatus.WAITING_RESULT].includes(item.status)
+          [TaskStatus.NOT_STARTED].includes(item.status)
         ) {
           return true;
         }

@@ -31,6 +31,6 @@ export interface TaskRunningReport {
 }
 
 export interface TaskExecResult {
-    status: TaskStatus.COMPLETED | TaskStatus.WAITING_RESULT | TaskStatus.FAILED;
+    status: TaskStatus.COMPLETED | TaskStatus.FAILED;
     message?: string;
 }

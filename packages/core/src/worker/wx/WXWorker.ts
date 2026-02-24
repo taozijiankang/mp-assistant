@@ -49,11 +49,10 @@ export class WXWorker extends BaseWorker {
         }
 
         /**
-         * 任务未开始或者任务再等待结果中的话就去执行它
+         * 任务未开始就去执行它
          */
         if (
-            currentRunningTask.status === TaskStatus.NOT_STARTED ||
-            currentRunningTask.status === TaskStatus.WAITING_RESULT
+            currentRunningTask.status === TaskStatus.NOT_STARTED
         ) {
             currentRunningTask.run(this.browserContent);
         }

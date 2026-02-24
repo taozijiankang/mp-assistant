@@ -1,7 +1,7 @@
 <template>
     <div v-if="workerDetail" class="worker-detail">
         <div class="top">
-            {{ workerDetail?.name }}
+            {{ workerDetail?.name || '未命名' }}
         </div>
         <div v-if="isWXWorkerInfo(workerDetail)" class="wx content-container">
             <!-- 未登录 -->
@@ -34,6 +34,7 @@ const props = defineProps<{
 }>();
 
 const workerDetail = ref<BaseWorkInfo>();
+
 
 watch(() => props.workerKey, () => {
     getWorkerDetail();

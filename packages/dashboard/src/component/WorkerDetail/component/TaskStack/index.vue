@@ -10,7 +10,6 @@
                     selected: taskItem.key === onSelectedTaskKey,
                     'not-started': taskItem.status === TaskStatus.NOT_STARTED,
                     running: taskItem.status === TaskStatus.RUNNING,
-                    'waiting-result': taskItem.status === TaskStatus.WAITING_RESULT,
                     completed: taskItem.status === TaskStatus.COMPLETED,
                     failed: taskItem.status === TaskStatus.FAILED,
                 }" @click="onSelectedTaskKey = taskItem.key">

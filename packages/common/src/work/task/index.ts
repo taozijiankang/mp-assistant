@@ -15,8 +15,6 @@ export enum TaskStatus {
     NOT_STARTED = "notStarted",
     /** 执行中 */
     RUNNING = "running",
-    /** 等待结果 */
-    WAITING_RESULT = "waitingResult",
     /** 完成 */
     COMPLETED = "completed",
     /** 失败 */
@@ -32,7 +30,6 @@ export const TaskTypeDict = {
 export const TaskStatusDict = {
     [TaskStatus.NOT_STARTED]: '未开始',
     [TaskStatus.RUNNING]: '执行中',
-    [TaskStatus.WAITING_RESULT]: '等待结果',
     [TaskStatus.COMPLETED]: '完成',
     [TaskStatus.FAILED]: '失败'
 }
