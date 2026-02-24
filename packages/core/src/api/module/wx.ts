@@ -8,7 +8,7 @@ import { WXMPItem } from "mp-assistant-common/dist/types/wx.js";
  * @returns 小程序列表
  * @throws 如果获取失败，则抛出错误
  */
-export async function getWxaList(page: Page): Promise<WXMPItem[]> {
+export async function requestWxaList(page: Page): Promise<WXMPItem[]> {
     const url = new URL(page.url());
     const response = await page.request.get(`https://${WXMP_HOST}/wxamp/cgi/getWxaList${url.search}&random=${Math.random()}`);
     if (response.ok()) {

@@ -4,9 +4,9 @@ import { getChromeUserDataDir } from "../pathManage.js";
 import path from "path";
 import { wait } from "mp-assistant-common/dist/utils/global.js";
 import { BaseTask } from "./BaseTask.js";
-import { TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
+import { taskCompleted, TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
 import { WorkerType } from "mp-assistant-common/dist/work/index.js";
-import { BaseWorkInfo } from "mp-assistant-common/dist/work/type.js";
+import { BaseWorkerParams, BaseWorkInfo } from "mp-assistant-common/dist/work/type.js";
 
 export abstract class BaseWorker {
   readonly type?: WorkerType;
@@ -18,8 +18,6 @@ export abstract class BaseWorker {
   private __browserContent: BrowserContext | null = null;
 
   private __taskList: BaseTask[] = [];
-
-  private __completedTaskList: BaseTask[] = [];
 
   private __currentRunningTaskKey = '';
 
@@ -46,18 +44,14 @@ export abstract class BaseWorker {
   get currentRunningTask() {
     return this.__taskList.find(task => task.key === this.__currentRunningTaskKey);
   }
+  get currentRunningTaskKey() {
+    return this.__currentRunningTaskKey;
+  }
   set currentRunningTaskKey(key: string) {
     this.__currentRunningTaskKey = this.__taskList.find(task => task.key === key)?.key ?? '';
   }
 
-  get completedTaskList() {
-    return [...this.__completedTaskList];
-  }
-
-  constructor(options?: {
-    key?: string;
-    name?: string;
-  }) {
+  constructor(options?: BaseWorkerParams) {
     const { key, name } = options ?? {};
     this.__key = key ?? getUUID();
     this.__name = name ?? '';
@@ -69,7 +63,6 @@ export abstract class BaseWorker {
       name: this.name,
       type: this.type!,
       taskList: this.taskList.map(task => task.info()),
-      completedTaskList: this.completedTaskList.map(task => task.info()),
     }
   }
 
@@ -112,18 +105,23 @@ export abstract class BaseWorker {
     }
   }
 
-  protected _completeTask(task: BaseTask) {
-    if (
-      // 任务在任务列表中
-      this.__taskList.some(item => item.key === task.key) &&
-      // 任务状态为已完成或失败
-      [TaskStatus.COMPLETED, TaskStatus.FAILED].includes(task.status) &&
-      // 任务不在已完成任务列表中
-      !this.__completedTaskList.some(item => item.key === task.key)
-    ) {
-      this.__completedTaskList.push(task);
-      this.__taskList = this.__taskList.filter(t => t.key !== task.key);
-    }
+  protected async _feedTasks() {
+    const currentRunningTaskIndex = this.taskList.findIndex(item => item.key === this.currentRunningTaskKey);
+    this.currentRunningTaskKey =
+      // 可循环
+      [...this.taskList, ...this.taskList].find((item, index) => {
+        if (
+          // 不是当前任务
+          item.key != this.currentRunningTaskKey &&
+          // 序号大于当前任务
+          index > currentRunningTaskIndex &&
+          // 可执行
+          [TaskStatus.NOT_STARTED, TaskStatus.WAITING_RESULT].includes(item.status)
+        ) {
+          return true;
+        }
+        return false;
+      })?.key || '';
   }
 
   protected abstract _taskCycleExecutor(): Promise<void>;

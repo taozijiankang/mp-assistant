@@ -42,6 +42,10 @@ export const TaskTypeOptions = Object.values(TaskType).map(type => ({
     value: type,
 }));
 
+export const taskCompleted = (taskStatus: TaskStatus) => {
+    return taskStatus === TaskStatus.COMPLETED || taskStatus === TaskStatus.FAILED;
+}
+
 export const isWXTaskInfo = (info: BaseTaskInfo): info is WXTaskInfo => {
     return info.type === TaskType.WX_INSPECT_VERSION || info.type === TaskType.WX_AUDIT || info.type === TaskType.WX_PUBLISH;
 }
