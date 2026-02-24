@@ -1,0 +1,31 @@
+.wxa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  .controller {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .wxa-item-container {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    .wxa-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .wxa-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+      }
+    }
+  }
+}

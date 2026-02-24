@@ -1,18 +1,18 @@
 import { WXWorker } from "./wx/WXWorker.js";
 import { WorkerType } from "mp-assistant-common/dist/work/index.js";
 import { BaseWorker } from "./BaseWorker.js";
+import { BaseWorkerParams } from "mp-assistant-common/dist/work/type.js";
 
 export {
     WXWorker,
 }
 
-export const createWorker = (type: WorkerType, options?: {
-    key?: string;
-    name?: string;
-}): BaseWorker => {
+export const createWorker = (type: WorkerType, options?: BaseWorkerParams): BaseWorker => {
     switch (type) {
         case WorkerType.WX:
             return new WXWorker(options);
+        default:
+            throw new Error(`找不到类型 ${type} 的worker`);
     }
 }
 

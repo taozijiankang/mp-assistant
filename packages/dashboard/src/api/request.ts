@@ -1,5 +1,7 @@
+import { ElMessage } from "element-plus";
 import { ApiPrefix } from "mp-assistant-common/dist/api/index.js";
-import type { ApiResponse } from "mp-assistant-common/dist/api/type.js";
+import type { APIRes, APISuccessRes } from "mp-assistant-common/dist/api/type";
+import qs from "qs";
 
 /**
  * 获取 API 基础 URL
@@ -9,20 +11,9 @@ const getBaseURL = () => {
     return import.meta.env.VITE_API_URL + ApiPrefix;
 };
 
-/**
- * 将 URL 模板中的 :param 替换为实际值
- */
-function resolveURL(url: string, params?: Record<string, string>): string {
-    if (!params) return url;
-    let resolved = url;
-    for (const [key, value] of Object.entries(params)) {
-        resolved = resolved.replace(`:${key}`, encodeURIComponent(value));
-    }
-    return resolved;
-}
-
 export interface RequestOptions {
-    params?: Record<string, string>;
+    method?: string,
+    query?: Record<string, string>;
     body?: any;
     headers?: Record<string, string>;
 }
@@ -30,64 +21,40 @@ export interface RequestOptions {
 /**
  * 通用请求方法
  */
-async function request<T>(
-    method: string,
+export async function request<T>(
     url: string,
     options: RequestOptions = {}
-): Promise<ApiResponse<T>> {
-    const { params, body, headers } = options;
-    const resolvedURL = getBaseURL() + resolveURL(url, params);
+): Promise<APISuccessRes<T>> {
+    const { method = "GET", query, body, headers } = options;
+    const resolvedURL = getBaseURL() + url + (query ? `?${qs.stringify(query)}` : "");
 
     const fetchOptions: RequestInit = {
-        method,
+        method: method.toUpperCase(),
         headers: {
             "Content-Type": "application/json",
             ...headers,
         },
+        body: method.toUpperCase() !== "GET" ? JSON.stringify(body || {}) : undefined,
     };
 
-    if (method !== "GET") {
-        fetchOptions.body = JSON.stringify(body || {});
+    let response: Response;
+    try {
+        response = await fetch(resolvedURL, fetchOptions);
+    } catch (error) {
+        ElMessage.error(error instanceof Error ? error.message : String(error));
+        throw error;
     }
 
-    const response = await fetch(resolvedURL, fetchOptions);
-
     if (!response.ok) {
+        ElMessage.error(`HTTP Error: ${response.status} ${response.statusText}`);
         throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
     }
 
-    const data: ApiResponse<T> = await response.json();
-    if (data.code !== 200) {
-        throw new Error(data.message);
+    const resData: APIRes<T> = await response.json();
+    if (resData.code !== 200) {
+        ElMessage.error(resData.message || "API Error");
+        throw new Error(resData.message);
     }
-    return data;
-}
-
-/**
- * GET 请求
- */
-export function get<T>(url: string, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return request<T>("GET", url, options);
-}
-
-/**
- * POST 请求
- */
-export function post<T>(url: string, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return request<T>("POST", url, options);
-}
-
-/**
- * PUT 请求
- */
-export function put<T>(url: string, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return request<T>("PUT", url, options);
-}
-
-/**
- * DELETE 请求
- */
-export function del<T>(url: string, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return request<T>("DELETE", url, options);
+    return resData as APISuccessRes<T>;
 }
 

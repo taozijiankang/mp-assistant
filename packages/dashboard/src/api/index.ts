@@ -1,3 +1,3 @@
-export * as configApi from "./config";
-export * as workerApi from "./worker";
+export * from "./modules/config";
+export * from "./modules/worker";
 

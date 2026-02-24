@@ -2,76 +2,33 @@
   <div class="app-container">
     <div class="header">
       <span>小程序助手 控制台</span>
+      <el-button type="primary" @click="handleEditConfig">编辑配置</el-button>
     </div>
-    <div class="content">
-      <div class="left">
-        <div class="left-header">
-          <span>Worker列表</span>
-          <el-button type="primary" @click="addWorker">添加</el-button>
-        </div>
-        <div class="left-content">
-          <div class="left-content-item" v-for="item in workers" :key="item.key"
-            :class="{ 'selected': selectedWorkerKey === item.key }" @click="selectedWorkerKey = item.key">
-            <span>{{ item.name || '未命名' }}</span>
-            <span>{{ item.type }}</span>
-            <el-button type="danger" @click="removeWorker(item.key)" :icon="Delete" circle></el-button>
-          </div>
-        </div>
-      </div>
-      <div class="center">
-        <WXWorkerDetail v-if="selectedWorker && isWXWorkerInfo(selectedWorker)" :worker="selectedWorker" />
-      </div>
+    <div class="worker-list">
+      <WorkList :currentWorkerKey="currentWorkerKey" @onWorkerItemClick="handleWorkerItemClick" />
     </div>
-    <AddWorkerDialog ref="addWorkerDialogRef" @onAddWorker="getWorkers" />
+    <WorkerDetail class="worker-detail" :workerKey="currentWorkerKey" />
+    <EditConfigDialog ref="editConfigDialogRef" />
   </div>
 </template>
 <script setup lang="ts">
-import { requestGetWorkerInfos, requestRemoveWorker } from '@/api/worker';
 import type { BaseWorkInfo } from 'mp-assistant-common/dist/work/type';
-import { ref, onMounted, computed } from 'vue';
-import AddWorkerDialog from '@/component/AddWorkerDialog/index.vue';
-import { ElMessageBox } from 'element-plus';
-import WXWorkerDetail from '@/component/WXWorkerDetail/index.vue';
-import { isWXWorkerInfo } from 'mp-assistant-common/dist/work/index.js';
-import { Delete } from '@element-plus/icons-vue';
+import { ref } from 'vue';
+import WorkList from '@/component/WorkList/index.vue';
+import EditConfigDialog from '@/component/EditConfigDialog/index.vue';
+import WorkerDetail from '@/component/WorkerDetail/index.vue';
 
-const addWorkerDialogRef = ref<InstanceType<typeof AddWorkerDialog>>();
+const editConfigDialogRef = ref<InstanceType<typeof EditConfigDialog>>();
 
-const workers = ref<BaseWorkInfo[]>([]);
+const currentWorkerKey = ref('');
 
-const selectedWorkerKey = ref<string>('');
+const handleEditConfig = () => {
+  editConfigDialogRef.value?.open();
+};
 
-const selectedWorker = computed(() => {
-  return workers.value.find(item => item.key === selectedWorkerKey.value);
-});
-
-const getWorkers = async () => {
-  const { data } = await requestGetWorkerInfos();
-  workers.value = data ?? [];
-  if (!selectedWorker.value) {
-    selectedWorkerKey.value = workers.value[0]?.key ?? '';
-  }
-}
-
-const addWorker = () => {
-  addWorkerDialogRef.value?.open();
-}
-
-const removeWorker = async (key: string) => {
-  ElMessageBox.confirm('确定要删除这个Worker吗？', '确认', {
-    confirmButtonText: '确认',
-    cancelButtonText: '取消',
-    type: 'warning',
-  })
-    .then(async () => {
-      await requestRemoveWorker(key);
-      getWorkers();
-    });
-}
-
-onMounted(() => {
-  getWorkers();
-});
+const handleWorkerItemClick = (workerItem: BaseWorkInfo) => {
+  currentWorkerKey.value = workerItem.key;
+};
 </script>
 
 <style scoped lang="scss">

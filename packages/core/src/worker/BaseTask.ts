@@ -5,7 +5,7 @@ import { BaseTaskInfo, TaskRunningReport } from "mp-assistant-common/dist/work/t
 import { TaskExecResult } from "mp-assistant-common/dist/work/task/type.js";
 
 export abstract class BaseTask<
-    TParams = any
+    OptionsT = any
 > {
     readonly type?: TaskType;
 
@@ -13,7 +13,7 @@ export abstract class BaseTask<
 
     protected __status: TaskStatus = TaskStatus.NOT_STARTED;
 
-    readonly params: TParams;
+    readonly options: OptionsT;
 
     private __runningReportList: TaskRunningReport[] = [];
 
@@ -31,12 +31,9 @@ export abstract class BaseTask<
         return this.__result;
     }
 
-    constructor(options: {
-        params: TParams;
-    }) {
-        const { params } = options;
+    constructor(options: OptionsT) {
         this.key = getUUID();
-        this.params = params;
+        this.options = options;
     }
 
     protected _setStatus(status: TaskStatus) {
@@ -53,7 +50,7 @@ export abstract class BaseTask<
             type: this.type!,
             status: this.status,
             runningReportList: this.runningReportList,
-            params: this.params,
+            options: this.options,
             result: this.result,
         };
     }

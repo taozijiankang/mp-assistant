@@ -2,9 +2,9 @@ import { Page } from "playwright";
 import { BaseWorker } from "../BaseWorker.js";
 import { WXMP_HOME_URL, WXMP_HOST, WXMP_LOGIN_PATH, WXMP_USER_PAGE_PATH_REX } from "../../constant/wx.js";
 import { expect } from "playwright/test";
-import { getWxaList } from "../../api/module/wx.js";
+import { requestWxaList } from "../../api/module/wx.js";
 import { WXMPItem } from "mp-assistant-common/dist/types/wx.js";
-import { TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
+import { taskCompleted, TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
 import { WorkerType } from "mp-assistant-common/dist/work/index.js";
 import { WXWorkInfo } from "mp-assistant-common/dist/work/type.js";
 
@@ -41,35 +41,32 @@ export class WXWorker extends BaseWorker {
         if (!this.isLogin) {
             return;
         }
-        // 再执行任务
-        if (!this.currentRunningTask) {
-            this.currentRunningTaskKey = this.taskList[0]?.key ?? '';
-        }
+
         const currentRunningTask = this.currentRunningTask;
         if (!currentRunningTask) {
+            this._feedTasks()
             return;
         }
+
+        /**
+         * 任务未开始就去执行它
+         */
         if (
-            currentRunningTask.status === TaskStatus.NOT_STARTED ||
-            currentRunningTask.status === TaskStatus.WAITING_RESULT
+            currentRunningTask.status === TaskStatus.NOT_STARTED
         ) {
             currentRunningTask.run(this.browserContent);
         }
-        else if (
-            currentRunningTask.status === TaskStatus.COMPLETED ||
-            currentRunningTask.status === TaskStatus.FAILED
-        ) {
-            let nextTaskIndex = this.taskList.findIndex(item => item.key === currentRunningTask.key) + 1;
-            if (nextTaskIndex >= this.taskList.length) {
-                nextTaskIndex = 0;
-            }
-            this.currentRunningTaskKey = this.taskList[nextTaskIndex]?.key ?? '';
-            this._completeTask(currentRunningTask);
 
+        /**
+         * 任务结束
+         */
+        if (taskCompleted(currentRunningTask.status)) {
             // 如果是失败任务，则更新登录状态暂停整个任务循环，因为可能登录状态已过期
             if (currentRunningTask.status === TaskStatus.FAILED) {
                 await this.__updateLoginStatus();
             }
+
+            this._feedTasks();
         }
     }
 
@@ -135,7 +132,7 @@ export class WXWorker extends BaseWorker {
         }
         const page = await this.browserContent!.newPage();
         await page.goto(WXMP_HOME_URL);
-        const wxaList = await getWxaList(page);
+        const wxaList = await requestWxaList(page);
         await page.close();
         this.wxaList = wxaList;
         return wxaList;
