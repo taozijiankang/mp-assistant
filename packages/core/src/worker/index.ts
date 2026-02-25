@@ -1,13 +1,13 @@
 import { WXWorker } from "./wx/WXWorker.js";
 import { WorkerType } from "mp-assistant-common/dist/work/index.js";
 import { BaseWorker } from "./BaseWorker.js";
-import { BaseWorkerParams } from "mp-assistant-common/dist/work/type.js";
+import { BaseWorkerOptions } from "mp-assistant-common/dist/work/type.js";
 
 export {
     WXWorker,
 }
 
-export const createWorker = (type: WorkerType, options?: BaseWorkerParams): BaseWorker => {
+export const createWorker = (type: WorkerType, options: BaseWorkerOptions): BaseWorker => {
     switch (type) {
         case WorkerType.WX:
             return new WXWorker(options);

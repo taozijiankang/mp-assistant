@@ -3,6 +3,7 @@ import { getStoreDir } from "../pathManage.js";
 import { useLocalStore } from "../hooks/useLocalStore.js";
 import type { BaseWorker } from "mp-assistant-core/dist/worker/BaseWorker.js";
 import { createWorker } from "mp-assistant-core/dist/worker/index.js";
+import { WSMessageEvent } from "../event/WSMessageEvent.js";
 
 interface WorkerStoreItem {
     key: string;
@@ -31,6 +32,7 @@ export class WorkerStore {
             return createWorker(item.type, {
                 key: item.key,
                 name: item.name,
+                wsMessageEventHandler: WSMessageEvent.instance,
             });
         });
     }

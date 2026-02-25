@@ -43,10 +43,10 @@ export function requestLoginWorker(key: string) {
     );
 }
 
-export function requestWorkerGetWxaList(key: string) {
-    return request<Api.Worker.WorkerGetWxaList.ResponseData>(
-        Api.Worker.WorkerGetWxaList.url,
-        { method: Api.Worker.WorkerGetWxaList.method, query: { key } }
+export function requestWorkerUpdateWxaList(key: string) {
+    return request<Api.Worker.WorkerUpdateWxaList.ResponseData>(
+        Api.Worker.WorkerUpdateWxaList.url,
+        { method: Api.Worker.WorkerUpdateWxaList.method, query: { key } }
     );
 }
 

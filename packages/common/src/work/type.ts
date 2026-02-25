@@ -1,10 +1,12 @@
 import { WXMPItem } from "../types/wx.js";
+import { WSMessage } from "../ws/message.js";
 import { WorkerType } from "./index.js";
 import { BaseTaskInfo } from "./task/type.js";
 
-export interface BaseWorkerParams {
+export interface BaseWorkerOptions {
     key?: string;
     name?: string;
+    wsMessageEventHandler: WSMessage.Event;
 }
 
 export interface BaseWorkInfo {
@@ -12,6 +14,7 @@ export interface BaseWorkInfo {
     type: WorkerType;
     key: string;
     taskList: BaseTaskInfo[];
+    loadings: string[];
 }
 
 export interface WXWorkInfo extends BaseWorkInfo {

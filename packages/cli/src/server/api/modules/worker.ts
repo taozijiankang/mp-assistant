@@ -7,6 +7,7 @@ import { createTask } from "mp-assistant-core/dist/worker/wx/task/index.js";
 import { getSuccessApiResponse, getErrorApiResponse } from "mp-assistant-common/dist/api/utils.js";
 import { WSStore } from "../../../store/WSStore.js";
 import { WSMessage } from "mp-assistant-common/dist/ws/message.js";
+import { WSMessageEvent } from "../../../event/WSMessageEvent.js";
 
 export const registerWorkerApi = (fastify: FastifyInstance) => {
     fastify.get(Api.Worker.GetWorkerList.url, async (request, reply): Promise<Api.Worker.GetWorkerList.Response> => {
@@ -31,6 +32,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
 
         const worker = createWorker(type, {
             name,
+            wsMessageEventHandler: WSMessageEvent.instance,
         });
         await worker.init({
             executablePath: ConfigStore.instance.config.executablePath,
@@ -89,8 +91,8 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         return getSuccessApiResponse(undefined);
     });
 
-    fastify.get(Api.Worker.WorkerGetWxaList.url, async (request, reply): Promise<Api.Worker.WorkerGetWxaList.Response> => {
-        const { key } = request.query as Api.Worker.WorkerGetWxaList.RequestQuery;
+    fastify.get(Api.Worker.WorkerUpdateWxaList.url, async (request, reply): Promise<Api.Worker.WorkerUpdateWxaList.Response> => {
+        const { key } = request.query as Api.Worker.WorkerUpdateWxaList.RequestQuery;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {
@@ -98,8 +100,8 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         }
 
         if (isWXWorker(worker)) {
-            const wxaList = await worker.getWxaList();
-            return getSuccessApiResponse(wxaList);
+            await worker.updateWxaList();
+            return getSuccessApiResponse(undefined);
         }
         else {
             return getErrorApiResponse('Worker type not supported', 400);

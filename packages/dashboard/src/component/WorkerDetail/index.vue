@@ -23,11 +23,13 @@
 
 <script setup lang="ts">
 import type { BaseWorkInfo } from 'mp-assistant-common/dist/work/type';
-import { ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { requestGetWorkerDetail, requestLoginWorker } from '@/api';
 import { isWXWorkerInfo } from 'mp-assistant-common/dist/work';
 import WXAList from './component/WXAList/index.vue';
 import TaskStack from './component/TaskStack/index.vue';
+import { WSMessageEvent } from '@/event/WSMessageEvent';
+import { WSMessage } from 'mp-assistant-common/dist/ws';
 
 const props = defineProps<{
     workerKey: string;
@@ -49,7 +51,19 @@ const handleLogin = async () => {
     requestLoginWorker(props.workerKey);
 }
 
+const handleWorkerListChange = (data: WSMessage.Worker.DetailChange.Data) => {
+    if (data.key === props.workerKey) {
+        getWorkerDetail();
+    }
+}
 
+onMounted(() => {
+    WSMessageEvent.instance.on(WSMessage.Worker.DetailChange.type, handleWorkerListChange);
+});
+
+onUnmounted(() => {
+    WSMessageEvent.instance.off(WSMessage.Worker.DetailChange.type, handleWorkerListChange);
+});
 </script>
 
 <style scoped lang="scss">

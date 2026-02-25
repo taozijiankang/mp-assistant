@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { requestWorkerGetWxaList } from '@/api';
+import { requestWorkerUpdateWxaList } from '@/api';
 import type { WXWorkInfo } from 'mp-assistant-common/dist/work/type';
 import { ref, computed } from 'vue';
 
@@ -40,7 +40,7 @@ const filteredWxaList = computed(() => {
 });
 
 const handleRefreshWxaList = async () => {
-    await requestWorkerGetWxaList(props.workerDetail.key);
+    await requestWorkerUpdateWxaList(props.workerDetail.key);
     emit('onRefreshWorkerDetail');
 };
 </script>

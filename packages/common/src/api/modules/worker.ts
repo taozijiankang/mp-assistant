@@ -105,15 +105,15 @@ export namespace WorkerApi {
     /**
      * 获取 Worker 的小程序列表
      */
-    export namespace WorkerGetWxaList {
-        export const url = '/worker-getWxaList';
+    export namespace WorkerUpdateWxaList {
+        export const url = '/worker-updateWxaList';
         export const method = 'GET';
 
         export type RequestQuery = {
             key: string;
         };
 
-        export type ResponseData = WXMPItem[];
+        export type ResponseData = void;
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }

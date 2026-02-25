@@ -3,6 +3,8 @@ import { getUUID } from "mp-assistant-common/dist/utils/index.js";
 import { TaskStatus, TaskType } from "mp-assistant-common/dist/work/task/index.js";
 import { BaseTaskInfo, TaskRunningReport } from "mp-assistant-common/dist/work/task/type.js";
 import { TaskExecResult } from "mp-assistant-common/dist/work/task/type.js";
+import type { BaseWorker } from "./BaseWorker.js";
+import { WSMessage } from "mp-assistant-common/dist/ws/message.js";
 
 export abstract class BaseTask {
     readonly type?: TaskType;
@@ -16,6 +18,15 @@ export abstract class BaseTask {
     private __runningReportList: TaskRunningReport[] = [];
 
     result?: TaskExecResult;
+
+    protected _worker?: BaseWorker;
+
+    get worker() {
+        return this.worker;
+    }
+    set worker(worker: BaseWorker) {
+        this._worker = worker;
+    }
 
     get status() {
         return this.__status;
@@ -40,6 +51,7 @@ export abstract class BaseTask {
 
     info(): BaseTaskInfo {
         return {
+            workerKey: this._worker?.key || '',
             key: this.key,
             type: this.type!,
             status: this.status,
@@ -74,6 +86,10 @@ export abstract class BaseTask {
     async destroy() {
         this.__runningReportList = [];
         this.result = void 0;
+    }
+
+    emitMessage<K extends keyof WSMessage.EventMap>(type: K, data: WSMessage.EventMap[K]) {
+        this.worker.emitMessage(type, data);
     }
 
     protected abstract _executor(browserContent: BrowserContext): Promise<TaskExecResult>;

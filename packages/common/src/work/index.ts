@@ -15,6 +15,11 @@ export const WorkerTypeOptions = [
     },
 ]
 
+export enum WXWorkerLoadingType {
+    login = 'login',
+    updateWxaListWxaList = 'updateWxaListWxaList',
+}
+
 export const isWXWorkerInfo = (info: BaseWorkInfo): info is WXWorkInfo => {
     return info.type === WorkerType.WX;
 }
