@@ -12,15 +12,17 @@
         <div class="controller">
             <el-button type="primary" @click="handleAddWorker">添加Worker</el-button>
         </div>
-        <AddWorkerDialog ref="addWorkerDialogRef" @onAddWorker="getWorkerList" />
+        <AddWorkerDialog ref="addWorkerDialogRef" />
     </div>
 </template>
 
 <script setup lang="ts">
 import type { BaseWorkInfo } from 'mp-assistant-common/dist/work/type';
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { requestGetWorkerList } from '@/api';
 import AddWorkerDialog from '@/component/AddWorkerDialog/index.vue';
+import { WSMessage } from "mp-assistant-common/dist/ws/message.js"
+import { WSMessageEvent } from '@/event/WSMessageEvent';
 
 const props = defineProps<{
     currentWorkerKey: string;
@@ -51,8 +53,18 @@ const handleAddWorker = () => {
     addWorkerDialogRef.value?.open();
 }
 
+const handleWorkerListChange = () => {
+    getWorkerList();
+}
+
 onMounted(() => {
     getWorkerList();
+
+    WSMessageEvent.instance.on(WSMessage.Worker.ListChange.type, handleWorkerListChange);
+});
+
+onUnmounted(() => {
+    WSMessageEvent.instance.off(WSMessage.Worker.ListChange.type, handleWorkerListChange);
 });
 </script>
 

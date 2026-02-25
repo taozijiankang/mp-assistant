@@ -8,7 +8,7 @@ import qs from "qs";
  * 生产环境下使用相对路径（同源部署），开发环境通过 vite proxy 代理
  */
 const getBaseURL = () => {
-    return import.meta.env.VITE_API_URL + ApiPrefix;
+    return new URL(ApiPrefix, import.meta.env.VITE_API_URL).href;
 };
 
 export interface RequestOptions {

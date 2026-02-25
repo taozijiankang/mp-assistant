@@ -15,9 +15,9 @@ const { get: getWorkerLocalStoreList, set: setWorkerLocalStoreList } = useLocalS
 });
 
 export class WorkerStore {
-    private static _instance: WorkerStore | null = null;
+    private static __instance: WorkerStore | null = null;
     public static get instance() {
-        return this._instance ?? (this._instance = new WorkerStore());
+        return this.__instance ?? (this.__instance = new WorkerStore());
     }
 
     private __workerList: BaseWorker[] = [];

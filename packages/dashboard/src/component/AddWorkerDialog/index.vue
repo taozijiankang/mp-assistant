@@ -47,10 +47,6 @@ const rules = ref<FormRules>({
     ],
 });
 
-const emit = defineEmits<{
-    (e: 'onAddWorker'): void;
-}>();
-
 const handleAddWorker = async () => {
     if (!(await elFormRef.value?.validate().catch(() => false))) {
         return;
@@ -61,7 +57,6 @@ const handleAddWorker = async () => {
         await requestAddWorker(form.value);
         visible.value = false;
         ElMessage.success('Add worker success');
-        emit('onAddWorker');
     } catch (error) {
         console.error(error);
         ElMessage.error('Add worker failed');

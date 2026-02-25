@@ -19,9 +19,11 @@
     "fastify": "^5.7.4",
     "mp-assistant-common": "workspace:*",
     "mp-assistant-core": "workspace:*",
-    "mp-assistant-dashboard": "workspace:*"
+    "mp-assistant-dashboard": "workspace:*",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
+    "@types/ws": "^8.18.1",
     "mp-assistant-configuration": "workspace:*"
   },
   "repository": {
