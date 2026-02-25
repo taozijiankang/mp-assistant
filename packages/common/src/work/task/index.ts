@@ -46,3 +46,41 @@ export const taskCompleted = (taskStatus: TaskStatus) => {
 export const isWXTaskInfo = (info: BaseTaskInfo): info is WXTaskInfo => {
     return info.type === TaskType.WX_INSPECT_VERSION || info.type === TaskType.WX_AUDIT || info.type === TaskType.WX_PUBLISH;
 }
+
+export enum VersionType {
+    ONLINE = "online",
+    TEST = "test",
+    DEVELOP = "develop"
+}
+
+export interface VersionConfigItem {
+    container: string;
+    publisherLabel: string;
+    timeLabel: string;
+    remarkLabel: string;
+    actionButton: string;
+}
+
+export const VERSION_CONFIG: Record<VersionType, VersionConfigItem> = {
+    [VersionType.ONLINE]: {
+        container: '.code_version_online',
+        publisherLabel: '发布者',
+        timeLabel: '发布时间',
+        remarkLabel: '项目备注',
+        actionButton: '详情',
+    },
+    [VersionType.TEST]: {
+        container: '.code_version_test',
+        publisherLabel: '开发者',
+        timeLabel: '提交审核时间',
+        remarkLabel: '审核说明',
+        actionButton: '详情',
+    },
+    [VersionType.DEVELOP]: {
+        container: '.code_version_dev',
+        publisherLabel: '开发者',
+        timeLabel: '提交时间',
+        remarkLabel: '项目备注',
+        actionButton: '提交审核',
+    }
+}

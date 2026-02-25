@@ -1,6 +1,6 @@
 import { BrowserContext } from "playwright";
 import { WXTask } from "./WXTask.js";
-import { TaskType } from "mp-assistant-common/dist/work/task/index.js";
+import { TaskStatus, TaskType } from "mp-assistant-common/dist/work/task/index.js";
 import { TaskExecResult } from "mp-assistant-common/dist/work/task/type.js";
 
 /**
@@ -10,7 +10,17 @@ import { TaskExecResult } from "mp-assistant-common/dist/work/task/type.js";
 export class AuditTask extends WXTask {
     readonly type = TaskType.WX_AUDIT;
 
-    protected _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
-        throw new Error("Method not implemented.");
+    protected async _executor(_browserContent: BrowserContext): Promise<TaskExecResult> {
+        this._addRunningReport({
+            title: '执行审核任务',
+            description: '审核任务逻辑暂未实现',
+            timestamp: Date.now(),
+            images: [],
+        });
+
+        return {
+            status: TaskStatus.FAILED,
+            message: '审核任务逻辑暂未实现，请稍后重试',
+        };
     }
 }
