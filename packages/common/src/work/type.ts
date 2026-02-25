@@ -14,6 +14,7 @@ export interface BaseWorkInfo {
     type: WorkerType;
     key: string;
     taskList: BaseTaskInfo[];
+    loadings: string[];
 }
 
 export interface WXWorkInfo extends BaseWorkInfo {

@@ -91,8 +91,8 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         return getSuccessApiResponse(undefined);
     });
 
-    fastify.get(Api.Worker.WorkerGetWxaList.url, async (request, reply): Promise<Api.Worker.WorkerGetWxaList.Response> => {
-        const { key } = request.query as Api.Worker.WorkerGetWxaList.RequestQuery;
+    fastify.get(Api.Worker.WorkerUpdateWxaList.url, async (request, reply): Promise<Api.Worker.WorkerUpdateWxaList.Response> => {
+        const { key } = request.query as Api.Worker.WorkerUpdateWxaList.RequestQuery;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {
@@ -100,8 +100,8 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         }
 
         if (isWXWorker(worker)) {
-            const wxaList = await worker.getWxaList();
-            return getSuccessApiResponse(wxaList);
+            await worker.updateWxaList();
+            return getSuccessApiResponse(undefined);
         }
         else {
             return getErrorApiResponse('Worker type not supported', 400);

@@ -24,6 +24,9 @@ export abstract class BaseWorker {
 
   private __wsMessageEventHandler: WSMessage.Event;
 
+  /** 等待列表 */
+  private __loadings: string[] = [];
+
   get key() {
     return this.__key;
   }
@@ -68,6 +71,7 @@ export abstract class BaseWorker {
       name: this.name,
       type: this.type!,
       taskList: this.taskList.map(task => task.info()),
+      loadings: [...this.__loadings],
     }
   }
 
@@ -136,6 +140,20 @@ export abstract class BaseWorker {
         }
         return false;
       })?.key || '';
+  }
+
+  setLoading(type: string) {
+    if (!this.isLoading(type)) {
+      this.__loadings.push(type);
+    }
+  }
+
+  offLoading(type: string) {
+    this.__loadings = this.__loadings.filter(item => item !== type);
+  }
+
+  isLoading(type: string) {
+    return this.__loadings.includes(type);
   }
 
   emitMessage<K extends keyof WSMessage.EventMap>(type: K, data: WSMessage.EventMap[K]) {

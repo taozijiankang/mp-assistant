@@ -5,7 +5,7 @@ import { expect } from "playwright/test";
 import { requestWxaList } from "../../api/module/wx.js";
 import { WXMPItem } from "mp-assistant-common/dist/types/wx.js";
 import { taskCompleted, TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
-import { WorkerType } from "mp-assistant-common/dist/work/index.js";
+import { WorkerType, WXWorkerLoadingType } from "mp-assistant-common/dist/work/index.js";
 import { WXWorkInfo } from "mp-assistant-common/dist/work/type.js";
 import { WSMessage } from "mp-assistant-common/dist/ws/message.js";
 
@@ -72,6 +72,11 @@ export class WXWorker extends BaseWorker {
     }
 
     async login() {
+        if (this.isLoading(WXWorkerLoadingType.login)) {
+            return;
+        }
+        this.setLoading(WXWorkerLoadingType.login);
+
         const browserContent = this.browserContent!;
 
         let page_: Page | null = null;
@@ -131,24 +136,32 @@ export class WXWorker extends BaseWorker {
         }
         catch (error) {
             console.error('登录失败', error);
+        } finally {
+            this.offLoading(WXWorkerLoadingType.login);
         }
     }
 
-    async getWxaList() {
-        await this.__updateLoginStatus();
-        if (!this.isLogin) {
-            return [];
+    async updateWxaList() {
+        if (this.isLoading(WXWorkerLoadingType.updateWxaListWxaList)) { return }
+        this.setLoading(WXWorkerLoadingType.updateWxaListWxaList);
+
+        try {
+            await this.__updateLoginStatus();
+            if (!this.isLogin) {
+                return [];
+            }
+            const page = await this.browserContent!.newPage();
+            await page.goto(WXMP_HOME_URL);
+            const wxaList = await requestWxaList(page);
+            await page.close();
+            this.wxaList = wxaList;
+        } finally {
+            this.offLoading(WXWorkerLoadingType.updateWxaListWxaList)
         }
-        const page = await this.browserContent!.newPage();
-        await page.goto(WXMP_HOME_URL);
-        const wxaList = await requestWxaList(page);
-        await page.close();
-        this.wxaList = wxaList;
 
         this.emitMessage(WSMessage.Worker.DetailChange.type, {
             key: this.key
         })
-        return wxaList;
     }
 
     private async __updateLoginStatus() {
@@ -162,7 +175,14 @@ export class WXWorker extends BaseWorker {
             page_ = page;
             await page.goto(WXMP_HOME_URL);
             const url = new URL(page.url());
+            const oldIsLogin = this.__isLogin;
             this.__isLogin = WXMP_USER_PAGE_PATH_REX.test(url.pathname);
+            // 登录状态改变
+            if (this.__isLogin !== oldIsLogin) {
+                this.emitMessage(WSMessage.Worker.DetailChange.type, {
+                    key: this.key,
+                });
+            }
         }
         catch (error) {
             console.error('更新登录状态失败', error);
