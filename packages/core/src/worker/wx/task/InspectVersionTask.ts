@@ -1,36 +1,22 @@
 import { BrowserContext, Locator, Page } from "playwright";
-import { WXTask } from "./WXTask.js";
-import { TaskStatus, TaskType, VERSION_CONFIG, VersionConfigItem, VersionType } from "mp-assistant-common/dist/work/task/index.js";
-import { TaskExecResult } from "mp-assistant-common/dist/work/task/type.js";
+import { BaseWXTask } from "./BaseWXTask.js";
+import { TaskStatus, TaskType } from "mp-assistant-common/dist/work/task/index.js";
+import { TaskExecResult, WXTask } from "mp-assistant-common/dist/work/task/type.js";
 import { WXMP_VERSION_MANAGEMENT_URL } from "../../../constant/wx.js";
-
-interface VersionListItem {
-    version?: string;
-    publisher?: string;
-    publishTime?: string;
-    remark?: string;
-    actionBtn: Locator;
-}
-
-type GetVersionListResult = {
-    type: VersionType
-    data?: VersionListItem[]
-} | null;
 
 /**
  * 检查小程序版本任务
  * 进入小程序版本管理页面，获取各个版本的信息
  */
-export class InspectVersionTask extends WXTask {
+export class InspectVersionTask extends BaseWXTask {
     readonly type = TaskType.WX_INSPECT_VERSION;
-    private __versionList: GetVersionListResult[] = []
 
     protected _splitText(text: string) {
         if (!text) return []
         return text.split('\n').filter(Boolean)
     }
 
-    protected async _parseVersionBox(box: Locator, config: VersionConfigItem) {
+    protected async _parseVersionBox(box: Locator, config: WXTask.VersionConfigItem) {
         const tagElExist = await box.locator('.simple_preview_item').first().isVisible().catch(() => false)
 
         if (!tagElExist) return null
@@ -56,11 +42,11 @@ export class InspectVersionTask extends WXTask {
         }
     }
 
-    protected async _getVersionList(versionType: VersionType, page: Page): Promise<GetVersionListResult> {
+    protected async _getVersionList(versionType: WXTask.VersionType, page: Page): Promise<WXTask.GetVersionListResult> {
         // 等待加载完成：等待所有 loading 元素消失
         await page.locator('.empty_tips_loading').first().waitFor({ state: 'hidden', timeout: 60000 })
 
-        const config = VERSION_CONFIG[versionType]
+        const config = WXTask.VERSION_CONFIG[versionType]
         if (!config) {
             throw new Error(`不支持的版本类型: ${versionType}，可选: online | test | develop`)
         }
@@ -82,18 +68,18 @@ export class InspectVersionTask extends WXTask {
         return { type: versionType, data: dataList }
     }
 
-    protected async _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
+    protected async _executor(browserContent: BrowserContext): Promise<TaskExecResult<WXTask.GetVersionListResult[]>> {
         const page = await this._switchMP(browserContent);
         try {
             await page.goto(`${WXMP_VERSION_MANAGEMENT_URL}${new URL(page.url()).search}`);
             const data = await Promise.allSettled([
-                this._getVersionList(VersionType.ONLINE, page),
-                this._getVersionList(VersionType.TEST, page),
-                this._getVersionList(VersionType.DEVELOP, page),
+                this._getVersionList(WXTask.VersionType.ONLINE, page),
+                this._getVersionList(WXTask.VersionType.TEST, page),
+                this._getVersionList(WXTask.VersionType.DEVELOP, page),
             ]);
 
             const fulfilledResults = data.filter(
-                (result): result is PromiseFulfilledResult<GetVersionListResult> =>
+                (result): result is PromiseFulfilledResult<WXTask.GetVersionListResult> =>
                     result.status === 'fulfilled',
             );
 
@@ -101,14 +87,13 @@ export class InspectVersionTask extends WXTask {
                 .map(result => result.value)
                 .filter(Boolean);
 
-            this.__versionList = currentVersionList
-
             /**
              * 获取版本管理页面中的版本列表
              */
             console.log('获取版本管理页面中的版本列表');
             return {
                 status: TaskStatus.COMPLETED,
+                data: currentVersionList,
             }
         } catch (error) {
             throw new Error('版本管理页面加载失败');

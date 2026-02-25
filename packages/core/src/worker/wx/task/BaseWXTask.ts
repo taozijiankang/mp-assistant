@@ -1,11 +1,18 @@
-import { TaskExecResult } from "mp-assistant-common/dist/work/task/type.js";
+import { TaskExecResult, WXTask } from "mp-assistant-common/dist/work/task/type.js";
 import { BrowserContext, Page } from "playwright";
 import { BaseTask } from "../../BaseTask.js";
 import { WXMP_HOME_URL, WXMP_USER_PAGE_PATH_REX } from "../../../constant/wx.js";
 import { expect } from "playwright/test";
-import { BaseWXTaskOptions } from "mp-assistant-common/dist/work/task/type.js";
 
-export class WXTask extends BaseTask<BaseWXTaskOptions> {
+export class BaseWXTask extends BaseTask {
+    readonly options: WXTask.TaskOptions;
+
+    constructor(options: WXTask.TaskOptions) {
+        super(options);
+
+        this.options = options;
+    }
+
     protected _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
         throw new Error("Method not implemented.");
     }

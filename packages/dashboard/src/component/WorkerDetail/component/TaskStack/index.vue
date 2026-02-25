@@ -46,7 +46,7 @@ import { isWXTaskInfo, TaskStatus, TaskStatusDict, TaskTypeDict } from 'mp-assis
 import type { WXWorkInfo } from 'mp-assistant-common/dist/work/type';
 import { ref, computed } from 'vue';
 import AddTaskDialog from '../AddTaskDialog/index.vue';
-import type { BaseWXTaskOptions } from 'mp-assistant-common/dist/work/task/type';
+import type { WXTask } from 'mp-assistant-common/dist/work/task/type';
 import { dayjs } from 'element-plus';
 
 const props = defineProps<{
@@ -74,7 +74,7 @@ const handleAddTask = () => {
     addTaskDialogRef.value?.open(props.workerDetail.key);
 }
 
-const getWxaInfo = (options: BaseWXTaskOptions) => {
+const getWxaInfo = (options: WXTask.TaskOptions) => {
     return props.workerDetail.wxaList.find(wxa => wxa.username === options.username && wxa.app_name === options.app_name);
 }
 </script>

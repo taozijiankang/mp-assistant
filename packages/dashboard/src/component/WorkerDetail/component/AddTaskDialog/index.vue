@@ -34,7 +34,7 @@ import { TaskType } from 'mp-assistant-common/dist/work/task';
 import type { AddTaskForm } from '.';
 import { TaskTypeOptions } from 'mp-assistant-common/dist/work/task';
 import { isWXWorkerInfo } from 'mp-assistant-common/dist/work';
-import type { BaseWXTaskOptions } from 'mp-assistant-common/dist/work/task/type';
+import type { WXTask } from 'mp-assistant-common/dist/work/task/type';
 
 const elFormRef = ref<InstanceType<typeof ElForm>>();
 
@@ -75,7 +75,7 @@ const handleAddTask = async () => {
     try {
         for (const appId of addTaskForm.value.appIds) {
             const appDetail = workerDetail.value?.wxaList.find(app => app.appid === appId);
-            const options: BaseWXTaskOptions = {
+            const options: WXTask.TaskOptions = {
                 app_name: appDetail?.app_name || '',
                 username: appDetail?.username || '',
             };

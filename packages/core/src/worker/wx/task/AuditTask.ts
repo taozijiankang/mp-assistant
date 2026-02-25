@@ -1,5 +1,5 @@
 import { BrowserContext } from "playwright";
-import { WXTask } from "./WXTask.js";
+import { BaseWXTask } from "./BaseWXTask.js";
 import { TaskStatus, TaskType } from "mp-assistant-common/dist/work/task/index.js";
 import { TaskExecResult } from "mp-assistant-common/dist/work/task/type.js";
 
@@ -7,7 +7,7 @@ import { TaskExecResult } from "mp-assistant-common/dist/work/task/type.js";
  * 审核小程序任务
  * 进入小程序版本管理页面，选择要审核的小程序版本，并进行审核
  */
-export class AuditTask extends WXTask {
+export class AuditTask extends BaseWXTask {
     readonly type = TaskType.WX_AUDIT;
 
     protected async _executor(_browserContent: BrowserContext): Promise<TaskExecResult> {
@@ -20,7 +20,6 @@ export class AuditTask extends WXTask {
 
         return {
             status: TaskStatus.FAILED,
-            message: '审核任务逻辑暂未实现，请稍后重试',
         };
     }
 }
