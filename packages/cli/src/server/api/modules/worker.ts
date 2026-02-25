@@ -7,6 +7,7 @@ import { createTask } from "mp-assistant-core/dist/worker/wx/task/index.js";
 import { getSuccessApiResponse, getErrorApiResponse } from "mp-assistant-common/dist/api/utils.js";
 import { WSStore } from "../../../store/WSStore.js";
 import { WSMessage } from "mp-assistant-common/dist/ws/message.js";
+import { WSMessageEvent } from "../../../event/WSMessageEvent.js";
 
 export const registerWorkerApi = (fastify: FastifyInstance) => {
     fastify.get(Api.Worker.GetWorkerList.url, async (request, reply): Promise<Api.Worker.GetWorkerList.Response> => {
@@ -31,6 +32,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
 
         const worker = createWorker(type, {
             name,
+            wsMessageEventHandler: WSMessageEvent.instance,
         });
         await worker.init({
             executablePath: ConfigStore.instance.config.executablePath,

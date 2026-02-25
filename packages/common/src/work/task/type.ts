@@ -1,6 +1,7 @@
 import { TaskStatus, TaskType } from "./index.js";
 
 export interface BaseTaskInfo {
+    workerKey: string;
     key: string;
     type: TaskType;
     status: TaskStatus;

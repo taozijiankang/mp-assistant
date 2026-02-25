@@ -1,12 +1,13 @@
 import { BrowserContext, chromium, LaunchOptions } from "playwright";
 import { getUUID } from "mp-assistant-common/dist/utils/index.js";
 import { getChromeUserDataDir } from "../pathManage.js";
-import path from "path";
+import path, { extname } from "path";
 import { wait } from "mp-assistant-common/dist/utils/global.js";
 import { BaseTask } from "./BaseTask.js";
 import { TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
 import { WorkerType } from "mp-assistant-common/dist/work/index.js";
-import { BaseWorkerParams, BaseWorkInfo } from "mp-assistant-common/dist/work/type.js";
+import { BaseWorkerOptions, BaseWorkInfo } from "mp-assistant-common/dist/work/type.js";
+import { WSMessage } from "mp-assistant-common/dist/ws/message.js"
 
 export abstract class BaseWorker {
   readonly type?: WorkerType;
@@ -20,6 +21,8 @@ export abstract class BaseWorker {
   private __taskList: BaseTask[] = [];
 
   private __currentRunningTaskKey = '';
+
+  private __wsMessageEventHandler: WSMessage.Event;
 
   get key() {
     return this.__key;
@@ -51,10 +54,12 @@ export abstract class BaseWorker {
     this.__currentRunningTaskKey = this.__taskList.find(task => task.key === key)?.key ?? '';
   }
 
-  constructor(options?: BaseWorkerParams) {
-    const { key, name } = options ?? {};
+  constructor(options: BaseWorkerOptions) {
+    const { key, name, wsMessageEventHandler } = options;
     this.__key = key ?? getUUID();
     this.__name = name ?? '';
+
+    this.__wsMessageEventHandler = wsMessageEventHandler;
   }
 
   info(): BaseWorkInfo {
@@ -77,10 +82,19 @@ export abstract class BaseWorker {
     this.__taskCycle();
   }
 
+  /**
+   * 添加任务
+   * @param task 
+   */
   addTask(task: BaseTask) {
+    task.worker = this;
     this.__taskList.push(task);
   }
 
+  /**
+   * 删除任务
+   * @param taskKey 
+   */
   async removeTask(taskKey: string) {
     const task = this.__taskList.find(t => t.key === taskKey);
     if (task) {
@@ -122,6 +136,10 @@ export abstract class BaseWorker {
         }
         return false;
       })?.key || '';
+  }
+
+  emitMessage<K extends keyof WSMessage.EventMap>(type: K, data: WSMessage.EventMap[K]) {
+    this.__wsMessageEventHandler.emit(type, data);
   }
 
   protected abstract _taskCycleExecutor(): Promise<void>;

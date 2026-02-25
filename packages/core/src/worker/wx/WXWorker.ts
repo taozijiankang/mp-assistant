@@ -7,6 +7,7 @@ import { WXMPItem } from "mp-assistant-common/dist/types/wx.js";
 import { taskCompleted, TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
 import { WorkerType } from "mp-assistant-common/dist/work/index.js";
 import { WXWorkInfo } from "mp-assistant-common/dist/work/type.js";
+import { WSMessage } from "mp-assistant-common/dist/ws/message.js";
 
 export class WXWorker extends BaseWorker {
     readonly type = WorkerType.WX;
@@ -109,6 +110,10 @@ export class WXWorker extends BaseWorker {
                         // 转成base64
                         const base64 = Buffer.from(buffer).toString('base64');
                         this.loginQRCodeURL = `data:image/png;base64,${base64}`;
+
+                        this.emitMessage(WSMessage.Worker.DetailChange.type, {
+                            key: this.key,
+                        });
                     } else {
                         throw new Error('登录二维码获取失败');
                     }
@@ -116,6 +121,10 @@ export class WXWorker extends BaseWorker {
                 // 用户页面
                 else if (WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
                     this.__isLogin = true;
+
+                    this.emitMessage(WSMessage.Worker.DetailChange.type, {
+                        key: this.key,
+                    });
                     await page_?.close();
                 }
             });
@@ -135,6 +144,10 @@ export class WXWorker extends BaseWorker {
         const wxaList = await requestWxaList(page);
         await page.close();
         this.wxaList = wxaList;
+
+        this.emitMessage(WSMessage.Worker.DetailChange.type, {
+            key: this.key
+        })
         return wxaList;
     }
 
