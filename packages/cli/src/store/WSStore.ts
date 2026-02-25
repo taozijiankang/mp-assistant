@@ -46,8 +46,6 @@ export class WSStore extends EventEmitter<EventMap> {
             activeTime: Date.now(),
         });
 
-        console.log('WebSocket 连接已建立', this.__connectionWsList.length);
-
         // 监听消息 
         ws.on('message', (data) => {
             try {

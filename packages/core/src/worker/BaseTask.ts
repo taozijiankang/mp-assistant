@@ -4,20 +4,18 @@ import { TaskStatus, TaskType } from "mp-assistant-common/dist/work/task/index.j
 import { BaseTaskInfo, TaskRunningReport } from "mp-assistant-common/dist/work/task/type.js";
 import { TaskExecResult } from "mp-assistant-common/dist/work/task/type.js";
 
-export abstract class BaseTask<
-    OptionsT = any
-> {
+export abstract class BaseTask {
     readonly type?: TaskType;
 
     readonly key: string;
 
-    protected __status: TaskStatus = TaskStatus.NOT_STARTED;
+    private __status: TaskStatus = TaskStatus.NOT_STARTED;
 
-    readonly options: OptionsT;
+    readonly options: any;
 
     private __runningReportList: TaskRunningReport[] = [];
 
-    private __result?: TaskExecResult;
+    result?: TaskExecResult;
 
     get status() {
         return this.__status;
@@ -27,11 +25,7 @@ export abstract class BaseTask<
         return [...this.__runningReportList];
     }
 
-    get result() {
-        return this.__result;
-    }
-
-    constructor(options: OptionsT) {
+    constructor(options: any) {
         this.key = getUUID();
         this.options = options;
     }
@@ -66,21 +60,20 @@ export abstract class BaseTask<
             // 执行任务
             const result = await this._executor(browserContent);
             this._setStatus(result.status);
-            this.__result = result;
+            this.result = result;
         } catch (error) {
             this._setStatus(TaskStatus.FAILED);
-            this.__result = {
+            this.result = {
                 status: TaskStatus.FAILED,
-                message: error instanceof Error ? error.message : 'Unknown error',
             };
             console.error('任务执行失败', error);
         }
-        return this.__result;
+        return this.result;
     }
 
     async destroy() {
         this.__runningReportList = [];
-        this.__result = void 0;
+        this.result = void 0;
     }
 
     protected abstract _executor(browserContent: BrowserContext): Promise<TaskExecResult>;

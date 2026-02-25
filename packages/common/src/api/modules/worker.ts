@@ -1,7 +1,7 @@
 import { BaseWorkInfo } from "../../work/type.js";
 import { WorkerType } from "../../work/index.js";
 import { TaskType } from "../../work/task/index.js";
-import { BaseTaskInfo, BaseTaskOptions } from "../../work/task/type.js";
+import { BaseTaskInfo } from "../../work/task/type.js";
 import { WXMPItem } from "../../types/wx.js";
 import { APIErrorRes, APISuccessRes } from "../type.js";
 
@@ -130,7 +130,7 @@ export namespace WorkerApi {
         };
         export type RequestBody = {
             type: TaskType;
-            options: BaseTaskOptions;
+            options: any;
         };
 
         export type ResponseData = BaseWorkInfo;

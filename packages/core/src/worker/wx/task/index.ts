@@ -3,7 +3,7 @@ import { AuditTask } from "./AuditTask.js";
 import { ReleaseTask } from "./ReleaseTask.js";
 import { BaseTask } from "../../BaseTask.js";
 import { TaskType } from "mp-assistant-common/dist/work/task/index.js";
-import { BaseTaskOptions, BaseWXTaskOptions } from "mp-assistant-common/dist/work/task/type.js";
+import { WXTask } from "mp-assistant-common/dist/work/task/type.js";
 
 export {
     InspectVersionTask,
@@ -23,13 +23,13 @@ export const isReleaseTask = (task: BaseTask): task is ReleaseTask => {
     return task.type === TaskType.WX_PUBLISH;
 }
 
-export const createTask = (type: TaskType, options: BaseTaskOptions): BaseTask => {
+export const createTask = (type: TaskType, options: any): BaseTask => {
     switch (type) {
         case TaskType.WX_INSPECT_VERSION:
-            return new InspectVersionTask(options as BaseWXTaskOptions);
+            return new InspectVersionTask(options as WXTask.TaskOptions);
         case TaskType.WX_AUDIT:
-            return new AuditTask(options as BaseWXTaskOptions);
+            return new AuditTask(options as WXTask.TaskOptions);
         case TaskType.WX_PUBLISH:
-            return new ReleaseTask(options as BaseWXTaskOptions);
+            return new ReleaseTask(options as WXTask.TaskOptions);
     }
 }
