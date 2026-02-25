@@ -5,6 +5,8 @@ import { createWorker, isWXWorker } from "mp-assistant-core/dist/worker/index.js
 import { ConfigStore } from "../../../store/ConfigStore.js";
 import { createTask } from "mp-assistant-core/dist/worker/wx/task/index.js";
 import { getSuccessApiResponse, getErrorApiResponse } from "mp-assistant-common/dist/api/utils.js";
+import { WSStore } from "../../../store/WSStore.js";
+import { WSMessage } from "mp-assistant-common/dist/ws/message.js";
 
 export const registerWorkerApi = (fastify: FastifyInstance) => {
     fastify.get(Api.Worker.GetWorkerList.url, async (request, reply): Promise<Api.Worker.GetWorkerList.Response> => {
@@ -35,6 +37,9 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
             headless: ConfigStore.instance.config.headless,
         });
         WorkerStore.instance.addWorker(worker);
+
+        WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
+
         return getSuccessApiResponse(worker.info());
     });
 
@@ -47,6 +52,9 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         }
         await worker.destroy();
         WorkerStore.instance.removeWorker(worker);
+
+        WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
+
         return getSuccessApiResponse(undefined);
     });
 
@@ -59,6 +67,9 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
             return getErrorApiResponse('Worker not found', 404);
         }
         worker.name = name || worker.name;
+
+        WSStore.instance.broadcast(WSMessage.Worker.DetailChange.createMessage({ key }));
+
         return getSuccessApiResponse(worker.info());
     });
 
