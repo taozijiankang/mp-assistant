@@ -13,9 +13,9 @@ const { get: getConfigLocalStore, set: setConfigLocalStore } = useLocalStore<Con
 });
 
 export class ConfigStore {
-    private static _instance: ConfigStore | null = null;
+    private static __instance: ConfigStore | null = null;
     public static get instance() {
-        return this._instance ?? (this._instance = new ConfigStore());
+        return this.__instance ?? (this.__instance = new ConfigStore());
     }
 
     private __config: Config = {
