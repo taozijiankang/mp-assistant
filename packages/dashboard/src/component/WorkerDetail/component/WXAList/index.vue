@@ -19,11 +19,11 @@
 
 <script setup lang="ts">
 import { requestWorkerUpdateWxaList } from '@/api';
-import type { WXWorkInfo } from 'mp-assistant-common/dist/work/type';
+import type { WXWorkerN } from 'mp-assistant-common/dist/work';
 import { ref, computed } from 'vue';
 
 const props = defineProps<{
-    workerDetail: WXWorkInfo
+    workerDetail: WXWorkerN.WXWorkInfo
 }>();
 
 const emit = defineEmits<{

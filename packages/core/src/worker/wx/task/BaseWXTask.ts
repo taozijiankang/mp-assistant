@@ -1,13 +1,13 @@
-import { TaskExecResult, WXTask } from "mp-assistant-common/dist/work/task/type.js";
 import { BrowserContext, Page } from "playwright";
 import { BaseTask } from "../../BaseTask.js";
 import { WXMP_HOME_URL, WXMP_USER_PAGE_PATH_REX } from "../../../constant/wx.js";
 import { expect } from "playwright/test";
+import { TaskExecResult, WXTaskN } from "mp-assistant-common/dist/work/task/index.js";
 
 export class BaseWXTask extends BaseTask {
-    readonly options: WXTask.TaskOptions;
+    readonly options: WXTaskN.TaskOptions;
 
-    constructor(options: WXTask.TaskOptions) {
+    constructor(options: WXTaskN.TaskOptions) {
         super(options);
 
         this.options = options;

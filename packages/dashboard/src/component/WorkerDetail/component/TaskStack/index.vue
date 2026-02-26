@@ -17,7 +17,7 @@
                         <span class="task-type">{{ TaskTypeDict[taskItem.type] }} 任务</span>
                         <div class="task-status">{{ TaskStatusDict[taskItem.status] }}</div>
                     </div>
-                    <div v-if="isWXTaskInfo(taskItem)" class="task-options">
+                    <div v-if="WXTaskN.isWXTaskInfo(taskItem)" class="task-options">
                         <img v-if="getWxaInfo(taskItem.options)" class="app-icon"
                             :src="getWxaInfo(taskItem.options)?.app_headimg" />
                         <span>{{ taskItem.options.app_name }} ({{ taskItem.options.username }})</span>
@@ -42,15 +42,14 @@
 </template>
 
 <script setup lang="ts">
-import { isWXTaskInfo, TaskStatus, TaskStatusDict, TaskTypeDict } from 'mp-assistant-common/dist/work/task';
-import type { WXWorkInfo } from 'mp-assistant-common/dist/work/type';
+import { TaskStatus, TaskStatusDict, TaskTypeDict, WXTaskN } from 'mp-assistant-common/dist/work/task';
 import { ref, computed } from 'vue';
 import AddTaskDialog from '../AddTaskDialog/index.vue';
-import type { WXTask } from 'mp-assistant-common/dist/work/task/type';
 import { dayjs } from 'element-plus';
+import { WXWorkerN } from 'mp-assistant-common/dist/work';
 
 const props = defineProps<{
-    workerDetail: WXWorkInfo
+    workerDetail: WXWorkerN.WXWorkInfo
 }>();
 
 const addTaskDialogRef = ref<InstanceType<typeof AddTaskDialog>>();
@@ -74,7 +73,7 @@ const handleAddTask = () => {
     addTaskDialogRef.value?.open(props.workerDetail.key);
 }
 
-const getWxaInfo = (options: WXTask.TaskOptions) => {
+const getWxaInfo = (options: WXTaskN.TaskOptions) => {
     return props.workerDetail.wxaList.find(wxa => wxa.username === options.username && wxa.app_name === options.app_name);
 }
 </script>

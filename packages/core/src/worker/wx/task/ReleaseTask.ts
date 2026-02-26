@@ -1,7 +1,6 @@
 import { BrowserContext } from "playwright";
 import { BaseWXTask } from "./BaseWXTask.js";
-import { TaskType } from "mp-assistant-common/dist/work/task/index.js";
-import { TaskExecResult } from "mp-assistant-common/dist/work/task/type.js";
+import { TaskExecResult, TaskType } from "mp-assistant-common/dist/work/task/index.js";
 
 /**
  * 发布小程序任务

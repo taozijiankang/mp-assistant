@@ -1,7 +1,6 @@
 import { WXWorker } from "./wx/WXWorker.js";
-import { WorkerType } from "mp-assistant-common/dist/work/index.js";
+import { BaseWorkerOptions, WorkerType } from "mp-assistant-common/dist/work/index.js";
 import { BaseWorker } from "./BaseWorker.js";
-import { BaseWorkerOptions } from "mp-assistant-common/dist/work/type.js";
 
 export {
     WXWorker,

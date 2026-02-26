@@ -1,7 +1,6 @@
 import { BrowserContext, Locator, Page } from "playwright";
 import { BaseWXTask } from "./BaseWXTask.js";
-import { TaskStatus, TaskType } from "mp-assistant-common/dist/work/task/index.js";
-import { TaskExecResult, WXTask } from "mp-assistant-common/dist/work/task/type.js";
+import { TaskExecResult, TaskStatus, TaskType, WXTaskN } from "mp-assistant-common/dist/work/task/index.js";
 import { WXMP_VERSION_MANAGEMENT_URL } from "../../../constant/wx.js";
 
 /**
@@ -16,7 +15,7 @@ export class InspectVersionTask extends BaseWXTask {
         return text.split('\n').filter(Boolean)
     }
 
-    protected async _parseVersionBox(box: Locator, config: WXTask.VersionConfigItem) {
+    protected async _parseVersionBox(box: Locator, config: WXTaskN.VersionConfigItem) {
         const tagElExist = await box.locator('.simple_preview_item').first().isVisible().catch(() => false)
 
         if (!tagElExist) return null
@@ -42,11 +41,11 @@ export class InspectVersionTask extends BaseWXTask {
         }
     }
 
-    protected async _getVersionList(versionType: WXTask.VersionType, page: Page): Promise<WXTask.GetVersionListResult> {
+    protected async _getVersionList(versionType: WXTaskN.VersionType, page: Page): Promise<WXTaskN.GetVersionListResult> {
         // 等待加载完成：等待所有 loading 元素消失
         await page.locator('.empty_tips_loading').first().waitFor({ state: 'hidden', timeout: 60000 })
 
-        const config = WXTask.VERSION_CONFIG[versionType]
+        const config = WXTaskN.VERSION_CONFIG[versionType]
         if (!config) {
             throw new Error(`不支持的版本类型: ${versionType}，可选: online | test | develop`)
         }
@@ -68,18 +67,18 @@ export class InspectVersionTask extends BaseWXTask {
         return { type: versionType, data: dataList }
     }
 
-    protected async _executor(browserContent: BrowserContext): Promise<TaskExecResult<WXTask.GetVersionListResult[]>> {
+    protected async _executor(browserContent: BrowserContext): Promise<TaskExecResult<WXTaskN.GetVersionListResult[]>> {
         const page = await this._switchMP(browserContent);
         try {
             await page.goto(`${WXMP_VERSION_MANAGEMENT_URL}${new URL(page.url()).search}`);
             const data = await Promise.allSettled([
-                this._getVersionList(WXTask.VersionType.ONLINE, page),
-                this._getVersionList(WXTask.VersionType.TEST, page),
-                this._getVersionList(WXTask.VersionType.DEVELOP, page),
+                this._getVersionList(WXTaskN.VersionType.ONLINE, page),
+                this._getVersionList(WXTaskN.VersionType.TEST, page),
+                this._getVersionList(WXTaskN.VersionType.DEVELOP, page),
             ]);
 
             const fulfilledResults = data.filter(
-                (result): result is PromiseFulfilledResult<WXTask.GetVersionListResult> =>
+                (result): result is PromiseFulfilledResult<WXTaskN.GetVersionListResult> =>
                     result.status === 'fulfilled',
             );
 

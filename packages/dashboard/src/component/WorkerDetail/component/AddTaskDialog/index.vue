@@ -29,12 +29,10 @@ import { requestAddTask, requestGetWorkerDetail } from '@/api';
 import { ElMessage } from 'element-plus';
 import type { FormRules } from 'element-plus';
 import type { ElForm } from 'element-plus';
-import type { WXWorkInfo } from 'mp-assistant-common/dist/work/type';
-import { TaskType } from 'mp-assistant-common/dist/work/task';
+import { TaskType, WXTaskN } from 'mp-assistant-common/dist/work/task';
 import type { AddTaskForm } from '.';
 import { TaskTypeOptions } from 'mp-assistant-common/dist/work/task';
-import { isWXWorkerInfo } from 'mp-assistant-common/dist/work';
-import type { WXTask } from 'mp-assistant-common/dist/work/task/type';
+import { WXWorkerN } from 'mp-assistant-common/dist/work';
 
 const elFormRef = ref<InstanceType<typeof ElForm>>();
 
@@ -42,11 +40,11 @@ const visible = ref(false);
 
 const loading = ref(false);
 
-const workerDetail = ref<WXWorkInfo>();
+const workerDetail = ref<WXWorkerN.WXWorkInfo>();
 
 const getWorkerDetail = async (workerKey: string) => {
     const { data } = await requestGetWorkerDetail(workerKey);
-    if (!isWXWorkerInfo(data)) {
+    if (!WXWorkerN.isWXWorkerInfo(data)) {
         throw new Error('Invalid worker info');
     }
     workerDetail.value = data;
@@ -75,7 +73,7 @@ const handleAddTask = async () => {
     try {
         for (const appId of addTaskForm.value.appIds) {
             const appDetail = workerDetail.value?.wxaList.find(app => app.appid === appId);
-            const options: WXTask.TaskOptions = {
+            const options: WXTaskN.TaskOptions = {
                 app_name: appDetail?.app_name || '',
                 username: appDetail?.username || '',
             };
