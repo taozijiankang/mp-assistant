@@ -16,6 +16,7 @@ export interface RequestOptions {
     query?: Record<string, string>;
     body?: any;
     headers?: Record<string, string>;
+    file?: File;
 }
 
 /**
@@ -25,7 +26,7 @@ export async function request<T>(
     url: string,
     options: RequestOptions = {}
 ): Promise<APISuccessRes<T>> {
-    const { method = "GET", query = {}, body, headers } = options;
+    let { method = "GET", query = {}, body, file, headers } = options;
     const resolvedURL = getBaseURL() + url + (query ? `?${qs.stringify({
         ...query,
         /** 
@@ -34,13 +35,21 @@ export async function request<T>(
         __random: `${Date.now()}-${Math.random()}`
     })}` : "");
 
+    if (file) {
+        const data = new FormData();
+        data.append('file', file);
+        body = data;
+    }
+
     const fetchOptions: RequestInit = {
         method: method.toUpperCase(),
         headers: {
-            "Content-Type": "application/json",
+            ...(file ? {} : {
+                "Content-Type": "application/json",
+            }),
             ...headers,
         },
-        body: method.toUpperCase() !== "GET" ? JSON.stringify(body || {}) : undefined,
+        body: method.toUpperCase() !== "GET" ? (file ? body : JSON.stringify(body || {})) : undefined,
     };
 
     let response: Response;
