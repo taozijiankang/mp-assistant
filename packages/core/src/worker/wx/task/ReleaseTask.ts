@@ -9,7 +9,14 @@ import { TaskExecResult, TaskType } from "mp-assistant-common/dist/work/task/ind
 export class ReleaseTask extends BaseWXTask {
     readonly type = TaskType.WX_PUBLISH;
 
-    protected _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
+    protected async _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
+        await this._switchMP(browserContent);
+
+        try {
+
+        } catch (error) {
+
+        }
         throw new Error("Method not implemented.");
     }
 }

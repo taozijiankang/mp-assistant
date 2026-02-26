@@ -57,46 +57,16 @@ export namespace WXTaskN {
         actionBtn: any;
     }
 
-    export type GetVersionListResult = {
-        type: VersionType
-        data?: VersionListItem[]
-    } | null;
+    export type VersionListData = {
+        [key in VersionType]?: VersionListItem[]
+    }
+
+    export type GetVersionListResult = VersionListData | null;
 
     export enum VersionType {
-        ONLINE = "online",
-        TEST = "test",
-        DEVELOP = "develop"
+        ONLINE = "online_info",
+        TEST = "experience_info",
+        DEVELOP = "develop_info"
     }
 
-    export interface VersionConfigItem {
-        container: string;
-        publisherLabel: string;
-        timeLabel: string;
-        remarkLabel: string;
-        actionButton: string;
-    }
-
-    export const VERSION_CONFIG: Record<VersionType, VersionConfigItem> = {
-        [VersionType.ONLINE]: {
-            container: '.code_version_online',
-            publisherLabel: '发布者',
-            timeLabel: '发布时间',
-            remarkLabel: '项目备注',
-            actionButton: '详情',
-        },
-        [VersionType.TEST]: {
-            container: '.code_version_test',
-            publisherLabel: '开发者',
-            timeLabel: '提交审核时间',
-            remarkLabel: '审核说明',
-            actionButton: '详情',
-        },
-        [VersionType.DEVELOP]: {
-            container: '.code_version_dev',
-            publisherLabel: '开发者',
-            timeLabel: '提交时间',
-            remarkLabel: '项目备注',
-            actionButton: '提交审核',
-        }
-    }
 }
