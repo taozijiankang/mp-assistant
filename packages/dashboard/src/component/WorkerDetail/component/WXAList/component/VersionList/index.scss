@@ -1,0 +1,15 @@
+.version-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 12px;
+
+  .version-item-list {
+    display: flex;
+    flex-direction: column;
+    .version-item {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+}

@@ -24,6 +24,7 @@ export interface VersionListItem {
     time?: number;
     version?: string;
     warning_api_list?: any[];
+    is_exper?: boolean;
 }
 
 export enum WXReviewStatus {

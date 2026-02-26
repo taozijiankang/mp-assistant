@@ -8,13 +8,15 @@
         </div>
         <div class="wxa-item-container">
             <div class="wxa-item" v-for="wxa in filteredWxaList" :key="wxa.wxaItem.appid">
-                <img class="wxa-icon" :src="wxa.wxaItem.app_headimg" />
-                <div class="wxa-info">
-                    <div class="wxa-name">{{ wxa.wxaItem.app_name }}</div>
-                    <div class="wxa-appid">{{ wxa.wxaItem.appid }}</div>
-                    <div class="wxa-appid">{{ wxa.wxaItem.username }}</div>
+                <div class="info">
+                    <img class="wxa-icon" :src="wxa.wxaItem.app_headimg" />
+                    <div class="wxa-info">
+                        <div class="wxa-name">{{ wxa.wxaItem.app_name }}</div>
+                        <div class="wxa-appid">{{ wxa.wxaItem.appid }}</div>
+                        <div class="wxa-appid">{{ wxa.wxaItem.username }}</div>
+                    </div>
                 </div>
-                {{ wxa.versionInfo }}
+                <VersionList v-if="wxa.versionList" :version-list="wxa.versionList" />
             </div>
         </div>
     </div>
@@ -27,6 +29,7 @@ import type { WXMPItem } from 'mp-assistant-common/dist/types/wx';
 import { WXWorkerN } from 'mp-assistant-common/dist/work';
 import { TaskStatus, TaskType, WXTaskN } from 'mp-assistant-common/dist/work/task';
 import { ref, computed } from 'vue';
+import VersionList from "./component/VersionList/index.vue"
 
 const props = defineProps<{
     workerDetail: WXWorkerN.WXWorkInfo
@@ -48,7 +51,7 @@ const filteredWxaList = computed(() => {
     return wxaList.map(item => {
         return {
             wxaItem: item,
-            versionInfo: props.workerDetail.taskList.filter(item => {
+            versionList: props.workerDetail.taskList.filter(item => {
                 return item.status === TaskStatus.COMPLETED;
             }).filter(item => item.type === TaskType.WX_INSPECT_VERSION).find(taskItem => {
                 const options: WXTaskN.TaskOptions = taskItem.options;
