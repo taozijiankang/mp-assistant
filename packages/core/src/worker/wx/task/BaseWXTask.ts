@@ -3,6 +3,8 @@ import { BrowserContext, Page } from "playwright";
 import { BaseTask } from "../../BaseTask.js";
 import { WXMP_HOME_URL, WXMP_USER_PAGE_PATH_REX } from "../../../constant/wx.js";
 import { expect } from "playwright/test";
+import { getVersionList } from "../../../api/index.js";
+import { VersionListItem } from "mp-assistant-common/dist/types/wx.js";
 
 export class BaseWXTask extends BaseTask {
     readonly options: WXTask.TaskOptions;
@@ -95,5 +97,23 @@ export class BaseWXTask extends BaseTask {
                 reject(error);
             }
         }));
+    }
+
+    protected async _getVersionList(page: Page) {
+        const currentVersionData: WXTask.VersionListData = {}
+        try {
+            const { code_data } = await getVersionList(page)
+            if (code_data) {
+                const versionInfo = JSON.parse(code_data)
+                currentVersionData[WXTask.VersionType.ONLINE] = versionInfo[WXTask.VersionType.ONLINE]?.basic_info || []
+                currentVersionData[WXTask.VersionType.TEST] = versionInfo[WXTask.VersionType.TEST]?.basic_info || []
+                currentVersionData[WXTask.VersionType.DEVELOP] = versionInfo[WXTask.VersionType.DEVELOP]?.info_list?.map((el: { is_exper: boolean, basic_info: VersionListItem }) => ({ ...el.basic_info, is_exper: el.is_exper })) || []
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
+
+        return currentVersionData
     }
 }
