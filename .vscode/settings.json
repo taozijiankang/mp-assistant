@@ -32,6 +32,8 @@
   },
   "cSpell.words": [
     "headimg",
+    "persistedstate",
+    "pinia",
     "qrcode",
     "RESETING",
     "scanloginqrcode",

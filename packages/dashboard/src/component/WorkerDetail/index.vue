@@ -61,6 +61,10 @@ const handleWorkerListChange = (data: WSMessage.Worker.DetailChange.Data) => {
 
 onMounted(() => {
     WSMessageEvent.instance.on(WSMessage.Worker.DetailChange.type, handleWorkerListChange);
+
+    if (props.workerKey) {
+        getWorkerDetail();
+    }
 });
 
 onUnmounted(() => {
