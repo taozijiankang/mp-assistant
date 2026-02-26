@@ -1,3 +1,4 @@
+import { VersionListItem } from "../../types/wx.js";
 import { TaskStatus, TaskType } from "./const.js";
 
 export * from "./const.js";
@@ -26,6 +27,7 @@ export interface TaskRunningReport {
 export interface TaskExecResult<T = any> {
     status: TaskStatus.COMPLETED | TaskStatus.FAILED;
     data?: T;
+    msg?: string;
 }
 
 export namespace WXTaskN {
@@ -34,6 +36,12 @@ export namespace WXTaskN {
         app_name: string;
         /** 小程序原始id */
         username: string;
+    }
+
+    export interface AuditTaskOptions extends TaskOptions {
+        describe?: string;
+        nick_name?: string;
+        version?: string;
     }
 
     export interface TaskInfo extends BaseTaskInfo {
@@ -49,16 +57,11 @@ export namespace WXTaskN {
         result: TaskExecResult<GetVersionListResult[]>
     }
 
-    export interface VersionListItem {
-        version?: string;
-        publisher?: string;
-        publishTime?: string;
-        remark?: string;
-        actionBtn: any;
-    }
 
     export type VersionListData = {
-        [key in VersionType]?: VersionListItem[]
+        [VersionType.DEVELOP]?: VersionListItem[],
+        [VersionType.ONLINE]?: VersionListItem,
+        [VersionType.TEST]?: VersionListItem
     }
 
     export type GetVersionListResult = VersionListData | null;
@@ -69,4 +72,9 @@ export namespace WXTaskN {
         DEVELOP = "develop_info"
     }
 
+    export const VersionContainerDict = {
+        [VersionType.DEVELOP]: ".code_version_dev",
+        [VersionType.ONLINE]: ".code_version_online",
+        [VersionType.TEST]: ".code_version_test",
+    }
 }
