@@ -19,8 +19,8 @@ export abstract class BaseTask {
 
     protected _worker?: BaseWorker;
 
-    get worker() {
-        return this.worker;
+    get worker(): BaseWorker | null {
+        return this._worker || null;
     }
     set worker(worker: BaseWorker) {
         this._worker = worker;
@@ -40,11 +40,18 @@ export abstract class BaseTask {
     }
 
     protected _setStatus(status: TaskStatus) {
+        if (this.__status === status) {
+            return;
+        }
         this.__status = status;
+
+        this.emitDetailChangeEvent();
     }
 
     protected _addRunningReport(report: TaskRunningReport) {
         this.__runningReportList.push(report);
+
+        this.emitDetailChangeEvent();
     }
 
     info(): BaseTaskInfo {
@@ -87,7 +94,21 @@ export abstract class BaseTask {
     }
 
     emitMessage<K extends keyof WSMessage.EventMap>(type: K, data: WSMessage.EventMap[K]) {
-        this.worker.emitMessage(type, data);
+        this.worker?.emitMessage(type, data);
+    }
+
+    private __emitDetailChangeEventTimer: ReturnType<typeof setTimeout> | null = null;
+    /**
+     * 触发详情改变事件
+     * 会有一层节流
+     */
+    emitDetailChangeEvent() {
+        this.__emitDetailChangeEventTimer && clearTimeout(this.__emitDetailChangeEventTimer);
+        this.__emitDetailChangeEventTimer = setTimeout(() => {
+            this.emitMessage(WSMessage.Worker.DetailChange.type, {
+                key: this.key,
+            });
+        }, 0);
     }
 
     protected abstract _executor(browserContent: BrowserContext): Promise<TaskExecResult>;

@@ -40,7 +40,7 @@ const getWorkerList = async () => {
     const { data } = await requestGetWorkerList();
     workerList.value = data;
 
-    if (!props.currentWorkerKey) {
+    if (!props.currentWorkerKey || !workerList.value.some(item => item.key === props.currentWorkerKey)) {
         emit('onWorkerItemClick', data[0]);
     }
 }

@@ -17,17 +17,20 @@ import WorkList from '@/component/WorkList/index.vue';
 import EditConfigDialog from '@/component/EditConfigDialog/index.vue';
 import WorkerDetail from '@/component/WorkerDetail/index.vue';
 import type { BaseWorkInfo } from 'mp-assistant-common/dist/work';
+import { useOperationRecordStore } from '@/stores';
+import { storeToRefs } from 'pinia';
 
 const editConfigDialogRef = ref<InstanceType<typeof EditConfigDialog>>();
 
-const currentWorkerKey = ref('');
+const operationRecordStore = useOperationRecordStore();
+const { currentWorkerKey } = storeToRefs(operationRecordStore);
 
 const handleEditConfig = () => {
   editConfigDialogRef.value?.open();
 };
 
 const handleWorkerItemClick = (workerItem: BaseWorkInfo) => {
-  currentWorkerKey.value = workerItem.key;
+  operationRecordStore.setCurrentWorkerKey(workerItem.key);
 };
 </script>
 

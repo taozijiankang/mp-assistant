@@ -92,6 +92,8 @@ export abstract class BaseWorker {
   addTask(task: BaseTask) {
     task.worker = this;
     this.__taskList.push(task);
+
+    this.emitDetailChangeEvent();
   }
 
   /**
@@ -104,6 +106,8 @@ export abstract class BaseWorker {
       await task.destroy();
     }
     this.__taskList = this.__taskList.filter(t => t.key !== taskKey);
+
+    this.emitDetailChangeEvent();
   }
 
   destroy() {
@@ -124,6 +128,7 @@ export abstract class BaseWorker {
 
   protected async _feedTasks() {
     const currentRunningTaskIndex = this.taskList.findIndex(item => item.key === this.currentRunningTaskKey);
+    const oldCurrentRunningTaskKey = this.currentRunningTask;
     this.currentRunningTaskKey =
       // 可循环
       [...this.taskList, ...this.taskList].find((item, index) => {
@@ -139,6 +144,11 @@ export abstract class BaseWorker {
         }
         return false;
       })?.key || '';
+
+    // 当前执行任务发生改变
+    if (this.currentRunningTask !== oldCurrentRunningTaskKey) {
+      this.emitDetailChangeEvent();
+    }
   }
 
   setLoading(type: string) {
@@ -146,17 +156,13 @@ export abstract class BaseWorker {
       this.__loadings.push(type);
     }
 
-    this.emitMessage(WSMessage.Worker.DetailChange.type, {
-      key: this.key,
-    });
+    this.emitDetailChangeEvent();
   }
 
   offLoading(type: string) {
     this.__loadings = this.__loadings.filter(item => item !== type);
 
-    this.emitMessage(WSMessage.Worker.DetailChange.type, {
-      key: this.key,
-    });
+    this.emitDetailChangeEvent();
   }
 
   isLoading(type: string) {
@@ -165,6 +171,20 @@ export abstract class BaseWorker {
 
   emitMessage<K extends keyof WSMessage.EventMap>(type: K, data: WSMessage.EventMap[K]) {
     this.__wsMessageEventHandler.emit(type, data);
+  }
+
+  private __emitDetailChangeEventTimer: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * 触发详情改变事件
+   * 会有一层节流
+   */
+  emitDetailChangeEvent() {
+    this.__emitDetailChangeEventTimer && clearTimeout(this.__emitDetailChangeEventTimer);
+    this.__emitDetailChangeEventTimer = setTimeout(() => {
+      this.emitMessage(WSMessage.Worker.DetailChange.type, {
+        key: this.key,
+      });
+    }, 0);
   }
 
   protected abstract _taskCycleExecutor(): Promise<void>;

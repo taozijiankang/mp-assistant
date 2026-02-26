@@ -12,7 +12,7 @@
                     running: taskItem.status === TaskStatus.RUNNING,
                     completed: taskItem.status === TaskStatus.COMPLETED,
                     failed: taskItem.status === TaskStatus.FAILED,
-                }" @click="onSelectedTaskKey = taskItem.key">
+                }" @click="handleTaskClick(taskItem)">
                     <div class="main">
                         <span class="task-type">{{ TaskTypeDict[taskItem.type] }} 任务</span>
                         <div class="task-status">{{ TaskStatusDict[taskItem.status] }}</div>
@@ -42,21 +42,24 @@
 </template>
 
 <script setup lang="ts">
-import { TaskStatus, TaskStatusDict, TaskTypeDict, WXTaskN } from 'mp-assistant-common/dist/work/task';
+import { TaskStatus, TaskStatusDict, TaskTypeDict, WXTaskN, type BaseTaskInfo } from 'mp-assistant-common/dist/work/task';
 import { ref, computed } from 'vue';
 import AddTaskDialog from '../AddTaskDialog/index.vue';
 import { dayjs } from 'element-plus';
 import { WXWorkerN } from 'mp-assistant-common/dist/work';
+import { useOperationRecordStore } from '@/stores';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
     workerDetail: WXWorkerN.WXWorkInfo
 }>();
 
+const operationRecordStore = useOperationRecordStore();
+const { onSelectedTaskKey } = storeToRefs(operationRecordStore);
+
 const addTaskDialogRef = ref<InstanceType<typeof AddTaskDialog>>();
 
 const filterKeyword = ref('');
-
-const onSelectedTaskKey = ref<string>('');
 
 const onSelectedTask = computed(() => {
     return props.workerDetail.taskList.find(task => task.key === onSelectedTaskKey.value);
@@ -73,9 +76,14 @@ const handleAddTask = () => {
     addTaskDialogRef.value?.open(props.workerDetail.key);
 }
 
+const handleTaskClick = (taskItem: BaseTaskInfo) => {
+    operationRecordStore.setOnSelectedTaskKey(taskItem.key);
+}
+
 const getWxaInfo = (options: WXTaskN.TaskOptions) => {
     return props.workerDetail.wxaList.find(wxa => wxa.username === options.username && wxa.app_name === options.app_name);
 }
+
 </script>
 
 <style scoped lang="scss">
