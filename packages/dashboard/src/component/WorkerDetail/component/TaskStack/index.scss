@@ -10,6 +10,7 @@
     border: 1px solid #c5c5c5;
     padding: 10px;
     border-radius: 10px;
+    gap: 10px;
     .controller {
       display: flex;
       align-items: center;
@@ -24,7 +25,6 @@
       flex-direction: column;
       gap: 10px;
       min-height: 0;
-      padding: 10px 0;
       box-sizing: border-box;
       .task-item {
         display: flex;
@@ -39,11 +39,6 @@
           border: 1px solid #409eff;
         }
 
-        &.pending {
-          .main {
-            color: #409eff;
-          }
-        }
         &.not-started {
           .main {
             color: #909399;
@@ -51,7 +46,7 @@
         }
         &.running {
           .main {
-            color: #67c23a;
+            color: #409eff;
           }
         }
         &.completed {

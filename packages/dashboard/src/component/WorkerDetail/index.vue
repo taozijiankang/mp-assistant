@@ -6,11 +6,16 @@
         <div v-if="WXWorkerN.isWXWorkerInfo(workerDetail)" class="wx content-container">
             <!-- 未登录 -->
             <div v-if="!workerDetail?.isLogin" class="no-login">
-                <el-button v-if="!workerDetail.loginQRCodeURL" type="primary" @click="handleLogin">登录</el-button>
-                <div v-else class="qrcode-container">
+                <div v-if="workerDetail.loginQRCodeURL" class="qrcode-container">
                     <div>请使用微信扫码登录</div>
                     <img class="qrcode" :src="workerDetail.loginQRCodeURL" />
                 </div>
+                <el-button type="primary" :loading="handleWorkerLoginLoading ||
+                    workerDetail.loadings.includes(WXWorkerN.LoadingType.login)" @click="handleWorkerLogin">
+                    {{
+                        workerDetail.loginQRCodeURL ? '重新登录' : '登录'
+                    }}
+                </el-button>
             </div>
             <!-- 登录 -->
             <div v-else class="login-content">
@@ -22,33 +27,31 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, watch } from 'vue';
 import { requestGetWorkerDetail, requestLoginWorker } from '@/api';
-import { WXWorkerN, type BaseWorkInfo } from 'mp-assistant-common/dist/work';
+import { WXWorkerN } from 'mp-assistant-common/dist/work';
 import WXAList from './component/WXAList/index.vue';
 import TaskStack from './component/TaskStack/index.vue';
 import { WSMessageEvent } from '@/event/WSMessageEvent';
 import { WSMessage } from 'mp-assistant-common/dist/ws';
+import { useApiCall } from '@/hooks/useApiCall';
 
 const props = defineProps<{
     workerKey: string;
 }>();
 
-const workerDetail = ref<BaseWorkInfo>();
+const { data: workerDetail, call: getWorkerDetail } = useApiCall(() => requestGetWorkerDetail(props.workerKey));
 
+const { loading: handleWorkerLoginLoading, call: handleWorkerLogin } = useApiCall(async () => {
+    const res = await requestLoginWorker(props.workerKey);
+    // 重写获取worker状态
+    await getWorkerDetail();
+    return res;
+});
 
 watch(() => props.workerKey, () => {
     getWorkerDetail();
 });
-
-const getWorkerDetail = async () => {
-    const { data } = await requestGetWorkerDetail(props.workerKey);
-    workerDetail.value = data;
-};
-
-const handleLogin = async () => {
-    requestLoginWorker(props.workerKey);
-}
 
 const handleWorkerListChange = (data: WSMessage.Worker.DetailChange.Data) => {
     if (data.key === props.workerKey) {

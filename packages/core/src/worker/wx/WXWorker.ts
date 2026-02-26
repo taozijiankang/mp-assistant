@@ -1,18 +1,19 @@
 import { Page } from "playwright";
 import { BaseWorker } from "../BaseWorker.js";
-import { WXMP_HOME_URL, WXMP_HOST, WXMP_LOGIN_PATH, WXMP_USER_PAGE_PATH_REX } from "../../constant/wx.js";
+import { WXMP_HOME_URL, WXMP_LOGIN_PATH, WXMP_USER_PAGE_PATH_REX } from "../../constant/wx.js";
 import { expect } from "playwright/test";
 import { requestWxaList } from "../../api/module/wx.js";
 import { WXMPItem } from "mp-assistant-common/dist/types/wx.js";
 import { taskCompleted, TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
 import { WorkerType, WXWorkerN } from "mp-assistant-common/dist/work/index.js";
-import { WSMessage } from "mp-assistant-common/dist/ws/message.js";
 
 export class WXWorker extends BaseWorker {
     readonly type = WorkerType.WX;
 
     private __isLogin: boolean = false;
     private __lastUpdateLoginStatusTime: number = 0;
+
+    private __loginPage: Page | null = null;
 
     loginQRCodeURL: string = '';
     wxaList: WXMPItem[] = [];
@@ -28,6 +29,14 @@ export class WXWorker extends BaseWorker {
             wxaList: this.wxaList,
             isLogin: this.isLogin,
         }
+    }
+
+    protected _setLoginStatus(s: boolean) {
+        if (this.__isLogin === s) {
+            return;
+        }
+        this.__isLogin = s;
+        this.emitDetailChangeEvent();
     }
 
     protected async _taskCycleExecutor() {
@@ -79,7 +88,13 @@ export class WXWorker extends BaseWorker {
         const browserContent = this.browserContent!;
 
         try {
+            if (this.__loginPage && !this.__loginPage.isClosed()) {
+                await this.__loginPage.close();
+            }
+
             const page = await browserContent.newPage();
+
+            this.__loginPage = page;
 
             await page.goto(WXMP_HOME_URL);
 
@@ -108,13 +123,22 @@ export class WXWorker extends BaseWorker {
                     // 转成base64
                     const base64 = Buffer.from(buffer).toString('base64');
                     this.loginQRCodeURL = `data:image/png;base64,${base64}`;
+
+                    // 状态改变
+                    page.on('load', () => {
+                        const url = new URL(page.url());
+                        if (WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
+                            this._setLoginStatus(true);
+                            page.close();
+                        }
+                    });
                 } else {
                     throw new Error('登录二维码获取失败');
                 }
             }
             // 用户页面
             else if (WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
-                this.__isLogin = true;
+                this._setLoginStatus(true)
                 await page?.close();
             }
         } catch (error) {
@@ -157,14 +181,7 @@ export class WXWorker extends BaseWorker {
             page_ = page;
             await page.goto(WXMP_HOME_URL);
             const url = new URL(page.url());
-            const oldIsLogin = this.__isLogin;
-            this.__isLogin = WXMP_USER_PAGE_PATH_REX.test(url.pathname);
-            // 登录状态改变
-            if (this.__isLogin !== oldIsLogin) {
-                this.emitMessage(WSMessage.Worker.DetailChange.type, {
-                    key: this.key,
-                });
-            }
+            this._setLoginStatus(WXMP_USER_PAGE_PATH_REX.test(url.pathname));
         }
         catch (error) {
             console.error('更新登录状态失败', error);
