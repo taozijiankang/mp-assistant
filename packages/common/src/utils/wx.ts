@@ -1,0 +1,71 @@
+import { VersionListItem } from "../types/wx.js";
+
+export enum VersionPositioningType {
+    /** 描述 */
+    Describe = 'describe',
+    /** 开发者 */
+    NickName = 'nick_name',
+    /** 版本 */
+    Version = 'version',
+}
+
+export const VersionPositioningTypeDict = {
+    [VersionPositioningType.Describe]: '描述',
+    [VersionPositioningType.NickName]: '开发者',
+    [VersionPositioningType.Version]: '版本',
+}
+
+export const VersionPositioningTypeOptions = Object.values(VersionPositioningType).map(type => ({
+    label: VersionPositioningTypeDict[type],
+    value: type,
+}));
+
+export enum VersionPositioningCriteria {
+    /** 相等 */
+    Equal = 'Equal',
+    /** 包含 */
+    Inclusion = 'Inclusion',
+}
+
+export const VersionPositioningCriteriaDict = {
+    [VersionPositioningCriteria.Equal]: '相等',
+    [VersionPositioningCriteria.Inclusion]: '包含'
+}
+
+export const VersionPositioningCriteriaOptions = Object.values(VersionPositioningCriteria).map(type => ({
+    label: VersionPositioningCriteriaDict[type],
+    value: type,
+}));
+
+export interface VersionPositioner {
+    type: VersionPositioningType;
+    criteria: VersionPositioningCriteria;
+    value: string;
+}
+
+/**
+ * 版本是否满足条件
+ * @param version 
+ * @param positioners 
+ */
+export function versionSatisfy(version: VersionListItem, positioners: VersionPositioner[]) {
+    return positioners.every(item => {
+        switch (item.type) {
+            case VersionPositioningType.Describe:
+                return {
+                    [VersionPositioningCriteria.Equal]: version.describe === item.value,
+                    [VersionPositioningCriteria.Inclusion]: version.describe?.includes(item.value),
+                }[item.criteria]
+            case VersionPositioningType.NickName:
+                return {
+                    [VersionPositioningCriteria.Equal]: version.nick_name === item.value,
+                    [VersionPositioningCriteria.Inclusion]: version.nick_name?.includes(item.value),
+                }[item.criteria]
+            case VersionPositioningType.Version:
+                return {
+                    [VersionPositioningCriteria.Equal]: version.version === item.value,
+                    [VersionPositioningCriteria.Inclusion]: version.version?.includes(item.value),
+                }[item.criteria]
+        }
+    });
+}
