@@ -3,7 +3,7 @@
         <div class="top">
             {{ workerDetail?.name || '未命名' }}
         </div>
-        <div v-if="isWXWorkerInfo(workerDetail)" class="wx content-container">
+        <div v-if="WXWorkerN.isWXWorkerInfo(workerDetail)" class="wx content-container">
             <!-- 未登录 -->
             <div v-if="!workerDetail?.isLogin" class="no-login">
                 <el-button v-if="!workerDetail.loginQRCodeURL" type="primary" @click="handleLogin">登录</el-button>
@@ -22,10 +22,9 @@
 </template>
 
 <script setup lang="ts">
-import type { BaseWorkInfo } from 'mp-assistant-common/dist/work/type';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { requestGetWorkerDetail, requestLoginWorker } from '@/api';
-import { isWXWorkerInfo } from 'mp-assistant-common/dist/work';
+import { WXWorkerN, type BaseWorkInfo } from 'mp-assistant-common/dist/work';
 import WXAList from './component/WXAList/index.vue';
 import TaskStack from './component/TaskStack/index.vue';
 import { WSMessageEvent } from '@/event/WSMessageEvent';

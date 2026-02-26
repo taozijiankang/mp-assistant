@@ -1,8 +1,5 @@
-import { BaseWorkInfo } from "../../work/type.js";
-import { WorkerType } from "../../work/index.js";
-import { TaskType } from "../../work/task/index.js";
-import { BaseTaskInfo } from "../../work/task/type.js";
-import { WXMPItem } from "../../types/wx.js";
+import { BaseWorkInfo, WorkerType } from "../../work/index.js";
+import { BaseTaskInfo, TaskType } from "../../work/task/index.js";
 import { APIErrorRes, APISuccessRes } from "../type.js";
 
 export namespace WorkerApi {

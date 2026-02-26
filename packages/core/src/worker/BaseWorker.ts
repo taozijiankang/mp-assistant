@@ -5,8 +5,7 @@ import path, { extname } from "path";
 import { wait } from "mp-assistant-common/dist/utils/global.js";
 import { BaseTask } from "./BaseTask.js";
 import { TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
-import { WorkerType } from "mp-assistant-common/dist/work/index.js";
-import { BaseWorkerOptions, BaseWorkInfo } from "mp-assistant-common/dist/work/type.js";
+import { BaseWorkerOptions, BaseWorkInfo, WorkerType } from "mp-assistant-common/dist/work/index.js";
 import { WSMessage } from "mp-assistant-common/dist/ws/message.js"
 
 export abstract class BaseWorker {
@@ -146,10 +145,18 @@ export abstract class BaseWorker {
     if (!this.isLoading(type)) {
       this.__loadings.push(type);
     }
+
+    this.emitMessage(WSMessage.Worker.DetailChange.type, {
+      key: this.key,
+    });
   }
 
   offLoading(type: string) {
     this.__loadings = this.__loadings.filter(item => item !== type);
+
+    this.emitMessage(WSMessage.Worker.DetailChange.type, {
+      key: this.key,
+    });
   }
 
   isLoading(type: string) {

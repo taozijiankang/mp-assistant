@@ -1,13 +1,15 @@
-import { TaskExecResult, WXTask } from "mp-assistant-common/dist/work/task/type.js";
 import { BrowserContext, Page } from "playwright";
 import { BaseTask } from "../../BaseTask.js";
 import { WXMP_HOME_URL, WXMP_USER_PAGE_PATH_REX } from "../../../constant/wx.js";
 import { expect } from "playwright/test";
+import { TaskExecResult, WXTaskN } from "mp-assistant-common/dist/work/task/index.js";
+import { getVersionList } from "../../../api/index.js";
+import { VersionListItem } from "mp-assistant-common/dist/types/wx.js";
 
 export class BaseWXTask extends BaseTask {
-    readonly options: WXTask.TaskOptions;
+    readonly options: WXTaskN.TaskOptions;
 
-    constructor(options: WXTask.TaskOptions) {
+    constructor(options: WXTaskN.TaskOptions) {
         super(options);
 
         this.options = options;
@@ -95,5 +97,23 @@ export class BaseWXTask extends BaseTask {
                 reject(error);
             }
         }));
+    }
+
+    protected async _getVersionList(page: Page) {
+        const currentVersionData: WXTaskN.VersionListData = {}
+        try {
+            const { code_data } = await getVersionList(page)
+            if (code_data) {
+                const versionInfo = JSON.parse(code_data)
+                currentVersionData[WXTaskN.VersionType.ONLINE] = versionInfo[WXTaskN.VersionType.ONLINE]?.basic_info || []
+                currentVersionData[WXTaskN.VersionType.TEST] = versionInfo[WXTaskN.VersionType.TEST]?.basic_info || []
+                currentVersionData[WXTaskN.VersionType.DEVELOP] = versionInfo[WXTaskN.VersionType.DEVELOP]?.info_list?.map((el: { is_exper: boolean, basic_info: VersionListItem }) => ({ ...el.basic_info, is_exper: el.is_exper })) || []
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
+
+        return currentVersionData
     }
 }

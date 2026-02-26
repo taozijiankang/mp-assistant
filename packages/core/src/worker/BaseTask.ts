@@ -1,8 +1,6 @@
 import { BrowserContext } from "playwright";
 import { getUUID } from "mp-assistant-common/dist/utils/index.js";
-import { TaskStatus, TaskType } from "mp-assistant-common/dist/work/task/index.js";
-import { BaseTaskInfo, TaskRunningReport } from "mp-assistant-common/dist/work/task/type.js";
-import { TaskExecResult } from "mp-assistant-common/dist/work/task/type.js";
+import { BaseTaskInfo, TaskExecResult, TaskRunningReport, TaskStatus, TaskType } from "mp-assistant-common/dist/work/task/index.js";
 import type { BaseWorker } from "./BaseWorker.js";
 import { WSMessage } from "mp-assistant-common/dist/ws/message.js";
 

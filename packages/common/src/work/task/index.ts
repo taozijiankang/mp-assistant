@@ -1,49 +1,72 @@
-import { BaseTaskInfo, WXTask } from "./type.js";
+import { TaskStatus, TaskType } from "./const.js";
 
-
-export enum TaskType {
-    /** 检查小程序版本 */
-    WX_INSPECT_VERSION = "wxnInspectVersion",
-    /** 审核 */
-    WX_AUDIT = "wxnAudit",
-    /** 发布 */
-    WX_PUBLISH = "wxnPublish",
-}
-
-export enum TaskStatus {
-    /** 未开始 */
-    NOT_STARTED = "notStarted",
-    /** 执行中 */
-    RUNNING = "running",
-    /** 完成 */
-    COMPLETED = "completed",
-    /** 失败 */
-    FAILED = "failed",
-}
-
-export const TaskTypeDict = {
-    [TaskType.WX_INSPECT_VERSION]: '检查小程序版本',
-    [TaskType.WX_AUDIT]: '审核',
-    [TaskType.WX_PUBLISH]: '发布',
-}
-
-export const TaskStatusDict = {
-    [TaskStatus.NOT_STARTED]: '未开始',
-    [TaskStatus.RUNNING]: '执行中',
-    [TaskStatus.COMPLETED]: '完成',
-    [TaskStatus.FAILED]: '失败'
-}
-
-export const TaskTypeOptions = Object.values(TaskType).map(type => ({
-    label: TaskTypeDict[type],
-    value: type,
-}));
+export * from "./const.js";
 
 export const taskCompleted = (taskStatus: TaskStatus) => {
     return taskStatus === TaskStatus.COMPLETED || taskStatus === TaskStatus.FAILED;
 }
 
-export const isWXTaskInfo = (info: BaseTaskInfo): info is WXTask.TaskInfo => {
-    return info.type === TaskType.WX_INSPECT_VERSION || info.type === TaskType.WX_AUDIT || info.type === TaskType.WX_PUBLISH;
+export interface BaseTaskInfo {
+    workerKey: string;
+    key: string;
+    type: TaskType;
+    status: TaskStatus;
+    runningReportList: TaskRunningReport[];
+    options?: any;
+    result?: TaskExecResult;
 }
 
+export interface TaskRunningReport {
+    title: string;
+    timestamp: number;
+    description?: string;
+    images?: string[];
+}
+
+export interface TaskExecResult<T = any> {
+    status: TaskStatus.COMPLETED | TaskStatus.FAILED;
+    data?: T;
+}
+
+export namespace WXTaskN {
+    export interface TaskOptions {
+        /** 小程序名称 */
+        app_name: string;
+        /** 小程序原始id */
+        username: string;
+    }
+
+    export interface TaskInfo extends BaseTaskInfo {
+        type: TaskType.WX_INSPECT_VERSION | TaskType.WX_AUDIT | TaskType.WX_PUBLISH;
+        options: TaskOptions;
+    }
+
+    export const isWXTaskInfo = (info: BaseTaskInfo): info is WXTaskN.TaskInfo => {
+        return info.type === TaskType.WX_INSPECT_VERSION || info.type === TaskType.WX_AUDIT || info.type === TaskType.WX_PUBLISH;
+    }
+
+    export interface InspectVersionInfo extends TaskInfo {
+        result: TaskExecResult<GetVersionListResult[]>
+    }
+
+    export interface VersionListItem {
+        version?: string;
+        publisher?: string;
+        publishTime?: string;
+        remark?: string;
+        actionBtn: any;
+    }
+
+    export type VersionListData = {
+        [key in VersionType]?: VersionListItem[]
+    }
+
+    export type GetVersionListResult = VersionListData | null;
+
+    export enum VersionType {
+        ONLINE = "online_info",
+        TEST = "experience_info",
+        DEVELOP = "develop_info"
+    }
+
+}

@@ -5,8 +5,7 @@ import { expect } from "playwright/test";
 import { requestWxaList } from "../../api/module/wx.js";
 import { WXMPItem } from "mp-assistant-common/dist/types/wx.js";
 import { taskCompleted, TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
-import { WorkerType, WXWorkerLoadingType } from "mp-assistant-common/dist/work/index.js";
-import { WXWorkInfo } from "mp-assistant-common/dist/work/type.js";
+import { WorkerType, WXWorkerN } from "mp-assistant-common/dist/work/index.js";
 import { WSMessage } from "mp-assistant-common/dist/ws/message.js";
 
 export class WXWorker extends BaseWorker {
@@ -22,7 +21,7 @@ export class WXWorker extends BaseWorker {
         return this.__isLogin;
     }
 
-    info(): WXWorkInfo {
+    info(): WXWorkerN.WXWorkInfo {
         return {
             ...super.info(),
             loginQRCodeURL: this.loginQRCodeURL,
@@ -72,96 +71,79 @@ export class WXWorker extends BaseWorker {
     }
 
     async login() {
-        if (this.isLoading(WXWorkerLoadingType.login)) {
+        if (this.isLoading(WXWorkerN.LoadingType.login)) {
             return;
         }
-        this.setLoading(WXWorkerLoadingType.login);
+        this.setLoading(WXWorkerN.LoadingType.login);
 
         const browserContent = this.browserContent!;
 
-        let page_: Page | null = null;
         try {
             const page = await browserContent.newPage();
-            page_ = page;
-            page.goto(WXMP_HOME_URL);
-            page.on('load', async () => {
-                const url = new URL(page.url());
 
-                // 如果用户跳转到其他页面，则重新回到首页页面
-                if (url.host !== WXMP_HOST) {
-                    page.goto(WXMP_HOME_URL);
-                    return;
-                }
-                // 登录页面
-                else if (url.pathname === WXMP_LOGIN_PATH) {
-                    const loginQRCodeLocator = page.locator('img.login__type__container__scan__qrcode');
-                    await expect(loginQRCodeLocator).toHaveAttribute('src', /^\/cgi-bin\/scanloginqrcode/, { timeout: 3 * 1000 });
-                    const loginQRCodeURL = await loginQRCodeLocator.getAttribute('src') || '';
-                    if (loginQRCodeURL) {
-                        // 检查图片资源加载情况
-                        await loginQRCodeLocator.evaluate((img: HTMLImageElement) => {
-                            return new Promise<void>((resolve, reject) => {
-                                // 如果图片已经加载完成 (Already loaded)
-                                if (img.complete && img.naturalWidth > 0) {
-                                    resolve();
-                                } else {
-                                    // 否则监听 load 和 error 事件
-                                    img.onload = () => resolve();
-                                    img.onerror = () => reject(new Error('Image load failed'));
-                                }
-                            });
+            await page.goto(WXMP_HOME_URL);
+
+            const url = new URL(page.url());
+
+            // 登录页面
+            if (url.pathname === WXMP_LOGIN_PATH) {
+                const loginQRCodeLocator = page.locator('img.login__type__container__scan__qrcode');
+                await expect(loginQRCodeLocator).toHaveAttribute('src', /^\/cgi-bin\/scanloginqrcode/, { timeout: 3 * 1000 });
+                const loginQRCodeURL = await loginQRCodeLocator.getAttribute('src') || '';
+                if (loginQRCodeURL) {
+                    // 检查图片资源加载情况
+                    await loginQRCodeLocator.evaluate((img: HTMLImageElement) => {
+                        return new Promise<void>((resolve, reject) => {
+                            // 如果图片已经加载完成 (Already loaded)
+                            if (img.complete && img.naturalWidth > 0) {
+                                resolve();
+                            } else {
+                                // 否则监听 load 和 error 事件
+                                img.onload = () => resolve();
+                                img.onerror = () => reject(new Error('Image load failed'));
+                            }
                         });
-                        const buffer = await loginQRCodeLocator.screenshot();
-                        // 转成base64
-                        const base64 = Buffer.from(buffer).toString('base64');
-                        this.loginQRCodeURL = `data:image/png;base64,${base64}`;
-
-                        this.emitMessage(WSMessage.Worker.DetailChange.type, {
-                            key: this.key,
-                        });
-                    } else {
-                        throw new Error('登录二维码获取失败');
-                    }
-                }
-                // 用户页面
-                else if (WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
-                    this.__isLogin = true;
-
-                    this.emitMessage(WSMessage.Worker.DetailChange.type, {
-                        key: this.key,
                     });
-                    await page_?.close();
+                    const buffer = await loginQRCodeLocator.screenshot();
+                    // 转成base64
+                    const base64 = Buffer.from(buffer).toString('base64');
+                    this.loginQRCodeURL = `data:image/png;base64,${base64}`;
+                } else {
+                    throw new Error('登录二维码获取失败');
                 }
-            });
+            }
+            // 用户页面
+            else if (WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
+                this.__isLogin = true;
+                await page?.close();
+            }
+        } catch (error) {
+            console.log('登录失败', error);
         }
-        catch (error) {
-            console.error('登录失败', error);
-        } finally {
-            this.offLoading(WXWorkerLoadingType.login);
+        finally {
+            this.offLoading(WXWorkerN.LoadingType.login);
         }
     }
 
     async updateWxaList() {
-        if (this.isLoading(WXWorkerLoadingType.updateWxaListWxaList)) { return }
-        this.setLoading(WXWorkerLoadingType.updateWxaListWxaList);
+        if (this.isLoading(WXWorkerN.LoadingType.updateWxaListWxaList)) { return }
+        this.setLoading(WXWorkerN.LoadingType.updateWxaListWxaList);
+
+        const browserContent = this.browserContent!;
 
         try {
             await this.__updateLoginStatus();
             if (!this.isLogin) {
                 return [];
             }
-            const page = await this.browserContent!.newPage();
+            const page = await browserContent.newPage();
             await page.goto(WXMP_HOME_URL);
             const wxaList = await requestWxaList(page);
             await page.close();
             this.wxaList = wxaList;
         } finally {
-            this.offLoading(WXWorkerLoadingType.updateWxaListWxaList)
+            this.offLoading(WXWorkerN.LoadingType.updateWxaListWxaList)
         }
-
-        this.emitMessage(WSMessage.Worker.DetailChange.type, {
-            key: this.key
-        })
     }
 
     private async __updateLoginStatus() {

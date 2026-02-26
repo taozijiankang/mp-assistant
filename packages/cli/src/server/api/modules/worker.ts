@@ -83,12 +83,12 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
             return getErrorApiResponse('Worker not found', 404);
         }
         if (isWXWorker(worker)) {
-            await worker.login();
+            worker.login();
+            return getSuccessApiResponse(undefined);
         }
         else {
             return getErrorApiResponse('Worker type not supported', 400);
         }
-        return getSuccessApiResponse(undefined);
     });
 
     fastify.get(Api.Worker.WorkerUpdateWxaList.url, async (request, reply): Promise<Api.Worker.WorkerUpdateWxaList.Response> => {
@@ -100,7 +100,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         }
 
         if (isWXWorker(worker)) {
-            await worker.updateWxaList();
+            worker.updateWxaList();
             return getSuccessApiResponse(undefined);
         }
         else {

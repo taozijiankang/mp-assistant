@@ -25,8 +25,14 @@ export async function request<T>(
     url: string,
     options: RequestOptions = {}
 ): Promise<APISuccessRes<T>> {
-    const { method = "GET", query, body, headers } = options;
-    const resolvedURL = getBaseURL() + url + (query ? `?${qs.stringify(query)}` : "");
+    const { method = "GET", query = {}, body, headers } = options;
+    const resolvedURL = getBaseURL() + url + (query ? `?${qs.stringify({
+        ...query,
+        /** 
+         * TODO:因为是局域网请求，所以不需要浏览器做流量限制
+         */
+        __random: `${Date.now()}-${Math.random()}`
+    })}` : "");
 
     const fetchOptions: RequestInit = {
         method: method.toUpperCase(),

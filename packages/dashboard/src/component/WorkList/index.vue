@@ -17,12 +17,12 @@
 </template>
 
 <script setup lang="ts">
-import type { BaseWorkInfo } from 'mp-assistant-common/dist/work/type';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { requestGetWorkerList } from '@/api';
 import AddWorkerDialog from '@/component/AddWorkerDialog/index.vue';
 import { WSMessage } from "mp-assistant-common/dist/ws/message.js"
 import { WSMessageEvent } from '@/event/WSMessageEvent';
+import type { BaseWorkInfo } from 'mp-assistant-common/dist/work';
 
 const props = defineProps<{
     currentWorkerKey: string;

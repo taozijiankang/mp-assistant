@@ -12,11 +12,11 @@
   </div>
 </template>
 <script setup lang="ts">
-import type { BaseWorkInfo } from 'mp-assistant-common/dist/work/type';
 import { ref } from 'vue';
 import WorkList from '@/component/WorkList/index.vue';
 import EditConfigDialog from '@/component/EditConfigDialog/index.vue';
 import WorkerDetail from '@/component/WorkerDetail/index.vue';
+import type { BaseWorkInfo } from 'mp-assistant-common/dist/work';
 
 const editConfigDialogRef = ref<InstanceType<typeof EditConfigDialog>>();
 
