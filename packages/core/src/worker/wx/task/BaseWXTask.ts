@@ -1,4 +1,4 @@
-import { BrowserContext, Page } from "playwright";
+import { BrowserContext, Locator, Page } from "playwright";
 import { BaseTask } from "../../BaseTask.js";
 import { WXMP_HOME_URL, WXMP_USER_PAGE_PATH_REX } from "../../../constant/wx.js";
 import { expect } from "playwright/test";
@@ -105,8 +105,8 @@ export class BaseWXTask extends BaseTask {
             const { code_data } = await getVersionList(page)
             if (code_data) {
                 const versionInfo = JSON.parse(code_data)
-                currentVersionData[WXTaskN.VersionType.ONLINE] = versionInfo[WXTaskN.VersionType.ONLINE]?.basic_info || []
-                currentVersionData[WXTaskN.VersionType.TEST] = versionInfo[WXTaskN.VersionType.TEST]?.basic_info || []
+                currentVersionData[WXTaskN.VersionType.ONLINE] = versionInfo[WXTaskN.VersionType.ONLINE]?.basic_info || null
+                currentVersionData[WXTaskN.VersionType.TEST] = versionInfo[WXTaskN.VersionType.TEST]?.basic_info || null
                 currentVersionData[WXTaskN.VersionType.DEVELOP] = versionInfo[WXTaskN.VersionType.DEVELOP]?.info_list?.map((el: { is_exper: boolean, basic_info: VersionListItem }) => ({ ...el.basic_info, is_exper: el.is_exper })) || []
             }
 
@@ -115,5 +115,16 @@ export class BaseWXTask extends BaseTask {
         }
 
         return currentVersionData
+    }
+
+    protected _getVersionContainer(page: Page, versionType: WXTaskN.VersionType): Locator {
+        const containerName = WXTaskN.VersionContainerDict[versionType]
+        if (!containerName) {
+            throw new Error(`不支持的版本类型: ${versionType}，可选: online | test | develop`)
+        }
+
+        const el = page.locator(containerName)
+
+        return el
     }
 }
