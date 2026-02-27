@@ -40,7 +40,6 @@ export namespace WXTaskN {
     }
 
     export interface AuditTaskOptions extends TaskOptions {
-        version?: VersionListItem
         positioner?: VersionPositioner[]
         populateData?: {
             // 版本描述
