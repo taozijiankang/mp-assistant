@@ -6,19 +6,21 @@
                 :loading="refreshWxaListLoading || workerDetail.loadings.includes(WXWorkerN.LoadingType.updateWxaListWxaList)"
                 @click="handleRefreshWxaList">刷新小程序列表</el-button>
         </div>
-        <div class="wxa-item-container">
-            <div class="wxa-item" v-for="wxa in filteredWxaList" :key="wxa.wxaItem.appid">
-                <div class="wxa-info-container">
-                    <img class="wxa-icon" :src="wxa.wxaItem.app_headimg" />
-                    <div class="wxa-info">
-                        <div class="wxa-name">{{ wxa.wxaItem.app_name }}</div>
-                        <div class="wxa-appid">appid: {{ wxa.wxaItem.appid }}</div>
-                        <div class="wxa-username">username: {{ wxa.wxaItem.username }}</div>
+        <el-scrollbar class="wxa-item-container-scrollbar">
+            <div class="wxa-item-container">
+                <div class="wxa-item" v-for="wxa in filteredWxaList" :key="wxa.wxaItem.appid">
+                    <div class="wxa-info-container">
+                        <img class="wxa-icon" :src="wxa.wxaItem.app_headimg" />
+                        <div class="wxa-info">
+                            <div class="wxa-name">{{ wxa.wxaItem.app_name }}</div>
+                            <div class="wxa-appid">appid: {{ wxa.wxaItem.appid }}</div>
+                            <div class="wxa-username">username: {{ wxa.wxaItem.username }}</div>
+                        </div>
                     </div>
+                    <VersionList v-if="wxa.versionList" :version-list="wxa.versionList" />
                 </div>
-                <VersionList v-if="wxa.versionList" :version-list="wxa.versionList" />
             </div>
-        </div>
+        </el-scrollbar>
     </div>
 </template>
 

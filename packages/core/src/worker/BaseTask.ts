@@ -86,6 +86,8 @@ export abstract class BaseTask {
                 msg: error instanceof Error ? error.message : '未知错误',
             };
             console.error('任务执行失败', error);
+        } finally {
+            this.emitDetailChangeEvent();
         }
         return this.result;
     }

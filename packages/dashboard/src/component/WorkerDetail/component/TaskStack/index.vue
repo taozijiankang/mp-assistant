@@ -5,37 +5,40 @@
                 <el-input v-model="filterKeyword" placeholder="请输入过滤关键词，支持小程序名称、appid、username" clearable />
                 <el-button type="primary" @click="handleAddTask">添加任务</el-button>
             </div>
-            <div class="task-list-content">
-                <div v-for="taskItem in [...filteredTaskList].reverse()" :key="taskItem.key" class="task-item" :class="{
-                    selected: taskItem.key === onSelectedTaskKey,
-                    'not-started': taskItem.status === TaskStatus.NOT_STARTED,
-                    running: taskItem.status === TaskStatus.RUNNING,
-                    completed: taskItem.status === TaskStatus.COMPLETED,
-                    failed: taskItem.status === TaskStatus.FAILED,
-                }" @click="handleTaskClick(taskItem)">
-                    <div class="main">
-                        <span class="task-type">{{ TaskTypeDict[taskItem.type] }} 任务</span>
-                        <div class="task-status">
-                            <span class="dot"></span>
-                            <span>
-                                {{ TaskStatusDict[taskItem.status] }}
-                            </span>
+            <el-scrollbar class="task-list-content-scrollbar">
+                <div class="task-list-content">
+                    <div v-for="taskItem in [...filteredTaskList].reverse()" :key="taskItem.key" class="task-item"
+                        :class="{
+                            selected: taskItem.key === onSelectedTaskKey,
+                            'not-started': taskItem.status === TaskStatus.NOT_STARTED,
+                            running: taskItem.status === TaskStatus.RUNNING,
+                            completed: taskItem.status === TaskStatus.COMPLETED,
+                            failed: taskItem.status === TaskStatus.FAILED,
+                        }" @click="handleTaskClick(taskItem)">
+                        <div class="main">
+                            <span class="task-type">{{ TaskTypeDict[taskItem.type] }} 任务</span>
+                            <div class="task-status">
+                                <span class="dot"></span>
+                                <span>
+                                    {{ TaskStatusDict[taskItem.status] }}
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    <div v-if="getWxaInfo(taskItem.options)" class="wxa-info-container">
-                        <img class="wxa-icon" :src="getWxaInfo(taskItem.options)?.app_headimg" />
-                        <div class="wxa-info">
-                            <div class="wxa-name">{{ getWxaInfo(taskItem.options)?.app_name }}</div>
-                            <div class="wxa-appid">appid: {{ getWxaInfo(taskItem.options)?.appid }}</div>
-                            <div class="wxa-username">username: {{ getWxaInfo(taskItem.options)?.username }}</div>
+                        <div v-if="getWxaInfo(taskItem.options)" class="wxa-info-container">
+                            <img class="wxa-icon" :src="getWxaInfo(taskItem.options)?.app_headimg" />
+                            <div class="wxa-info">
+                                <div class="wxa-name">{{ getWxaInfo(taskItem.options)?.app_name }}</div>
+                                <div class="wxa-appid">appid: {{ getWxaInfo(taskItem.options)?.appid }}</div>
+                                <div class="wxa-username">username: {{ getWxaInfo(taskItem.options)?.username }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </el-scrollbar>
         </div>
         <div v-if="onSelectedTask" class="task-detail">
             <div v-if="onSelectedTask.status === TaskStatus.RUNNING" class="task-running">
-                <span>任务执行中</span>
+                <span>任务执行中...</span>
             </div>
             <template
                 v-if="onSelectedTask.status === TaskStatus.COMPLETED || onSelectedTask.status === TaskStatus.FAILED">

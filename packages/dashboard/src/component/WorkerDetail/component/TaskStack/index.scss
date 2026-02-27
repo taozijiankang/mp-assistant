@@ -2,11 +2,12 @@
   display: flex;
   gap: 10px;
   height: 100%;
+  min-width: 800px;
   .task-list {
-    width: 300px;
+    width: 400px;
     display: flex;
     flex-direction: column;
-    padding: 12px;
+    padding: 12px 0;
     gap: 10px;
     border-radius: 20px;
     border: 1.5px solid #eeecf9;
@@ -16,6 +17,13 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
+      padding: 0 12px;
+    }
+    .task-list-content-scrollbar {
+      flex: 1;
+      min-height: 0;
+      border-radius: 10px;
+      padding: 0 12px;
     }
     .task-list-content {
       flex: 1;
@@ -169,6 +177,8 @@
     gap: 10px;
     display: flex;
     flex-direction: column;
+    padding: 12px;
+    box-sizing: border-box;
 
     .title {
       color: #917cd6;
