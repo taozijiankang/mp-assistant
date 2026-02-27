@@ -10,9 +10,9 @@ export enum VersionPositioningType {
 }
 
 export const VersionPositioningTypeDict = {
-    [VersionPositioningType.Describe]: '描述',
-    [VersionPositioningType.NickName]: '开发者',
-    [VersionPositioningType.Version]: '版本',
+    [VersionPositioningType.Describe]: '备注',
+    [VersionPositioningType.NickName]: '发布者',
+    [VersionPositioningType.Version]: '版本号',
 }
 
 export const VersionPositioningTypeOptions = Object.values(VersionPositioningType).map(type => ({

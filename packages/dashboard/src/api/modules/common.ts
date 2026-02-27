@@ -7,3 +7,10 @@ export function requestUploadFile(file: File) {
         { method: Api.Common.UploadFile.method, file }
     );
 }
+
+export function requestConvertFilePath(filePaths: string[]) {
+    return request<Api.Common.ConvertFilePath.ResponseData>(
+        Api.Common.ConvertFilePath.url,
+        { method: Api.Common.ConvertFilePath.method, body: { filePaths } }
+    );
+}

@@ -1,0 +1,32 @@
+.content-container {
+  display: flex;
+  flex-direction: column;
+
+  .positioner-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    .positioner-item {
+      display: flex;
+      flex-direction: column;
+
+      .positioner-item-content {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        width: 100%;
+
+        .select {
+          width: 100px;
+        }
+        .value-input {
+          flex: 1;
+          min-width: 0;
+        }
+      }
+    }
+    .positioner-add {
+      margin-top: 10px;
+    }
+  }
+}

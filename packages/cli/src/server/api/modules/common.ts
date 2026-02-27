@@ -27,4 +27,14 @@ export const registerCommonApi = (fastify: FastifyInstance) => {
 
         return getSuccessApiResponse(FilesPrefix + '/' + path.relative(getFilesDir(), path.join(fileDir, fileName)).replaceAll(path.sep, '/'));
     });
+
+    fastify.post(Api.Common.ConvertFilePath.url, async function (req, reply): Promise<Api.Common.ConvertFilePath.Response> {
+        const { filePaths = [] } = req.body as Api.Common.ConvertFilePath.RequestBody;
+
+        const convertedFilePaths = filePaths.map(filePath => {
+            return path.join(getFilesDir(), filePath.replace(new RegExp(`^${FilesPrefix}/`), '')).replaceAll(path.sep, '/');
+        });
+
+        return getSuccessApiResponse(convertedFilePaths);
+    });
 };
