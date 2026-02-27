@@ -28,8 +28,7 @@ export interface VersionListItem {
 }
 
 export enum WXReviewStatus {
-    SUCCESS = 3,
-    REVIEWING = 2,
-    FAIL = 1,
-    EXPERIENCE = 0
+    SUCCESS = 2,
+    REVIEWING = 1,
+    FAIL = 0,
 }

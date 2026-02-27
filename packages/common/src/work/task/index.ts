@@ -1,4 +1,5 @@
 import { VersionListItem } from "../../types/wx.js";
+import { VersionPositioner } from "../../utils/wx.js";
 import { TaskStatus, TaskType } from "./const.js";
 
 export * from "./const.js";
@@ -39,9 +40,16 @@ export namespace WXTaskN {
     }
 
     export interface AuditTaskOptions extends TaskOptions {
-        describe?: string;
-        nick_name?: string;
-        version?: string;
+        version?: VersionListItem
+        positioner?: VersionPositioner[]
+        populateData?: {
+            // 版本描述
+            versionDescription?: string
+            // 图片预览
+            imagePreview?: string
+            // 视频预览
+            videoPreview?: string
+        }
     }
 
     export interface TaskInfo extends BaseTaskInfo {
