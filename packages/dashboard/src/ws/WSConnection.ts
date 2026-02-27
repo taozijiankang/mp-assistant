@@ -7,7 +7,7 @@ import { EventEmitter } from "mp-assistant-common/dist/event/EventEmitter";
  * 生产环境下使用相对路径（同源部署），开发环境通过 vite proxy 代理
  */
 const getBaseURL = () => {
-    return new URL(WSUrl, import.meta.env.VITE_API_URL).href;
+    return new URL(WSUrl, import.meta.env.VITE_BASE_API_URL || location.origin).href;
 };
 
 export interface BaseWSConnectEventMap {
