@@ -15,12 +15,8 @@ export class InspectVersionTask extends BaseWXTask {
         try {
             await page.goto(`${WXMP_VERSION_MANAGEMENT_URL}${new URL(page.url()).search}`);
 
-            const currentVersionData = await this._getVersionList(page)
+            const currentVersionData = await this._getVersionList(page);
 
-            /**
-             * 获取版本管理页面中的版本列表
-             */
-            console.log('获取版本管理页面中的版本列表');
             return {
                 status: TaskStatus.COMPLETED,
                 data: currentVersionData,
