@@ -1,33 +1,96 @@
 <template>
     <div class="version-list">
         <template v-if="onlineVersion">
-            <span>线上版本</span>
+            <div class="title online">
+                <div class="dot"></div>
+                <span>线上版本</span>
+            </div>
             <div class="version-item-list">
                 <div class="version-item">
-                    <span>版本：{{ onlineVersion?.version }}</span>
-                    <span>发布者: {{ onlineVersion?.nick_name }}</span>
-                    <span>备注: {{ onlineVersion?.describe }}</span>
+                    <div class="col">
+                        <div class="row">
+                            <span>版本：{{ onlineVersion?.version }}</span>
+                        </div>
+                        <div class="row">
+                            <span>发布者: {{ onlineVersion?.nick_name }}</span>
+                        </div>
+                        <div v-if="byDescribeGetCommitHash(onlineVersion?.describe || '')" class="row">
+                            <span>
+                                提交 hash:
+                                <span class="commit-hash">
+                                    {{ byDescribeGetCommitHash(onlineVersion?.describe || '') }}
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row">
+                            <span>备注: {{ onlineVersion?.describe }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </template>
         <template v-if="testVersion">
-            <span>审核版本</span>
-            <span>{{}}</span>
+            <div class="title test">
+                <div class="dot"></div>
+                <span>审核版本</span>
+            </div>
             <div class="version-item-list">
                 <div class="version-item">
-                    <span>版本：{{ testVersion?.version }}</span>
-                    <span>发布者: {{ testVersion?.nick_name }}</span>
-                    <span>备注: {{ testVersion?.describe }}</span>
+                    <div class="col">
+                        <div class="row">
+                            <span>版本：{{ testVersion?.version }}</span>
+                        </div>
+                        <div class="row">
+                            <span>发布者: {{ testVersion?.nick_name }}</span>
+                        </div>
+                        <div v-if="byDescribeGetCommitHash(testVersion?.describe || '')" class="row">
+                            <span>
+                                提交 hash:
+                                <span class="commit-hash">
+                                    {{ byDescribeGetCommitHash(testVersion?.describe || '') }}
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row">
+                            <span>备注: {{ testVersion?.describe }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </template>
         <template v-if="devVersions.length > 0">
-            <span>开发版本</span>
+            <div class="title dev">
+                <div class="dot"></div>
+                <span>开发版本</span>
+            </div>
             <div class="version-item-list">
                 <div v-for="item in versionList[WXTaskN.VersionType.DEVELOP]" class="version-item">
-                    <span>版本：{{ item?.version }} <span v-if="item.is_exper" style="color: #00ACFF">[体验版本]</span></span>
-                    <span>发布者: {{ item?.nick_name }}</span>
-                    <span>备注: {{ item?.describe }}</span>
+                    <div class="col">
+                        <div class="row">
+                            <span>版本：{{ item?.version }} <span v-if="item.is_exper"
+                                    style="color: #00ACFF">[体验版本]</span></span>
+                        </div>
+                        <div class="row">
+                            <span>发布者: {{ item?.nick_name }}</span>
+                        </div>
+                        <div v-if="byDescribeGetCommitHash(item?.describe || '')" class="row">
+                            <span>
+                                提交 hash:
+                                <span class="commit-hash">
+                                    {{ byDescribeGetCommitHash(item?.describe || '') }}
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row">
+                            <span>备注: {{ item?.describe }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </template>
@@ -51,6 +114,16 @@ const testVersion = computed(() => {
 const devVersions = computed(() => {
     return props.versionList[WXTaskN.VersionType.DEVELOP] || []
 });
+
+/**
+ * 根据描述获取commit hash
+ * @param describe 描述
+ * @returns commit hash
+ */
+const byDescribeGetCommitHash = (describe: string) => {
+    const commitHash = describe.match(/提交信息[:：]?\s*([a-f0-9]{7,40})/)?.[1];
+    return commitHash
+}
 </script>
 
 <style scoped lang="scss">

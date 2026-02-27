@@ -3,14 +3,14 @@
   gap: 10px;
   height: 100%;
   .task-list {
-    min-width: 0;
-    flex: 2;
+    width: 300px;
     display: flex;
     flex-direction: column;
-    border: 1px solid #c5c5c5;
-    padding: 10px;
-    border-radius: 10px;
+    padding: 12px;
     gap: 10px;
+    border-radius: 20px;
+    border: 1.5px solid #eeecf9;
+    background: linear-gradient(177deg, #f5f5ff 0.77%, #f5f8fd 97.87%), #fff;
     .controller {
       display: flex;
       align-items: center;
@@ -28,35 +28,70 @@
       box-sizing: border-box;
       .task-item {
         display: flex;
+        padding: 8px 12px;
         flex-direction: column;
-        align-items: start;
+        align-items: flex-start;
+        border-radius: 8px;
+        background: #fff;
         gap: 10px;
-        background-color: #ededed;
-        padding: 10px;
-        border-radius: 5px;
+        border: 1px solid transparent;
 
         &.selected {
           border: 1px solid #409eff;
+          box-shadow: 0 0 8px rgba(64, 158, 255, 0.3), 0 0 16px rgba(64, 158, 255, 0.2);
         }
 
         &.not-started {
           .main {
-            color: #909399;
+            .task-status {
+              .dot {
+                background-color: #909399;
+              }
+              span {
+                color: #909399;
+              }
+            }
           }
         }
         &.running {
           .main {
-            color: #409eff;
+            .task-status {
+              color: #409eff;
+              .dot {
+                background-color: #409eff;
+                width: 10px;
+                height: 10px;
+              }
+              span {
+                color: #409eff;
+              }
+            }
           }
         }
         &.completed {
           .main {
-            color: #67c23a;
+            .task-status {
+              color: #67c23a;
+              .dot {
+                background-color: #67c23a;
+              }
+              span {
+                color: #67c23a;
+              }
+            }
           }
         }
         &.failed {
           .main {
-            color: #f56c6c;
+            .task-status {
+              color: #f56c6c;
+              .dot {
+                background-color: #f56c6c;
+              }
+              span {
+                color: #f56c6c;
+              }
+            }
           }
         }
 
@@ -64,23 +99,65 @@
           display: flex;
           align-items: center;
           gap: 10px;
+          width: 100%;
+          justify-content: space-between;
           .task-type {
-            padding: 2px 6px;
-            border-radius: 4px;
-            background-color: #f0f0f0;
+            color: #1d2129;
+            font-family: "Source Han Sans SC";
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 20px;
+          }
+          .task-status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            .dot {
+              width: 6px;
+              height: 6px;
+              border-radius: 50%;
+              background-color: #909399;
+              transition: all 0.3s ease-in-out;
+            }
+            span {
+              color: #1d2129;
+              font-family: "Source Han Sans SC";
+              font-size: 14px;
+              font-weight: 400;
+              line-height: normal;
+              font-weight: 700;
+            }
           }
         }
 
-        .task-options {
+        .wxa-info-container {
           display: flex;
-          gap: 4px;
-          align-items: center;
-          color: #606266;
-
-          .app-icon {
-            width: 30px;
-            height: 30px;
+          flex-direction: row;
+          gap: 10px;
+          .wxa-icon {
+            width: 40px;
+            height: 40px;
             border-radius: 4px;
+          }
+
+          .wxa-info {
+            display: flex;
+            flex-direction: column;
+            .wxa-name {
+              color: #1d2129;
+              font-family: "Source Han Sans SC";
+              font-size: 14px;
+              font-weight: 400;
+              line-height: normal;
+            }
+            .wxa-appid,
+            .wxa-username {
+              color: #86909c;
+              font-family: "Source Han Sans SC";
+              font-size: 10px;
+              font-weight: 400;
+              line-height: normal;
+            }
           }
         }
       }
@@ -93,8 +170,45 @@
     display: flex;
     flex-direction: column;
 
+    .report-title {
+      color: #917cd6;
+      font-family: "Source Han Sans SC";
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 22px;
+    }
+
     .report-timeline {
       padding: 0;
+
+      .report-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        .report-item-title {
+          color: #1d2129;
+          font-family: "Source Han Sans SC";
+          font-size: 14px;
+          font-weight: 700;
+          line-height: 20px;
+        }
+        .report-item-description {
+          color: #606266;
+          font-family: "Source Han Sans SC";
+          font-size: 12px;
+          font-weight: 400;
+          line-height: 18px;
+        }
+        .report-item-images {
+          display: flex;
+          flex-direction: row;
+          gap: 4px;
+          img {
+            width: 100px;
+            height: 100px;
+          }
+        }
+      }
     }
   }
 }

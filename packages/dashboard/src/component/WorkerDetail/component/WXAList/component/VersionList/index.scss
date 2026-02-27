@@ -1,15 +1,76 @@
 .version-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
   font-size: 12px;
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    &.online {
+      .dot {
+        background-color: #409eff;
+      }
+      span {
+        color: #409eff;
+      }
+    }
+    &.test {
+      .dot {
+        background-color: #f56c6c;
+      }
+      span {
+        color: #f56c6c;
+      }
+    }
+    &.dev {
+      .dot {
+        background-color: #67c23a;
+      }
+      span {
+        color: #67c23a;
+      }
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    span {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1d2129;
+      font-family: "Source Han Sans SC";
+      color: #1d2129;
+    }
+  }
 
   .version-item-list {
     display: flex;
     flex-direction: column;
+    gap: 10px;
+
     .version-item {
       display: flex;
       flex-direction: column;
+      gap: 2px;
+
+      .col {
+        display: flex;
+        align-items: center;
+        .row {
+          flex: 1;
+
+          .commit-hash {
+            color: #ffa319;
+            font-family: "Source Han Sans SC";
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 20px;
+          }
+        }
+      }
     }
   }
 }

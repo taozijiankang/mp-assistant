@@ -15,12 +15,20 @@
                 }" @click="handleTaskClick(taskItem)">
                     <div class="main">
                         <span class="task-type">{{ TaskTypeDict[taskItem.type] }} 任务</span>
-                        <div class="task-status">{{ TaskStatusDict[taskItem.status] }}</div>
+                        <div class="task-status">
+                            <span class="dot"></span>
+                            <span>
+                                {{ TaskStatusDict[taskItem.status] }}
+                            </span>
+                        </div>
                     </div>
-                    <div v-if="WXTaskN.isWXTaskInfo(taskItem)" class="task-options">
-                        <img v-if="getWxaInfo(taskItem.options)" class="app-icon"
-                            :src="getWxaInfo(taskItem.options)?.app_headimg" />
-                        <span>{{ taskItem.options.app_name }} ({{ taskItem.options.username }})</span>
+                    <div v-if="getWxaInfo(taskItem.options)" class="wxa-info-container">
+                        <img class="wxa-icon" :src="getWxaInfo(taskItem.options)?.app_headimg" />
+                        <div class="wxa-info">
+                            <div class="wxa-name">{{ getWxaInfo(taskItem.options)?.app_name }}</div>
+                            <div class="wxa-appid">appid: {{ getWxaInfo(taskItem.options)?.appid }}</div>
+                            <div class="wxa-username">username: {{ getWxaInfo(taskItem.options)?.username }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -30,9 +38,14 @@
             <el-timeline class="report-timeline">
                 <el-timeline-item v-for="(taskReport, index) in onSelectedTask.runningReportList" :key="index"
                     :timestamp="dayjs(taskReport.timestamp).format('YYYY-MM-DD HH:mm:ss')" placement="top">
-                    <div>
-                        <h4>{{ taskReport.title }}</h4>
-                        <p>{{ taskReport.description }}</p>
+                    <div class="report-item">
+                        <span class="report-item-title">{{ taskReport.title }}</span>
+                        <span v-if="taskReport.description" class="report-item-description">
+                            {{ taskReport.description }}
+                        </span>
+                        <div v-if="taskReport.images && taskReport.images.length > 0" class="report-item-images">
+                            <img v-for="image in taskReport.images" :key="image" :src="image" />
+                        </div>
                     </div>
                 </el-timeline-item>
             </el-timeline>

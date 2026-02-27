@@ -3,6 +3,11 @@
   flex-direction: column;
   gap: 10px;
   height: 100%;
+  background: #e2eafd99;
+  padding: 12px;
+  box-sizing: border-box;
+  border-radius: 20px;
+  width: 500px;
   .controller {
     display: flex;
     align-items: center;
@@ -20,19 +25,38 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      border: 1px solid #ededed;
-      padding: 10px;
+      padding: 8px 8px 8px 12px;
       border-radius: 10px;
+      background: #fff;
 
-      .info {
+      .wxa-info-container {
         display: flex;
         flex-direction: row;
-        align-items: center;
         gap: 10px;
         .wxa-icon {
           width: 40px;
           height: 40px;
           border-radius: 4px;
+        }
+
+        .wxa-info {
+          display: flex;
+          flex-direction: column;
+          .wxa-name {
+            color: #1d2129;
+            font-family: "Source Han Sans SC";
+            font-size: 14px;
+            font-weight: 400;
+            line-height: normal;
+          }
+          .wxa-appid,
+          .wxa-username {
+            color: #86909c;
+            font-family: "Source Han Sans SC";
+            font-size: 10px;
+            font-weight: 400;
+            line-height: normal;
+          }
         }
       }
     }
