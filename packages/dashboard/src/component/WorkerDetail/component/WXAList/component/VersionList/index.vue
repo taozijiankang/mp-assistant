@@ -56,6 +56,17 @@
                     </div>
                     <div class="col">
                         <div class="row">
+                            <span>审核状态:
+                                <span class="audit-status" :class="{
+                                    'success': testVersion?.audit_status === WXReviewStatus.SUCCESS,
+                                    'reviewing': testVersion?.audit_status === WXReviewStatus.REVIEWING,
+                                    'fail': testVersion?.audit_status === WXReviewStatus.FAIL,
+                                }">{{ WXReviewStatusDict[testVersion?.audit_status as WXReviewStatus] }}</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row">
                             <span>备注: {{ testVersion?.describe }}</span>
                         </div>
                     </div>
@@ -98,6 +109,8 @@
 </template>
 
 <script setup lang="ts">
+import { WXReviewStatusDict } from 'mp-assistant-common/dist/constant';
+import { WXReviewStatus } from 'mp-assistant-common/dist/types/wx';
 import { WXTaskN } from 'mp-assistant-common/dist/work/task';
 import { computed } from 'vue';
 

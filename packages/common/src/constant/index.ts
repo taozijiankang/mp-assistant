@@ -1,4 +1,5 @@
 import rootPackageJson from "../../../../package.json" with { type: "json" };
+export * from "./wx.js";
 
 /**
  * Github 仓库地址
