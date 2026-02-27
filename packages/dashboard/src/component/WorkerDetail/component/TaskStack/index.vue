@@ -33,9 +33,36 @@
                 </div>
             </div>
         </div>
-        <div v-if="onSelectedTask" class="task-report">
-            <div class="report-title">任务详情</div>
-            <el-timeline class="report-timeline">
+        <div v-if="onSelectedTask" class="task-detail">
+            <div v-if="onSelectedTask.status === TaskStatus.RUNNING" class="task-running">
+                <span>任务执行中</span>
+            </div>
+            <template
+                v-if="onSelectedTask.status === TaskStatus.COMPLETED || onSelectedTask.status === TaskStatus.FAILED">
+                <div class="title">
+                    <span>任务结果</span>
+                </div>
+                <div class="task-result-content">
+                    <div class="task-result" :class="{
+                        'completed': onSelectedTask.result?.status === TaskStatus.COMPLETED,
+                        'failed': onSelectedTask.result?.status === TaskStatus.FAILED,
+                    }">
+                        <span>{{ TaskStatusDict[onSelectedTask.result?.status || TaskStatus.NOT_STARTED] }}</span>
+                    </div>
+                    <div class="task-result-time">
+                        <span>
+                            结束时间：{{ dayjs(onSelectedTask.result?.endTimestamp || 0).format('YYYY-MM-DD HH:mm:ss') }}
+                        </span>
+                    </div>
+                    <div v-if="onSelectedTask.result?.msg" class="result-msg">
+                        <span>{{ onSelectedTask.result?.msg }}</span>
+                    </div>
+                </div>
+            </template>
+            <div class="title">
+                <span>任务运行报告</span>
+            </div>
+            <el-timeline v-if="onSelectedTask.runningReportList.length > 0" class="report-timeline" reverse>
                 <el-timeline-item v-for="(taskReport, index) in onSelectedTask.runningReportList" :key="index"
                     :timestamp="dayjs(taskReport.timestamp).format('YYYY-MM-DD HH:mm:ss')" placement="top">
                     <div class="report-item">
@@ -49,6 +76,7 @@
                     </div>
                 </el-timeline-item>
             </el-timeline>
+            <el-empty v-else description="暂无任务运行报告" />
         </div>
         <AddTaskDialog ref="addTaskDialogRef" />
     </div>

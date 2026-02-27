@@ -82,6 +82,8 @@ export abstract class BaseTask {
             this._setStatus(TaskStatus.FAILED);
             this.result = {
                 status: TaskStatus.FAILED,
+                endTimestamp: Date.now(),
+                msg: error instanceof Error ? error.message : '未知错误',
             };
             console.error('任务执行失败', error);
         }

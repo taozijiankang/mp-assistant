@@ -23,7 +23,8 @@ export class ReleaseTask extends BaseWXTask {
                 return {
                     status: TaskStatus.FAILED,
                     data: null,
-                    msg: "暂无可发布的版本"
+                    msg: "暂无可发布的版本",
+                    endTimestamp: Date.now(),
                 }
             }
 
@@ -48,13 +49,15 @@ export class ReleaseTask extends BaseWXTask {
                 status: TaskStatus.COMPLETED,
                 data: {
                     qrcodeUrl: publishQRCodeURL
-                }
+                },
+                endTimestamp: Date.now(),
             }
         } catch (error) {
             return {
                 status: TaskStatus.FAILED,
                 data: null,
-                msg: JSON.stringify(error)
+                msg: JSON.stringify(error),
+                endTimestamp: Date.now(),
             }
         }
 
