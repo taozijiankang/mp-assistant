@@ -1,8 +1,5 @@
 <template>
     <div v-if="workerDetail" class="worker-detail">
-        <div class="top">
-            {{ workerDetail?.name || '未命名' }}
-        </div>
         <div v-if="WXWorkerN.isWXWorkerInfo(workerDetail)" class="wx content-container">
             <!-- 未登录 -->
             <div v-if="!workerDetail?.isLogin" class="no-login">
