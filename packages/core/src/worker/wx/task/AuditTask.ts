@@ -1,7 +1,7 @@
 import { BrowserContext, Page } from "playwright";
 import { BaseWXTask } from "./BaseWXTask.js";
 import { TaskExecResult, TaskStatus, TaskType, WXTaskN } from "mp-assistant-common/dist/work/task/index.js";
-import { WXReviewStatus } from "mp-assistant-common/dist/types/wx.js";
+import { VersionListItem, WXReviewStatus } from "mp-assistant-common/dist/types/wx.js";
 import { versionSatisfy } from "mp-assistant-common/dist/utils/wx.js";
 import { cancelReview } from "../../../api/index.js";
 import { WXMP_AUDIT_PAGE_URL } from "../../../constant/wx.js";
@@ -20,11 +20,10 @@ export class AuditTask extends BaseWXTask {
     }
 
     // 提审流程
-    protected async _getAuditPage(page: Page): Promise<TaskExecResult> {
-        const { version } = this.options
+    protected async _getAuditPage(page: Page, targetVersion: VersionListItem): Promise<TaskExecResult> {
         const urlParams = new URLSearchParams(page.url())
         try {
-            await page.goto(`${WXMP_AUDIT_PAGE_URL}?action=get_class&token=${urlParams.get('token')}&lang=zh_CN&openid=${version?.open_id}&user_name=${version?.nick_name}`)
+            await page.goto(`${WXMP_AUDIT_PAGE_URL}?action=get_class&token=${urlParams.get('token')}&lang=zh_CN&openid=${targetVersion?.open_id}&user_name=${targetVersion?.nick_name}`)
             await page.waitForLoadState('load');
             const formLocator = page.locator('[data-component="mp-form"]')
             await formLocator.waitFor({ state: "visible" })
@@ -88,10 +87,22 @@ export class AuditTask extends BaseWXTask {
 
         const page = await this._switchMP(browserContent);
         const currentVersionData = await this._getVersionList(page)
-        // const developVersionList = currentVersionData[WXTaskN.VersionType.DEVELOP]
+        const developVersionList = currentVersionData[WXTaskN.VersionType.DEVELOP]
         const testVersionData = currentVersionData[WXTaskN.VersionType.TEST]
 
-        const { version, positioner } = this.options
+        // 要提审的版本
+        const targetVersion = developVersionList?.find(version => versionSatisfy(version, positioner || []))
+        if (!targetVersion) {
+            return {
+                status: TaskStatus.FAILED,
+                data: {
+                    code: WXReviewStatus.FAIL
+                },
+                msg: '没有找到要提审的版本'
+            }
+        }
+
+        const { positioner } = this.options
 
         // 当前有审核中的版本
         if (testVersionData) {
@@ -137,15 +148,15 @@ export class AuditTask extends BaseWXTask {
                     }
                     break
                 case WXReviewStatus.FAIL:
-                    shouldOpenAuditPage = Boolean(version)
+                    shouldOpenAuditPage = Boolean(targetVersion)
                     break
             }
 
             if (shouldOpenAuditPage) {
-                return await this._getAuditPage(page)
+                return await this._getAuditPage(page, targetVersion)
             }
         } else {
-            return await this._getAuditPage(page)
+            return await this._getAuditPage(page, targetVersion)
         }
 
         return {
