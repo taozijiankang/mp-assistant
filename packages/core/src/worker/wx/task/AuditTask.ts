@@ -19,6 +19,7 @@ export class AuditTask extends BaseWXTask {
         this.options = options;
     }
 
+    // 等待图片上传完成
     protected async _waitForImgUpload(ct: Locator, num: number, timeout: number = 10000): Promise<void> {
         const startDate = Date.now()
         while (Date.now() - startDate < timeout) {
