@@ -163,19 +163,76 @@
       }
     }
   }
-  .task-report {
+  .task-detail {
     flex: 1;
     min-width: 0;
     gap: 10px;
     display: flex;
     flex-direction: column;
 
-    .report-title {
+    .title {
       color: #917cd6;
       font-family: "Source Han Sans SC";
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 700;
       line-height: 22px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .task-running {
+      display: flex;
+      flex-direction: row;
+      background-color: #409eff;
+      padding: 10px 12px;
+      border-radius: 10px;
+      span {
+        color: white;
+        font-family: "Source Han Sans SC";
+        font-size: 14px;
+        font-weight: 400;
+      }
+    }
+
+    .task-result-content {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      .task-result {
+        display: flex;
+        flex-direction: row;
+        &.completed {
+          color: #67c23a;
+        }
+        &.failed {
+          color: #f56c6c;
+        }
+        span {
+          font-family: "Source Han Sans SC";
+          font-size: 14px;
+          font-weight: 700;
+          line-height: 20px;
+        }
+      }
+      .task-result-time {
+        display: flex;
+        flex-direction: row;
+        span {
+          font-family: "Source Han Sans SC";
+          font-size: 14px;
+          font-weight: 400;
+        }
+      }
+      .result-msg {
+        display: flex;
+        flex-direction: row;
+        span {
+          font-family: "Source Han Sans SC";
+          font-size: 14px;
+          font-weight: 400;
+        }
+      }
     }
 
     .report-timeline {

@@ -24,6 +24,7 @@ export class InspectVersionTask extends BaseWXTask {
             return {
                 status: TaskStatus.COMPLETED,
                 data: currentVersionData,
+                endTimestamp: Date.now(),
             }
         } catch (error) {
             throw new Error('版本管理页面加载失败');

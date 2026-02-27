@@ -63,7 +63,8 @@ export class AuditTask extends BaseWXTask {
                 data: {
                     code: auditStatus ? WXReviewStatus.SUCCESS : WXReviewStatus.FAIL
                 },
-                msg: auditStatus ? '提审成功' : '提审失败'
+                msg: auditStatus ? '提审成功' : '提审失败',
+                endTimestamp: Date.now(),
             }
         } catch (error) {
             console.log('提审失败', error);
@@ -72,7 +73,8 @@ export class AuditTask extends BaseWXTask {
                 data: {
                     code: WXReviewStatus.FAIL
                 },
-                msg: JSON.stringify(error)
+                msg: JSON.stringify(error),
+                endTimestamp: Date.now(),
             }
         }
     }
@@ -98,7 +100,8 @@ export class AuditTask extends BaseWXTask {
                 data: {
                     code: WXReviewStatus.FAIL
                 },
-                msg: '没有找到要提审的版本'
+                msg: '没有找到要提审的版本',
+                endTimestamp: Date.now(),
             }
         }
 
@@ -119,7 +122,8 @@ export class AuditTask extends BaseWXTask {
                             data: {
                                 code: WXReviewStatus.SUCCESS
                             },
-                            msg: '当前版本已通过审核，请发布'
+                            msg: '当前版本已通过审核，请发布',
+                            endTimestamp: Date.now(),
                         }
                     }
                     // 重新提审
@@ -133,7 +137,8 @@ export class AuditTask extends BaseWXTask {
                             data: {
                                 code: WXReviewStatus.REVIEWING
                             },
-                            msg: '当前版本正在审核中，请耐心等待'
+                            msg: '当前版本正在审核中，请耐心等待',
+                            endTimestamp: Date.now(),
                         }
                     }
 
@@ -161,6 +166,7 @@ export class AuditTask extends BaseWXTask {
 
         return {
             status: TaskStatus.FAILED,
+            endTimestamp: Date.now(),
         };
     }
 }
