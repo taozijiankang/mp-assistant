@@ -11,6 +11,7 @@ const rootPackageJson = JSON.parse(fs.readFileSync(path.join(getRootDir(), 'pack
 program
     .version(rootPackageJson.version)
     .description('小程序助手')
+    // 
     .command('start')
     .action(() => {
         ConfigStore.instance.setConfig({

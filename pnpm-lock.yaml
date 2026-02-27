@@ -88,6 +88,9 @@ importers:
       mp-assistant-configuration:
         specifier: workspace:*
         version: link:../configuration
+      mp-assistant-scripts:
+        specifier: workspace:*
+        version: link:../scripts
 
   packages/common:
     dependencies:
@@ -107,6 +110,9 @@ importers:
       mp-assistant-configuration:
         specifier: workspace:*
         version: link:../configuration
+      mp-assistant-scripts:
+        specifier: workspace:*
+        version: link:../scripts
 
   packages/configuration: {}
 
@@ -125,6 +131,9 @@ importers:
       mp-assistant-configuration:
         specifier: workspace:*
         version: link:../configuration
+      mp-assistant-scripts:
+        specifier: workspace:*
+        version: link:../scripts
 
   packages/dashboard:
     dependencies:

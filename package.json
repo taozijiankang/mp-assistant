@@ -5,6 +5,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "clear-build-product": "turbo run clear-build-product",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "prepare": "husky",
