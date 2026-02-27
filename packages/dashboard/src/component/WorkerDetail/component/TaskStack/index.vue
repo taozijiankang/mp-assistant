@@ -5,7 +5,7 @@
                 <el-input v-model="filterKeyword" placeholder="请输入过滤关键词，支持小程序名称、appid、username" clearable />
                 <el-button type="primary" @click="handleAddTask">添加任务</el-button>
             </div>
-            <el-scrollbar class="task-list-content-scrollbar">
+            <el-scrollbar v-if="filteredTaskList.length > 0" class="task-list-content-scrollbar">
                 <div class="task-list-content">
                     <div v-for="taskItem in [...filteredTaskList].reverse()" :key="taskItem.key" class="task-item"
                         :class="{
@@ -16,13 +16,24 @@
                             failed: taskItem.status === TaskStatus.FAILED,
                         }" @click="handleTaskClick(taskItem)">
                         <div class="main">
-                            <span class="task-type">{{ TaskTypeDict[taskItem.type] }} 任务</span>
+                            <div class="task-type-container">
+                                <img v-if="taskItem.type === TaskType.WX_INSPECT_VERSION"
+                                    src="@/assets/check-the-version.png" alt="task-type-icon" class="task-type-icon">
+                                <img v-if="taskItem.type === TaskType.WX_AUDIT" src="@/assets/review.png"
+                                    alt="task-type-icon" class="task-type-icon">
+                                <img v-if="taskItem.type === TaskType.WX_PUBLISH" src="@/assets/release.png"
+                                    alt="task-type-icon" class="task-type-icon">
+                                <span class="task-type">{{ TaskTypeDict[taskItem.type] }} 任务</span>
+                            </div>
                             <div class="task-status">
                                 <span class="dot"></span>
                                 <span>
                                     {{ TaskStatusDict[taskItem.status] }}
                                 </span>
                             </div>
+                        </div>
+                        <div class="task-key">
+                            <span>{{ taskItem.key }}</span>
                         </div>
                         <div v-if="getWxaInfo(taskItem.options)" class="wxa-info-container">
                             <img class="wxa-icon" :src="getWxaInfo(taskItem.options)?.app_headimg" />
@@ -32,9 +43,21 @@
                                 <div class="wxa-username">username: {{ getWxaInfo(taskItem.options)?.username }}</div>
                             </div>
                         </div>
+                        <div v-if="taskItem.status !== TaskStatus.RUNNING" class="item-controller">
+                            <el-button class="file-remove-button" size="small" type="danger" plain
+                                :loading="removeTaskLoadings.includes(taskItem.key)"
+                                @click="handleDestroyTask(taskItem)" circle>
+                                <el-icon>
+                                    <Delete />
+                                </el-icon>
+                            </el-button>
+                        </div>
                     </div>
                 </div>
             </el-scrollbar>
+            <div v-else class="no-data">
+                <el-empty description="暂无数据" />
+            </div>
         </div>
         <div v-if="onSelectedTask" class="task-detail">
             <div v-if="onSelectedTask.status === TaskStatus.RUNNING" class="task-running">
@@ -74,7 +97,9 @@
                             {{ taskReport.description }}
                         </span>
                         <div v-if="taskReport.images && taskReport.images.length > 0" class="report-item-images">
-                            <img v-for="image in taskReport.images" :key="image" :src="image" />
+                            <el-image v-for="(image, index) in taskReport.images" :key="image" :src="image"
+                                fit="contain" :preview-src-list="taskReport.images" preview-teleported
+                                :initial-index="index" />
                         </div>
                     </div>
                 </el-timeline-item>
@@ -86,13 +111,15 @@
 </template>
 
 <script setup lang="ts">
-import { TaskStatus, TaskStatusDict, TaskTypeDict, WXTaskN, type BaseTaskInfo } from 'mp-assistant-common/dist/work/task';
+import { TaskStatus, TaskStatusDict, TaskType, TaskTypeDict, WXTaskN, type BaseTaskInfo } from 'mp-assistant-common/dist/work/task';
 import { ref, computed } from 'vue';
 import AddTaskDialog from '../AddTaskDialog/index.vue';
-import { dayjs } from 'element-plus';
+import { dayjs, ElMessageBox } from 'element-plus';
 import { WXWorkerN } from 'mp-assistant-common/dist/work';
 import { useOperationRecordStore } from '@/stores';
 import { storeToRefs } from 'pinia';
+import { Delete } from '@element-plus/icons-vue';
+import { requestRemoveTask } from '@/api';
 
 const props = defineProps<{
     workerDetail: WXWorkerN.WXWorkInfo
@@ -100,6 +127,8 @@ const props = defineProps<{
 
 const operationRecordStore = useOperationRecordStore();
 const { onSelectedTaskKey } = storeToRefs(operationRecordStore);
+
+const removeTaskLoadings = ref<string[]>([]);
 
 const addTaskDialogRef = ref<InstanceType<typeof AddTaskDialog>>();
 
@@ -127,6 +156,24 @@ const handleTaskClick = (taskItem: BaseTaskInfo) => {
 const getWxaInfo = (options: WXTaskN.TaskOptions) => {
     return props.workerDetail.wxaList.find(wxa => wxa.username === options.username && wxa.app_name === options.app_name);
 }
+
+const handleDestroyTask = (taskItem: BaseTaskInfo) => {
+    if (removeTaskLoadings.value.includes(taskItem.key)) {
+        return;
+    }
+    ElMessageBox.confirm('确定删除该任务吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+    }).then(async () => {
+        removeTaskLoadings.value.push(taskItem.key);
+        try {
+            await requestRemoveTask(props.workerDetail.key, taskItem.key);
+        } finally {
+            removeTaskLoadings.value = removeTaskLoadings.value.filter(key => key !== taskItem.key);
+        }
+    });
+};
 
 </script>
 

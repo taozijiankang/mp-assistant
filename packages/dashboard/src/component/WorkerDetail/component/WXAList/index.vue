@@ -6,26 +6,36 @@
                 :loading="refreshWxaListLoading || workerDetail.loadings.includes(WXWorkerN.LoadingType.updateWxaListWxaList)"
                 @click="handleRefreshWxaList">刷新小程序列表</el-button>
         </div>
-        <el-scrollbar class="wxa-item-container-scrollbar">
+        <el-scrollbar v-if="filteredWxaList.length > 0" class="wxa-item-container-scrollbar">
             <div class="wxa-item-container">
                 <div class="wxa-item" v-for="wxa in filteredWxaList" :key="wxa.wxaItem.appid">
                     <div class="wxa-info-container">
                         <img class="wxa-icon" :src="wxa.wxaItem.app_headimg" />
                         <div class="wxa-info">
-                            <div class="wxa-name">{{ wxa.wxaItem.app_name }}</div>
+                            <div class="wxa-name">
+                                <span>
+                                    {{ wxa.wxaItem.app_name }}
+                                </span>
+                                <el-button type="primary" size="small" link
+                                    :loading="restartTaskLoadings.includes(wxa.wxaItem.appid) || wxa.inspectTaskVersionInfo?.status === TaskStatus.RUNNING"
+                                    @click="handleRestartTask(wxa.wxaItem)">检测版本信息</el-button>
+                            </div>
                             <div class="wxa-appid">appid: {{ wxa.wxaItem.appid }}</div>
                             <div class="wxa-username">username: {{ wxa.wxaItem.username }}</div>
                         </div>
                     </div>
-                    <VersionList v-if="wxa.versionList" :version-list="wxa.versionList" />
+                    <VersionList v-if="wxa.inspectTaskVersionInfo" :task-info="wxa.inspectTaskVersionInfo" />
                 </div>
             </div>
         </el-scrollbar>
+        <div v-else class="no-data">
+            <el-empty description="暂无数据" />
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { requestWorkerUpdateWxaList } from '@/api';
+import { requestAddTask, requestWorkerUpdateWxaList } from '@/api';
 import { useApiCall } from '@/hooks/useApiCall';
 import type { WXMPItem } from 'mp-assistant-common/dist/types/wx';
 import { WXWorkerN } from 'mp-assistant-common/dist/work';
@@ -43,6 +53,8 @@ const emit = defineEmits<{
 
 const searchValue = ref('');
 
+const restartTaskLoadings = ref<string[]>([]);
+
 const filteredWxaList = computed(() => {
     const wxaList: WXMPItem[] = [];
     if (!searchValue.value) {
@@ -51,14 +63,13 @@ const filteredWxaList = computed(() => {
         wxaList.push(...props.workerDetail.wxaList.filter(wxa => wxa.app_name.includes(searchValue.value) || wxa.appid.includes(searchValue.value)));
     }
     return wxaList.map(item => {
+        const inspectTaskVersionInfo = [...props.workerDetail.taskList.reverse()].filter(item => item.type === TaskType.WX_INSPECT_VERSION).find(taskItem => {
+            const options: WXTaskN.TaskOptions = taskItem.options;
+            return options.app_name === item.app_name && options.username === item.username;
+        }) as WXTaskN.InspectVersionInfo | undefined;
         return {
             wxaItem: item,
-            versionList: props.workerDetail.taskList.filter(item => {
-                return item.status === TaskStatus.COMPLETED;
-            }).filter(item => item.type === TaskType.WX_INSPECT_VERSION).find(taskItem => {
-                const options: WXTaskN.TaskOptions = taskItem.options;
-                return options.app_name === item.app_name && options.username === item.username;
-            })?.result?.data as WXTaskN.GetVersionListResult,
+            inspectTaskVersionInfo,
         };
     });
 });
@@ -68,6 +79,25 @@ const { loading: refreshWxaListLoading, call: handleRefreshWxaList } = useApiCal
     emit('onRefreshWorkerDetail');
     return res;
 });
+
+const handleRestartTask = async (wxa: WXMPItem) => {
+    if (restartTaskLoadings.value.includes(wxa.appid)) {
+        return;
+    }
+    restartTaskLoadings.value.push(wxa.appid);
+    const options: WXTaskN.TaskOptions = {
+        app_name: wxa.app_name,
+        username: wxa.username,
+    };
+    try {
+        await requestAddTask(props.workerDetail.key, {
+            type: TaskType.WX_INSPECT_VERSION,
+            options,
+        })
+    } finally {
+        restartTaskLoadings.value = restartTaskLoadings.value.filter(key => key !== wxa.appid);
+    }
+};
 </script>
 
 <style scoped lang="scss">

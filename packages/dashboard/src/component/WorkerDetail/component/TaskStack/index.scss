@@ -41,8 +41,8 @@
         align-items: flex-start;
         border-radius: 8px;
         background: #fff;
-        gap: 10px;
         border: 1px solid transparent;
+        gap: 5px;
 
         &.selected {
           border: 1px solid #409eff;
@@ -67,8 +67,8 @@
               color: #409eff;
               .dot {
                 background-color: #409eff;
-                width: 10px;
-                height: 10px;
+                width: 15px;
+                height: 15px;
               }
               span {
                 color: #409eff;
@@ -109,12 +109,21 @@
           gap: 10px;
           width: 100%;
           justify-content: space-between;
-          .task-type {
-            color: #1d2129;
-            font-family: "Source Han Sans SC";
-            font-size: 14px;
-            font-weight: 700;
-            line-height: 20px;
+          .task-type-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            .task-type-icon {
+              width: 20px;
+              height: 20px;
+            }
+            .task-type {
+              color: #1d2129;
+              font-family: "Source Han Sans SC";
+              font-size: 14px;
+              font-weight: 700;
+              line-height: 20px;
+            }
           }
           .task-status {
             display: flex;
@@ -135,6 +144,17 @@
               line-height: normal;
               font-weight: 700;
             }
+          }
+        }
+
+        .task-key {
+          display: flex;
+          span {
+            color: #86909c;
+            font-family: "Source Han Sans SC";
+            font-size: 10px;
+            font-weight: 400;
+            line-height: normal;
           }
         }
 
@@ -167,6 +187,15 @@
               line-height: normal;
             }
           }
+        }
+
+        .item-controller {
+          display: flex;
+          flex-direction: row;
+          gap: 10px;
+          justify-content: flex-end;
+          width: 100%;
+          box-sizing: border-box;
         }
       }
     }
@@ -232,6 +261,7 @@
           font-family: "Source Han Sans SC";
           font-size: 14px;
           font-weight: 400;
+          color: #86909c;
         }
       }
       .result-msg {
@@ -270,9 +300,8 @@
           display: flex;
           flex-direction: row;
           gap: 4px;
-          img {
-            width: 100px;
-            height: 100px;
+          .el-image {
+            width: 100%;
           }
         }
       }

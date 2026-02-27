@@ -36,8 +36,10 @@
                             </div>
                             <span v-if="index !== auditForm.positioner.length - 1">AND</span>
                         </div>
+                        <el-empty v-if="auditForm.positioner.length === 0" style="padding: 0" :image-size="80"
+                            description="暂无版本定位条件" />
                         <div class="positioner-add">
-                            <el-button type="primary" @click="handleAddPositioner">添加版本定位条件</el-button>
+                            <el-button type="primary" plain @click="handleAddPositioner">添加版本定位条件</el-button>
                         </div>
                     </div>
                 </el-form-item>
@@ -103,10 +105,10 @@ const addTaskForm = ref<AddTaskForm>({
 
 const rules = ref<FormRules>({
     type: [
-        { required: true, message: 'Please select task type', trigger: 'change' },
+        { required: true, message: '请选择任务类型', trigger: 'change' },
     ],
     appIds: [
-        { type: 'array', required: true, min: 1, message: 'Please select at least one app', trigger: 'change' },
+        { type: 'array', required: true, min: 1, message: '请选择至少一个小程序', trigger: 'change' },
     ],
 });
 
@@ -132,7 +134,7 @@ const auditFormRules = ref<FormRules>({
             required: true,
             validator: (rule, value, callback) => {
                 if (value.length === 0) {
-                    callback(new Error('Please select at least one positioner'));
+                    callback(new Error('请选择至少一个版本定位条件'));
                 } else {
                     callback();
                 }
@@ -140,14 +142,8 @@ const auditFormRules = ref<FormRules>({
         },
     ],
     'populateData.versionDescription': [
-        { required: true, message: 'Please input version description' },
-    ],
-    'populateData.imagePreview': [
-        { required: true, message: 'Please upload image preview' },
-    ],
-    'populateData.videoPreview': [
-        { required: true, message: 'Please upload video preview' },
-    ],
+        { required: true, message: '请输入版本描述' },
+    ]
 });
 
 const handleAddPositioner = () => {
