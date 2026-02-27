@@ -80,16 +80,24 @@ export class BaseWXTask extends BaseTask {
                 if (!await expect(mpItemLocator).toBeVisible({ timeout: 1000 }).then(() => true, () => false)) {
                     throw new Error('未找到小程序账号项');
                 }
-                if (!await mpItemLocator.locator('.current_login').filter({ hasText: '当前登录' }).isVisible()) {
-                    await mpItemLocator.click();
-                    await page.waitForEvent('load');
-                }
+
+                const buffer = await mpItemLocator.screenshot();
+                // 转成base64
+                const base64 = Buffer.from(buffer).toString('base64');
+                const imageUrl = `data:image/png;base64,${base64}`;
+
                 this._addRunningReport({
                     title: '切换小程序',
                     description: `切换小程序: ${this.options.app_name} - ${this.options.username}`,
                     timestamp: Date.now(),
-                    images: [],
+                    images: [imageUrl],
                 });
+
+                if (!await mpItemLocator.locator('.current_login').filter({ hasText: '当前登录' }).isVisible()) {
+                    await mpItemLocator.click();
+                    await page.waitForEvent('load');
+                }
+
                 resolve(page);
             }
             catch (error) {

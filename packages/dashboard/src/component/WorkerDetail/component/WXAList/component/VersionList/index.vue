@@ -79,7 +79,7 @@
                 <span>开发版本</span>
             </div>
             <div class="version-item-list">
-                <div v-for="item in versionList[WXTaskN.VersionType.DEVELOP]" class="version-item">
+                <div v-for="item in devVersions" class="version-item">
                     <div class="col">
                         <div class="row">
                             <span>版本：{{ item?.version }} <span v-if="item.is_exper"
@@ -105,27 +105,50 @@
                 </div>
             </div>
         </template>
+        <div class="task-info">
+            <div class="top">
+                <span>关联任务: </span>
+                <span>{{ TaskTypeDict[taskInfo.type] }}</span>
+                <div class="task-status" :class="{
+                    'success': taskInfo.status === TaskStatus.COMPLETED,
+                    'reviewing': taskInfo.status === TaskStatus.RUNNING,
+                    'fail': taskInfo.status === TaskStatus.FAILED,
+                }">
+                    <div class="dot"></div>
+                    <span>
+                        {{ TaskStatusDict[taskInfo.status] }}
+                    </span>
+                </div>
+            </div>
+            <span>{{ taskInfo.key }} {{ dayjs(taskInfo.result?.endTimestamp || 0).format('YYYY-MM-DD HH:mm:ss')
+                }}</span>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { WXReviewStatusDict } from 'mp-assistant-common/dist/constant';
 import { WXReviewStatus } from 'mp-assistant-common/dist/types/wx';
-import { WXTaskN } from 'mp-assistant-common/dist/work/task';
+import { TaskStatus, TaskStatusDict, TaskTypeDict, WXTaskN } from 'mp-assistant-common/dist/work/task';
 import { computed } from 'vue';
+import { dayjs } from 'element-plus';
 
 const props = defineProps<{
-    versionList: WXTaskN.VersionListData
+    taskInfo: WXTaskN.InspectVersionInfo
 }>();
 
+const versionList = computed(() => {
+    return props.taskInfo.result?.data as WXTaskN.VersionListData | undefined
+});
+
 const onlineVersion = computed(() => {
-    return props.versionList[WXTaskN.VersionType.ONLINE]
+    return versionList.value?.[WXTaskN.VersionType.ONLINE]
 });
 const testVersion = computed(() => {
-    return props.versionList[WXTaskN.VersionType.TEST]
+    return versionList.value?.[WXTaskN.VersionType.TEST]
 });
 const devVersions = computed(() => {
-    return props.versionList[WXTaskN.VersionType.DEVELOP] || []
+    return versionList.value?.[WXTaskN.VersionType.DEVELOP] || []
 });
 
 /**

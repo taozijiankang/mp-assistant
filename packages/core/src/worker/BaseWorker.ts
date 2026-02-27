@@ -102,9 +102,14 @@ export abstract class BaseWorker {
    */
   async removeTask(taskKey: string) {
     const task = this.__taskList.find(t => t.key === taskKey);
-    if (task) {
-      await task.destroy();
+    if (!task) {
+      return;
     }
+    //如果任务在运行中则不能删除
+    if (task.status === TaskStatus.RUNNING) {
+      return;
+    }
+    await task.destroy();
     this.__taskList = this.__taskList.filter(t => t.key !== taskKey);
 
     this.emitDetailChangeEvent();

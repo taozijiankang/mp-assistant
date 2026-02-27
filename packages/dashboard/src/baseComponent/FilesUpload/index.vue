@@ -12,9 +12,10 @@
                     </el-icon>
                 </el-button>
             </div>
+            <el-empty v-if="files.length === 0" :image-size="80" description="暂无文件" style="padding: 0" />
         </div>
         <div class="files-upload-add" v-if="multiple ? files.length < max : files.length <= 0">
-            <el-button type="primary" @click="handleAddFile">添加文件</el-button>
+            <el-button type="primary" plain @click="handleAddFile">添加文件</el-button>
         </div>
     </div>
 </template>
