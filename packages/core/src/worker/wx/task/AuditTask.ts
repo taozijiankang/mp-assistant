@@ -1,4 +1,4 @@
-import { BrowserContext, Page } from "playwright";
+import { BrowserContext, Locator, Page } from "playwright";
 import { BaseWXTask } from "./BaseWXTask.js";
 import { TaskExecResult, TaskStatus, TaskType, WXTaskN } from "mp-assistant-common/dist/work/task/index.js";
 import { VersionListItem, WXReviewStatus } from "mp-assistant-common/dist/types/wx.js";
@@ -19,6 +19,49 @@ export class AuditTask extends BaseWXTask {
         this.options = options;
     }
 
+    protected async _waitForImgUpload(ct: Locator, num: number, timeout: number = 10000): Promise<void> {
+        const startDate = Date.now()
+        while (Date.now() - startDate < timeout) {
+            const imgItems = await ct.locator(".weui-desktop-upload__img").all()
+            if (imgItems.length === num) {
+                return
+            }
+            await new Promise<void>(resolve => setTimeout(resolve, 200))
+        }
+
+        throw new Error(`图片上传超时，期望数量: ${num}，超时时间: ${timeout}ms`)
+    }
+
+    // 图片上传
+    protected async _uploadImageFile(ct: Locator, imagePreview: string): Promise<void> {
+        if (!imagePreview) return
+
+        try {
+            const imgViewInput = ct.locator('[data-component="mp-form-item"]').filter({ hasText: "图片预览" }).locator('input[type="file"]')
+            const imgList = imagePreview.split(',').filter(Boolean)
+            for (let i = 0; i < imgList.length; i++) {
+                await imgViewInput.setInputFiles(imgList[i] || '')
+                await this._waitForImgUpload(ct, i + 1)
+            }
+        } catch (error) {
+            throw new Error(JSON.stringify(error))
+        }
+    }
+
+    // 视频上传
+    protected async _uploadVideoFile(ct: Locator, videoPreview: string): Promise<void> {
+        if (!videoPreview) return
+
+        try {
+            const videoViewInput = ct.locator('[data-component="mp-form-item"]').filter({ hasText: "视频预览" }).locator('input[type="file"]')
+            await videoViewInput.setInputFiles(videoPreview)
+            await ct.locator(".video-item").waitFor({ state: "visible", timeout: 15000 })
+        } catch (error) {
+            throw new Error(JSON.stringify(error))
+
+        }
+    }
+
     // 提审流程
     protected async _getAuditPage(page: Page, targetVersion: VersionListItem): Promise<TaskExecResult> {
         const urlParams = new URLSearchParams(page.url())
@@ -29,41 +72,47 @@ export class AuditTask extends BaseWXTask {
             await formLocator.waitFor({ state: "visible" })
 
             const { populateData } = this.options
-            // 临时任务栈
-            const temporaryTask: Promise<unknown>[] = []
+
+            if (!populateData) {
+                throw new Error("缺少图片预览参数")
+            }
 
             // 填充版本描述
             const versionDescription = populateData?.versionDescription
             const versionIntr = formLocator.locator('[data-component="mp-form-item"]').filter({ hasText: "版本描述" }).locator('textarea')
             if (versionDescription) {
-                temporaryTask.push(versionIntr.fill(versionDescription))
+                await versionIntr.fill(versionDescription)
             } else {
                 throw new Error('版本描述不能为空')
             }
 
             // 上传图片预览文件
-            const imagePreview = populateData?.imagePreview
-            const imgViewInput = formLocator.locator('[data-component="mp-form-item"]').filter({ hasText: "图片预览" }).locator('input[type="file"]')
-            if (imagePreview) {
-                temporaryTask.push(imgViewInput.setInputFiles(imagePreview))
-            }
+            await this._uploadImageFile(formLocator, populateData.imagePreview || '')
 
             // 上传视频预览文件
-            const videoPreview = populateData?.videoPreview
-            const videoViewInput = formLocator.locator('[data-component="mp-form-item"]').filter({ hasText: "视频预览" }).locator('input[type="file"]')
-            if (videoPreview) {
-                temporaryTask.push(videoViewInput.setInputFiles(videoPreview))
-            }
-            await Promise.all(temporaryTask)
+            await this._uploadVideoFile(formLocator, populateData.videoPreview || '')
 
             await page.locator('.tool_bar').locator('[data-msgid="提交审核"]').click()
-            const auditStatus = await page.locator('[data-msgid="已提交审核"]').isVisible()
+            const successLocator = page.locator('[data-msgid="已提交审核"]');
+            await successLocator.waitFor({ state: "visible", timeout: 100000 });
+
+            const screenshotBuffer = await page.screenshot()
+            const base64 = Buffer.from(screenshotBuffer).toString('base64');
+            const screenshotURL = `data:image/png;base64,${base64}`;
+
+            this._addRunningReport({
+                title: '提审成功',
+                description: '提审成功',
+                timestamp: Date.now(),
+                images: [screenshotURL],
+            })
+
             return {
-                status: auditStatus ? TaskStatus.COMPLETED : TaskStatus.FAILED,
+                status: successLocator ? TaskStatus.COMPLETED : TaskStatus.FAILED,
                 data: {
-                    code: auditStatus ? WXReviewStatus.SUCCESS : WXReviewStatus.FAIL
+                    code: successLocator ? WXReviewStatus.SUCCESS : WXReviewStatus.FAIL
                 },
-                msg: auditStatus ? '提审成功' : '提审失败',
+                msg: successLocator ? '提审成功' : '提审失败',
                 endTimestamp: Date.now(),
             }
         } catch (error) {
@@ -76,6 +125,8 @@ export class AuditTask extends BaseWXTask {
                 msg: JSON.stringify(error),
                 endTimestamp: Date.now(),
             }
+        } finally {
+            // page.close();
         }
     }
 
@@ -93,7 +144,8 @@ export class AuditTask extends BaseWXTask {
                 data: {
                     code: WXReviewStatus.FAIL
                 },
-                msg: '缺少相关参数'
+                msg: '缺少相关参数',
+                endTimestamp: Date.now(),
             }
         }
 

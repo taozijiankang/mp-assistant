@@ -24,6 +24,8 @@ export class InspectVersionTask extends BaseWXTask {
             }
         } catch (error) {
             throw new Error('版本管理页面加载失败');
+        } finally {
+            page.close();
         }
     }
 }
