@@ -78,17 +78,22 @@ export class AuditTask extends BaseWXTask {
     }
 
     protected async _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
-        this._addRunningReport({
-            title: '执行审核任务',
-            description: '审核任务逻辑暂未实现',
-            timestamp: Date.now(),
-            images: [],
-        });
-
         const page = await this._switchMP(browserContent);
         const currentVersionData = await this._getVersionList(page)
         const developVersionList = currentVersionData[WXTaskN.VersionType.DEVELOP]
         const testVersionData = currentVersionData[WXTaskN.VersionType.TEST]
+
+        // 参数校验
+        const { positioner, populateData } = this.options
+        if (!positioner || !positioner.length || !populateData || !Object.keys(populateData).length) {
+            return {
+                status: TaskStatus.FAILED,
+                data: {
+                    code: WXReviewStatus.FAIL
+                },
+                msg: '缺少相关参数'
+            }
+        }
 
         // 要提审的版本
         const targetVersion = developVersionList?.find(version => versionSatisfy(version, positioner || []))
@@ -101,8 +106,6 @@ export class AuditTask extends BaseWXTask {
                 msg: '没有找到要提审的版本'
             }
         }
-
-        const { positioner } = this.options
 
         // 当前有审核中的版本
         if (testVersionData) {
