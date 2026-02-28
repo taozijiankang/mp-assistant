@@ -59,55 +59,57 @@
                 <el-empty description="暂无数据" />
             </div>
         </div>
-        <div v-if="onSelectedTask" class="task-detail">
-            <div v-if="onSelectedTask.status === TaskStatus.RUNNING" class="task-running">
-                <div class="dot"></div>
-                <span>任务执行中...</span>
-            </div>
-            <template
-                v-if="onSelectedTask.status === TaskStatus.COMPLETED || onSelectedTask.status === TaskStatus.FAILED">
-                <div class="title">
-                    <span>任务结果</span>
+        <el-scrollbar v-if="onSelectedTask" class="task-detail-scrollbar">
+            <div v-if="onSelectedTask" class="task-detail">
+                <div v-if="onSelectedTask.status === TaskStatus.RUNNING" class="task-running">
+                    <div class="dot"></div>
+                    <span>任务执行中...</span>
                 </div>
-                <div class="task-result-content">
-                    <div class="task-result" :class="{
-                        'completed': onSelectedTask.result?.status === TaskStatus.COMPLETED,
-                        'failed': onSelectedTask.result?.status === TaskStatus.FAILED,
-                    }">
-                        <span>{{ TaskStatusDict[onSelectedTask.result?.status || TaskStatus.NOT_STARTED] }}</span>
+                <template
+                    v-if="onSelectedTask.status === TaskStatus.COMPLETED || onSelectedTask.status === TaskStatus.FAILED">
+                    <div class="title">
+                        <span>任务结果</span>
                     </div>
-                    <div class="task-result-time">
-                        <span>
-                            结束时间：{{ dayjs(onSelectedTask.result?.endTimestamp || 0).format('YYYY-MM-DD HH:mm:ss') }}
-                        </span>
-                    </div>
-                    <div v-if="onSelectedTask.result?.msg" class="result-msg">
-                        <span>{{ onSelectedTask.result?.msg }}</span>
-                    </div>
-                </div>
-            </template>
-            <div class="title">
-                <span>任务运行报告</span>
-            </div>
-            <el-timeline v-if="onSelectedTask.runningReportList.length > 0" class="report-timeline" reverse>
-                <el-timeline-item v-for="(taskReport, index) in onSelectedTask.runningReportList" :key="index"
-                    :timestamp="dayjs(taskReport.timestamp).format('YYYY-MM-DD HH:mm:ss')" placement="top">
-                    <div class="report-item">
-                        <span class="report-item-title">{{ taskReport.title }}</span>
-                        <span v-if="taskReport.description" class="report-item-description">
-                            {{ taskReport.description }}
-                        </span>
-                        <div v-if="taskReport.images && taskReport.images.length > 0" class="report-item-images">
-                            <el-image v-for="(image, index) in taskReport.images.map(image => getFileUrl(image))"
-                                :key="image" :src="image" fit="contain"
-                                :preview-src-list="taskReport.images.map(image => getFileUrl(image))" preview-teleported
-                                :initial-index="index" />
+                    <div class="task-result-content">
+                        <div class="task-result" :class="{
+                            'completed': onSelectedTask.result?.status === TaskStatus.COMPLETED,
+                            'failed': onSelectedTask.result?.status === TaskStatus.FAILED,
+                        }">
+                            <span>{{ TaskStatusDict[onSelectedTask.result?.status || TaskStatus.NOT_STARTED] }}</span>
+                        </div>
+                        <div class="task-result-time">
+                            <span>
+                                结束时间：{{ dayjs(onSelectedTask.result?.endTimestamp || 0).format('YYYY-MM-DD HH:mm:ss') }}
+                            </span>
+                        </div>
+                        <div v-if="onSelectedTask.result?.msg" class="result-msg">
+                            <span>{{ onSelectedTask.result?.msg }}</span>
                         </div>
                     </div>
-                </el-timeline-item>
-            </el-timeline>
-            <el-empty v-else description="暂无任务运行报告" />
-        </div>
+                </template>
+                <div class="title">
+                    <span>任务运行报告</span>
+                </div>
+                <el-timeline v-if="onSelectedTask.runningReportList.length > 0" class="report-timeline" reverse>
+                    <el-timeline-item v-for="(taskReport, index) in onSelectedTask.runningReportList" :key="index"
+                        :timestamp="dayjs(taskReport.timestamp).format('YYYY-MM-DD HH:mm:ss')" placement="top">
+                        <div class="report-item">
+                            <span class="report-item-title">{{ taskReport.title }}</span>
+                            <span v-if="taskReport.description" class="report-item-description">
+                                {{ taskReport.description }}
+                            </span>
+                            <div v-if="taskReport.images && taskReport.images.length > 0" class="report-item-images">
+                                <el-image v-for="(image, index) in taskReport.images.map(image => getFileUrl(image))"
+                                    :key="image" :src="image" fit="contain"
+                                    :preview-src-list="taskReport.images.map(image => getFileUrl(image))"
+                                    preview-teleported :initial-index="index" />
+                            </div>
+                        </div>
+                    </el-timeline-item>
+                </el-timeline>
+                <el-empty v-else description="暂无任务运行报告" />
+            </div>
+        </el-scrollbar>
         <AddTaskDialog ref="addTaskDialogRef" />
     </div>
 </template>

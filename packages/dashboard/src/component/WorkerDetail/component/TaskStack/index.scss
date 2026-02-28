@@ -200,16 +200,20 @@
       }
     }
   }
-  .task-detail {
+  .task-detail-scrollbar {
     flex: 1;
     min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    padding: 12px;
+    box-sizing: border-box;
+    background-color: white;
+    border-radius: 20px;
+  }
+  .task-detail {
     gap: 10px;
     display: flex;
     flex-direction: column;
-    padding: 12px;
-    box-sizing: border-box;
-    border-radius: 10px;
-    border: 1px solid transparent;
 
     .title {
       color: #917cd6;
