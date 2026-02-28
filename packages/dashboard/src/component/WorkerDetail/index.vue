@@ -14,11 +14,16 @@
                     }}
                 </el-button>
             </div>
-            <!-- 登录 -->
-            <div v-else class="login-content">
-                <WXAList class="wxa-list" :workerDetail="workerDetail" @onRefreshWorkerDetail="getWorkerDetail" />
-                <TaskStack class="task-stack" :workerDetail="workerDetail" />
-            </div>
+            <template v-else>
+                <div class="controller">
+                    <el-button type="primary" @click="() => { }">退出登录</el-button>
+                </div>
+                <!-- 登录 -->
+                <div class="login-content">
+                    <WXAList class="wxa-list" :workerDetail="workerDetail" @onRefreshWorkerDetail="getWorkerDetail" />
+                    <TaskStack class="task-stack" :workerDetail="workerDetail" />
+                </div>
+            </template>
         </div>
         <AddTaskDialog ref="addTaskDialogRef" />
     </div>
