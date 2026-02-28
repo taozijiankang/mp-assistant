@@ -46,7 +46,7 @@
                         </div>
                         <span>
                             {{ taskInfo.key }}
-                            {{ dayjs(taskInfo.result?.endTimestamp || 0).format('YYYY-MM-DDHH: mm: ss') }}
+                            {{ dayjs(taskInfo.result?.endTimestamp || 0).format('YYYY-MM-DD HH: mm: ss') }}
                         </span>
                     </div>
                     <VersionList v-if="wxa.inspectTaskVersionInfo" :wxmp-item="wxa.wxaItem"
