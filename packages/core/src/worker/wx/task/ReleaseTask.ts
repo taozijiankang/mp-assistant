@@ -15,20 +15,17 @@ export class ReleaseTask extends BaseWXTask {
     private __publishQRCodeFilePath: string = '';
     private __countdown: number = 0;
 
-    protected async _waitForQrcodeScan(page: Page, testVersion: VersionListItem, timeout: number = 600000): Promise<void> {
+    protected async _waitForQrcodeScan(page: Page, timeout: number = 600000): Promise<void> {
         const startDate = Date.now();
 
         while ((Date.now() - startDate) < timeout) {
             // 同步倒计时
             this.__countdown = Math.max(0, (timeout - (Date.now() - startDate)) / 1000);
 
-            const onlineVersion = (await this._getVersionList(page))[WXTaskN.VersionType.ONLINE];
-            const flag =
-                onlineVersion?.version === testVersion.version &&
-                onlineVersion?.nick_name === testVersion.nick_name &&
-                onlineVersion?.describe === testVersion.describe;
+            const testVersion = (await this._getVersionList(page))[WXTaskN.VersionType.TEST];
+            const flag = !!testVersion
 
-            if (flag) {
+            if (!flag) {
                 return;
             }
 
@@ -46,7 +43,13 @@ export class ReleaseTask extends BaseWXTask {
             const currentVersionData = await this._getVersionList(page)
             const testVersionList = currentVersionData[WXTaskN.VersionType.TEST]
 
-            if (!testVersionList || testVersionList.status !== WXReviewStatus.SUCCESS) {
+            this._addRunningReport({
+                title: "验证可发布版本中",
+                timestamp: Date.now(),
+                description: `当前版本: ${testVersionList?.version}`,
+            });
+
+            if (!testVersionList || testVersionList.audit_status !== WXReviewStatus.SUCCESS) {
                 return {
                     status: TaskStatus.FAILED,
                     data: null,
@@ -54,6 +57,12 @@ export class ReleaseTask extends BaseWXTask {
                     endTimestamp: Date.now(),
                 }
             }
+
+            this._addRunningReport({
+                title: "提交发布中",
+                timestamp: Date.now(),
+                description: `当前版本: ${testVersionList?.version}`,
+            });
 
             const testVersionContainer = this._getVersionContainer(page, WXTaskN.VersionType.TEST)
             const dropDownBtn = testVersionContainer.getByRole('button', { name: "提交发布" })
@@ -73,8 +82,14 @@ export class ReleaseTask extends BaseWXTask {
 
             this.__publishQRCodeFilePath = publishQRCodeFilePath;
 
+            this._addRunningReport({
+                title: "等待扫码发布",
+                timestamp: Date.now(),
+                description: `当前版本: ${testVersionList?.version}`,
+            });
+
             //判断发布成功
-            await this._waitForQrcodeScan(page, testVersionList);
+            await this._waitForQrcodeScan(page);
 
             return {
                 status: TaskStatus.COMPLETED,
