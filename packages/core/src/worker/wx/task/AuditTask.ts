@@ -4,7 +4,7 @@ import { TaskExecResult, TaskStatus, TaskType, WXTaskN } from "mp-assistant-comm
 import { VersionListItem, WXReviewStatus } from "mp-assistant-common/dist/types/wx.js";
 import { versionSatisfy } from "mp-assistant-common/dist/utils/wx.js";
 import { cancelReview } from "../../../api/index.js";
-import { WXMP_AUDIT_PAGE_URL } from "../../../constant/wx.js";
+import { WXMP_AUDIT_PAGE_URL, WXMP_VERSION_MANAGEMENT_URL } from "../../../constant/wx.js";
 import { saveScreenshotBufferToFile } from "../../utils/index.js";
 import fs from "fs";
 
@@ -19,6 +19,40 @@ export class AuditTask extends BaseWXTask {
     constructor(options: WXTaskN.AuditTaskOptions) {
         super(options);
         this.options = options;
+    }
+
+    private _errorToMessage(error: unknown): string {
+        if (error instanceof Error) {
+            return error.message
+        }
+
+        try {
+            return JSON.stringify(error)
+        } catch {
+            return String(error)
+        }
+    }
+
+    private _buildFailedResult(msg: string, code: WXReviewStatus = WXReviewStatus.FAIL): TaskExecResult {
+        return {
+            status: TaskStatus.FAILED,
+            data: {
+                code
+            },
+            msg,
+            endTimestamp: Date.now(),
+        }
+    }
+
+    private _buildCompletedResult(msg: string, code: WXReviewStatus = WXReviewStatus.SUCCESS): TaskExecResult {
+        return {
+            status: TaskStatus.COMPLETED,
+            data: {
+                code
+            },
+            msg,
+            endTimestamp: Date.now(),
+        }
     }
 
     // 等待图片上传完成
@@ -42,27 +76,27 @@ export class AuditTask extends BaseWXTask {
         try {
             const imgViewInput = ct.locator('[data-component="mp-form-item"]').filter({ hasText: "图片预览" }).locator('input[type="file"]')
             const imgList = imagePreview.split(',').filter(Boolean)
-            for (let i = 0; i < imgList.length; i++) {
-                const flag = fs.existsSync(imgList[i] || '') as boolean
+            for (const [index, filePath] of imgList.entries()) {
+                const flag = fs.existsSync(filePath)
                 if (!flag) {
-                    throw new Error(`图片预览文件不存在: ${imgList[i]}`)
+                    throw new Error(`图片预览文件不存在: ${filePath}`)
                 }
 
-                await imgViewInput.setInputFiles(imgList[i] || '')
-                await this._waitForImgUpload(ct, i + 1)
+                await imgViewInput.setInputFiles(filePath)
+                await this._waitForImgUpload(ct, index + 1)
             }
         } catch (error) {
-            throw new Error(JSON.stringify(error))
+            throw new Error(this._errorToMessage(error))
         }
     }
 
     // 视频上传
     protected async _uploadVideoFile(ct: Locator, videoPreview: string): Promise<void> {
         if (!videoPreview) return
-        const flag = fs.existsSync(videoPreview || '') as boolean
+        const flag = fs.existsSync(videoPreview)
 
         if (!flag) {
-            throw new Error(`图片预览文件不存在: ${videoPreview}`)
+            throw new Error(`视频预览文件不存在: ${videoPreview}`)
         }
 
         try {
@@ -70,13 +104,19 @@ export class AuditTask extends BaseWXTask {
             await videoViewInput.setInputFiles(videoPreview)
             await ct.locator(".video-item").waitFor({ state: "visible", timeout: 15000 })
         } catch (error) {
-            throw new Error(JSON.stringify(error))
+            throw new Error(this._errorToMessage(error))
 
         }
     }
 
     // 提审流程
     protected async _getAuditPage(page: Page, targetVersion: VersionListItem): Promise<TaskExecResult> {
+        this._addRunningReport({
+            title: "提审中",
+            timestamp: Date.now(),
+            description: ``,
+        });
+
         const urlParams = new URLSearchParams(page.url())
         try {
             await page.goto(`${WXMP_AUDIT_PAGE_URL}?action=get_class&token=${urlParams.get('token')}&lang=zh_CN&openid=${targetVersion?.open_id}&user_name=${targetVersion?.nick_name}`)
@@ -100,10 +140,10 @@ export class AuditTask extends BaseWXTask {
             }
 
             // 上传图片预览文件
-            await this._uploadImageFile(formLocator, populateData.imagePreview || '')
+            await this._uploadImageFile(formLocator, populateData.imagePreview ?? '')
 
             // 上传视频预览文件
-            await this._uploadVideoFile(formLocator, populateData.videoPreview || '')
+            await this._uploadVideoFile(formLocator, populateData.videoPreview ?? '')
 
             await page.locator('.tool_bar').locator('[data-msgid="提交审核"]').click()
             const successLocator = page.locator('[data-msgid="已提交审核"]');
@@ -119,79 +159,76 @@ export class AuditTask extends BaseWXTask {
                 images: [screenshotFilePath],
             })
 
-            return {
-                status: successLocator ? TaskStatus.COMPLETED : TaskStatus.FAILED,
-                data: {
-                    code: successLocator ? WXReviewStatus.SUCCESS : WXReviewStatus.FAIL
-                },
-                msg: successLocator ? '提审成功' : '提审失败',
-                endTimestamp: Date.now(),
-            }
+            return this._buildCompletedResult(successLocator ? '提审成功' : '提审失败', successLocator ? WXReviewStatus.SUCCESS : WXReviewStatus.FAIL)
         } catch (error) {
             console.log('提审失败', error);
-            return {
-                status: TaskStatus.FAILED,
-                data: {
-                    code: WXReviewStatus.FAIL
-                },
-                msg: JSON.stringify(error),
-                endTimestamp: Date.now(),
-            }
+            return this._buildFailedResult(this._errorToMessage(error))
         } finally {
-            // page.close();
+            await page.close();
         }
     }
 
     protected async _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
         const page = await this._switchMP(browserContent);
-        const currentVersionData = await this._getVersionList(page)
-        const developVersionList = currentVersionData[WXTaskN.VersionType.DEVELOP]
-        const testVersionData = currentVersionData[WXTaskN.VersionType.TEST]
+        let shouldClosePage = true
 
-        // 参数校验
-        const { positioner, populateData } = this.options
-        if (!positioner || !positioner.length || !populateData || !Object.keys(populateData).length) {
-            return {
-                status: TaskStatus.FAILED,
-                data: {
-                    code: WXReviewStatus.FAIL
-                },
-                msg: '缺少相关参数',
-                endTimestamp: Date.now(),
+        try {
+            const currentVersionData = await this._getVersionList(page)
+            const developVersionList = currentVersionData[WXTaskN.VersionType.DEVELOP]
+            const testVersionData = currentVersionData[WXTaskN.VersionType.TEST]
+
+            // 参数校验
+            const { positioner, populateData } = this.options
+
+            this._addRunningReport({
+                title: "版本定位条件校验中",
+                timestamp: Date.now(),
+            });
+
+            if (!positioner?.length || !populateData || !Object.keys(populateData).length) {
+                return this._buildFailedResult('缺少相关参数')
             }
-        }
 
-        // 要提审的版本
-        const targetVersion = developVersionList?.find(version => versionSatisfy(version, positioner || []))
-        if (!targetVersion) {
-            return {
-                status: TaskStatus.FAILED,
-                data: {
-                    code: WXReviewStatus.FAIL
-                },
-                msg: '没有找到要提审的版本',
-                endTimestamp: Date.now(),
+            this._addRunningReport({
+                title: "获取提审版本中",
+                timestamp: Date.now(),
+                description: ``,
+            });
+
+            // 要提审的版本
+            const targetVersion = developVersionList?.find(version => versionSatisfy(version, positioner))
+            if (!targetVersion) {
+                return this._buildFailedResult('没有找到要提审的版本')
             }
-        }
 
-        // 当前有审核中的版本
-        if (testVersionData) {
-            const positioners = positioner || []
-            const isCurrentAuditTarget = versionSatisfy(testVersionData, positioners)
+            // 当前没有审核中的版本，直接打开提审页
+            if (!testVersionData) {
+                shouldClosePage = false
+                return await this._getAuditPage(page, targetVersion)
+            }
+
+            const isCurrentAuditTarget = versionSatisfy(testVersionData, positioner)
             let shouldOpenAuditPage = false
 
             switch (testVersionData.audit_status) {
                 // 审核通过的版本是准备提审的版本，则不需要重新提审
                 case WXReviewStatus.SUCCESS:
                     if (isCurrentAuditTarget) {
-                        return {
-                            status: TaskStatus.COMPLETED,
-                            data: {
-                                code: WXReviewStatus.SUCCESS
-                            },
-                            msg: '当前版本已通过审核，请发布',
-                            endTimestamp: Date.now(),
-                        }
+                        await page.goto(`${WXMP_VERSION_MANAGEMENT_URL}${new URL(page.url()).search}`);
+                        const testLocator = await page.locator(".code_version_test")
+                        testLocator.waitFor({ state: "visible", timeout: 100000 })
+
+                        const screenshotBuffer = await testLocator.screenshot()
+                        const screenshotFilePath = await saveScreenshotBufferToFile(screenshotBuffer);
+
+                        this._addRunningReport({
+                            title: '当前版本已通过审核，请发布',
+                            description: '',
+                            timestamp: Date.now(),
+                            images: [screenshotFilePath],
+                        })
+
+                        return this._buildCompletedResult('当前版本已通过审核，请发布')
                     }
                     // 重新提审
                     shouldOpenAuditPage = true
@@ -199,41 +236,36 @@ export class AuditTask extends BaseWXTask {
                 // 审核中的版本是准备提审的版本，则不需要重新提审
                 case WXReviewStatus.REVIEWING:
                     if (isCurrentAuditTarget) {
-                        return {
-                            status: TaskStatus.FAILED,
-                            data: {
-                                code: WXReviewStatus.REVIEWING
-                            },
-                            msg: '当前版本正在审核中，请耐心等待',
-                            endTimestamp: Date.now(),
-                        }
+                        return this._buildFailedResult('当前版本正在审核中，请耐心等待', WXReviewStatus.REVIEWING)
                     }
 
                     // 当前审核版本不是目标版本，先取消审核
-                    try {
-                        await cancelReview(page)
-                        await page.waitForTimeout(1000)
-                        shouldOpenAuditPage = true
-                    } catch (error) {
-                        console.error('取消审核失败', error);
-                        throw new Error('取消审核失败');
-                    }
+                    await cancelReview(page)
+                    await page.waitForTimeout(1000)
+
+                    shouldOpenAuditPage = true
+
                     break
                 case WXReviewStatus.FAIL:
-                    shouldOpenAuditPage = Boolean(targetVersion)
+                    shouldOpenAuditPage = true
                     break
             }
 
             if (shouldOpenAuditPage) {
+                shouldClosePage = false
                 return await this._getAuditPage(page, targetVersion)
             }
-        } else {
-            return await this._getAuditPage(page, targetVersion)
-        }
 
-        return {
-            status: TaskStatus.FAILED,
-            endTimestamp: Date.now(),
-        };
+            return {
+                status: TaskStatus.FAILED,
+                endTimestamp: Date.now(),
+            }
+        } catch (error) {
+            return this._buildFailedResult(this._errorToMessage(error))
+        } finally {
+            if (shouldClosePage) {
+                await page.close();
+            }
+        }
     }
 }
