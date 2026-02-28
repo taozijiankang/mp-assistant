@@ -6,7 +6,7 @@ import { EventEmitter } from "mp-assistant-common/dist/event/EventEmitter";
  * 获取 API 基础 URL
  * 生产环境下使用相对路径（同源部署），开发环境通过 vite proxy 代理
  */
-const getBaseURL = () => {
+export const getBaseWsURL = () => {
     return new URL(WSUrl, import.meta.env.VITE_BASE_API_URL || location.origin).href;
 };
 
@@ -31,7 +31,7 @@ export class WSConnection extends EventEmitter<BaseWSConnectEventMap> {
     }
 
     connect() {
-        this.__ws = new WebSocket(getBaseURL());
+        this.__ws = new WebSocket(getBaseWsURL());
 
         this.__ws.addEventListener('open', () => {
             console.log('WebSocket 连接已打开');

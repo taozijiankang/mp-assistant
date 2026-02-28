@@ -7,12 +7,11 @@ import fastifyWebsocket from '@fastify/websocket'
 import { ConfigStore } from './store/ConfigStore.js';
 import { registerWebSocket } from './server/ws/index.js';
 import { registerApi } from './server/api/index.js';
-import { ApiPrefix, FilesPrefix } from 'mp-assistant-common/dist/api/index.js';
+import { ApiPrefix } from 'mp-assistant-common/dist/api/index.js';
 import { getErrorApiResponse } from 'mp-assistant-common/dist/api/utils.js';
 import { WorkerStore } from './store/WorkerStore.js';
 import fastifyCors from '@fastify/cors';
 import multipart from '@fastify/multipart';
-import { getFilesDir } from './pathManage.js';
 
 const require = createRequire(import.meta.url);
 
@@ -60,12 +59,6 @@ const startServer = async () => {
     await fastify.register(fastifyStatic, {
         root: dashboardDir,
         prefix: '/',
-    });
-    // 注册file的静态目录
-    await fastify.register(fastifyStatic, {
-        root: getFilesDir(),
-        prefix: FilesPrefix,
-        decorateReply: false,
     });
 
     // WebSocket 路由

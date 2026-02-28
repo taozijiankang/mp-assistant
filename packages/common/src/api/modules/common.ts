@@ -14,18 +14,14 @@ export namespace CommonApi {
     }
 
     /**
-     * 转换地址
+     * 获取文件
      */
-    export namespace ConvertFilePath {
-        export const url = '/convert-file-path';
-        export const method = 'POST';
+    export namespace GetFile {
+        export const url = '/get-file';
+        export const method = 'GET';
 
-        export type RequestBody = {
-            filePaths: string[];
-        }
-
-        export type ResponseData = string[];
-        export type SuccessResponse = APISuccessRes<ResponseData>;
-        export type Response = SuccessResponse | APIErrorRes;
+        export type RequestQuery = {
+            filePath: string;
+        };
     }
 }

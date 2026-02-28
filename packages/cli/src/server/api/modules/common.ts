@@ -1,12 +1,13 @@
 import { FastifyInstance } from "fastify";
-import { Api, FilesPrefix } from "mp-assistant-common/dist/api/index.js";
+import { Api } from "mp-assistant-common/dist/api/index.js";
 import { getErrorApiResponse, getSuccessApiResponse } from "mp-assistant-common/dist/api/utils.js";
 import { pipeline } from "node:stream/promises";
 import fs from "node:fs"
 import path from "node:path";
-import { getFilesDir } from "../../../pathManage.js";
 import dayjs from "dayjs";
 import { getUUID } from "mp-assistant-common/dist/utils/index.js";
+import { getFilesDir } from "mp-assistant-common/dist/pathManage.js";
+import { pathNormalize } from "mp-assistant-common/dist/utils/node.js";
 
 export const registerCommonApi = (fastify: FastifyInstance) => {
     fastify.post(Api.Common.UploadFile.url, async function (req, reply): Promise<Api.Common.UploadFile.Response> {
@@ -25,16 +26,15 @@ export const registerCommonApi = (fastify: FastifyInstance) => {
 
         await pipeline(data.file, fs.createWriteStream(path.join(fileDir, fileName)));
 
-        return getSuccessApiResponse(FilesPrefix + '/' + path.relative(getFilesDir(), path.join(fileDir, fileName)).replaceAll(path.sep, '/'));
+        return getSuccessApiResponse(pathNormalize(path.join(fileDir, fileName)));
     });
 
-    fastify.post(Api.Common.ConvertFilePath.url, async function (req, reply): Promise<Api.Common.ConvertFilePath.Response> {
-        const { filePaths = [] } = req.body as Api.Common.ConvertFilePath.RequestBody;
+    fastify.get(Api.Common.GetFile.url, async function (req, reply) {
+        const { filePath } = req.query as Api.Common.GetFile.RequestQuery;
 
-        const convertedFilePaths = filePaths.map(filePath => {
-            return path.join(getFilesDir(), filePath.replace(new RegExp(`^${FilesPrefix}/`), '')).replaceAll(path.sep, '/');
-        });
+        const fileDir = path.dirname(decodeURIComponent(filePath));
+        const fileName = path.basename(decodeURIComponent(filePath));
 
-        return getSuccessApiResponse(convertedFilePaths);
+        return reply.sendFile(fileName, fileDir);
     });
 };

@@ -1,6 +1,6 @@
 import { useLocalStore } from "../hooks/useLocalStore.js";
-import { getStoreDir } from "../pathManage.js";
 import { Config } from "mp-assistant-common/dist/types/config.js";
+import { getStoreDir } from "mp-assistant-common/dist/pathManage.js";
 
 const DEFAULT_CONFIG: Config = {
     executablePath: '',

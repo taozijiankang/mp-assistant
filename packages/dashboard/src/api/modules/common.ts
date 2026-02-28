@@ -1,5 +1,5 @@
 import { Api } from "mp-assistant-common/dist/api/index.js";
-import { request } from "../request";
+import { getBaseApiURL, request } from "../request";
 
 export function requestUploadFile(file: File) {
     return request<Api.Common.UploadFile.ResponseData>(
@@ -8,9 +8,6 @@ export function requestUploadFile(file: File) {
     );
 }
 
-export function requestConvertFilePath(filePaths: string[]) {
-    return request<Api.Common.ConvertFilePath.ResponseData>(
-        Api.Common.ConvertFilePath.url,
-        { method: Api.Common.ConvertFilePath.method, body: { filePaths } }
-    );
+export function getFileUrl(filePath: string) {
+    return getBaseApiURL() + Api.Common.GetFile.url + `?filePath=${encodeURIComponent(filePath)}`;
 }

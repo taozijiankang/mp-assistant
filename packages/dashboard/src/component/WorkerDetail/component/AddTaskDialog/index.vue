@@ -68,7 +68,7 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
-import { requestAddTask, requestConvertFilePath, requestGetWorkerDetail } from '@/api';
+import { requestAddTask, requestGetWorkerDetail } from '@/api';
 import { ElMessage } from 'element-plus';
 import type { FormRules } from 'element-plus';
 import type { ElForm } from 'element-plus';
@@ -182,16 +182,14 @@ const handleAddTask = async () => {
 
             // 如果是审核任务，则添加审核任务选项
             if (addTaskForm.value.type === TaskType.WX_AUDIT) {
-                const { data: convertedImageFilePaths } = await requestConvertFilePath(auditForm.value.populateData.imagePreview);
-                const { data: convertedVideoFilePath } = await requestConvertFilePath(auditForm.value.populateData.videoPreview);
 
                 options = {
                     ...options,
                     positioner: auditForm.value.positioner,
                     populateData: {
                         versionDescription: auditForm.value.populateData.versionDescription,
-                        imagePreview: convertedImageFilePaths.join(','),
-                        videoPreview: convertedVideoFilePath.join(','),
+                        imagePreview: auditForm.value.populateData.imagePreview.join(','),
+                        videoPreview: auditForm.value.populateData.videoPreview.join(','),
                     },
                 } as WXTaskN.AuditTaskOptions;
             }

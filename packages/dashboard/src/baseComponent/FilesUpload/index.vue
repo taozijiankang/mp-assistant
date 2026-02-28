@@ -1,11 +1,12 @@
 <template>
     <div class="files-upload-container">
         <div class="files-container">
-            <div class="files-item" v-for="(file, index) in files" :key="index">
-                <img class="file-image" v-if="/\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(file)" :src="getFileUrl(file)" />
-                <video class="file-video" v-else-if="/\.(mp4|webm|ogg|flv|avi|mov|wmv|mkv)$/i.test(file)"
-                    :src="getFileUrl(file)" controls />
-                <span class="file-name" v-else>{{ file }}</span>
+            <div class="files-item" v-for="(filePath, index) in files" :key="index">
+                <img class="file-image" v-if="/\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(filePath)"
+                    :src="getFileUrl(filePath)" />
+                <video class="file-video" v-else-if="/\.(mp4|webm|ogg|flv|avi|mov|wmv|mkv)$/i.test(filePath)"
+                    :src="getFileUrl(filePath)" controls />
+                <span class="file-name" v-else>{{ filePath }}</span>
                 <el-button class="file-remove-button" type="danger" @click="handleRemoveFile(index)" circle>
                     <el-icon>
                         <Delete />
@@ -21,7 +22,7 @@
 </template>
 
 <script lang="ts" setup>
-import { requestUploadFile } from '@/api';
+import { getFileUrl, requestUploadFile } from '@/api';
 import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Delete } from '@element-plus/icons-vue';
@@ -77,10 +78,6 @@ const handleFileChange = async (event: Event) => {
 
 const handleRemoveFile = (index: number) => {
     emit('update:files', props.files.filter((_, i) => i !== index))
-}
-
-const getFileUrl = (file: string) => {
-    return new URL(file, import.meta.env.VITE_BASE_API_URL).href;
 }
 </script>
 
