@@ -20,11 +20,12 @@
                 <TaskStack class="task-stack" :workerDetail="workerDetail" />
             </div>
         </div>
+        <AddTaskDialog ref="addTaskDialogRef" />
     </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch } from 'vue';
+import { onMounted, onUnmounted, watch, ref, provide } from 'vue';
 import { getFileUrl, requestGetWorkerDetail, requestLoginWorker } from '@/api';
 import { WXWorkerN } from 'mp-assistant-common/dist/work';
 import WXAList from './component/WXAList/index.vue';
@@ -32,10 +33,14 @@ import TaskStack from './component/TaskStack/index.vue';
 import { WSMessageEvent } from '@/event/WSMessageEvent';
 import { WSMessage } from 'mp-assistant-common/dist/ws';
 import { useApiCall } from '@/hooks/useApiCall';
+import AddTaskDialog from './component/AddTaskDialog/index.vue';
+import type { AddTaskFormData } from './component/AddTaskDialog/index';
 
 const props = defineProps<{
     workerKey: string;
 }>();
+
+const addTaskDialogRef = ref<InstanceType<typeof AddTaskDialog>>();
 
 const { data: workerDetail, call: getWorkerDetail } = useApiCall(() => requestGetWorkerDetail(props.workerKey));
 
@@ -56,6 +61,10 @@ const handleWorkerListChange = (data: WSMessage.Worker.DetailChange.Data) => {
     }
 }
 
+const handleAddTask = (formData?: AddTaskFormData) => {
+    addTaskDialogRef.value?.open(props.workerKey, formData);
+}
+
 onMounted(() => {
     WSMessageEvent.instance.on(WSMessage.Worker.DetailChange.type, handleWorkerListChange);
 
@@ -67,6 +76,8 @@ onMounted(() => {
 onUnmounted(() => {
     WSMessageEvent.instance.off(WSMessage.Worker.DetailChange.type, handleWorkerListChange);
 });
+
+provide('handleAddTask', handleAddTask);
 </script>
 
 <style scoped lang="scss">

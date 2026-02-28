@@ -73,7 +73,7 @@ import { ElMessage } from 'element-plus';
 import type { FormRules } from 'element-plus';
 import type { ElForm } from 'element-plus';
 import { TaskType, WXTaskN } from 'mp-assistant-common/dist/work/task';
-import type { AddTaskForm } from '.';
+import type { AddTaskForm, AddTaskFormData } from './index';
 import { TaskTypeOptions } from 'mp-assistant-common/dist/work/task';
 import { WXWorkerN } from 'mp-assistant-common/dist/work';
 import type { VersionPositioner } from 'mp-assistant-common/dist/utils/wx';
@@ -209,9 +209,16 @@ const handleAddTask = async () => {
     }
 };
 
-const open = (workerKey: string) => {
-    visible.value = true;
+const open = (workerKey: string, formData?: AddTaskFormData) => {
+    const { appIds = [], type = TaskType.WX_INSPECT_VERSION, positioner = [], populateData = { versionDescription: '', imagePreview: [], videoPreview: [] } } = formData || {};
+    addTaskForm.value.appIds = appIds;
+    addTaskForm.value.type = type;
+    auditForm.value.positioner = positioner;
+    auditForm.value.populateData.versionDescription = populateData.versionDescription || '';
+    auditForm.value.populateData.imagePreview = populateData.imagePreview || [];
+    auditForm.value.populateData.videoPreview = populateData.videoPreview || [];
 
+    visible.value = true;
     getWorkerDetail(workerKey);
 };
 

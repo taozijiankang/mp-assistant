@@ -1,89 +1,21 @@
 <template>
     <div class="version-list">
-        <template v-if="onlineVersion">
-            <div class="title online">
+        <template v-for="versionListInfo in showVersionList">
+            <div class="title" :class="{
+                'online': versionListInfo.type === WXTaskN.VersionType.ONLINE,
+                'test': versionListInfo.type === WXTaskN.VersionType.TEST,
+                'dev': versionListInfo.type === WXTaskN.VersionType.DEVELOP,
+            }">
                 <div class="dot"></div>
-                <span>线上版本</span>
+                <span>{{ versionListInfo.title }}</span>
             </div>
             <div class="version-item-list">
-                <div class="version-item">
+                <div v-for="item in versionListInfo.versions" class="version-item">
                     <div class="col">
                         <div class="row">
-                            <span>版本：{{ onlineVersion?.version }}</span>
-                        </div>
-                        <div class="row">
-                            <span>发布者: {{ onlineVersion?.nick_name }}</span>
-                        </div>
-                        <div v-if="byDescribeGetCommitHash(onlineVersion?.describe || '')" class="row">
                             <span>
-                                GIT提交HASH:
-                                <span class="commit-hash">
-                                    {{ byDescribeGetCommitHash(onlineVersion?.describe || '') }}
-                                </span>
+                                版本：{{ item?.version }} <span v-if="item.is_exper" style="color: #00ACFF">[体验版本]</span>
                             </span>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="row">
-                            <span>备注: {{ onlineVersion?.describe }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </template>
-        <template v-if="testVersion">
-            <div class="title test">
-                <div class="dot"></div>
-                <span>审核版本</span>
-            </div>
-            <div class="version-item-list">
-                <div class="version-item">
-                    <div class="col">
-                        <div class="row">
-                            <span>版本：{{ testVersion?.version }}</span>
-                        </div>
-                        <div class="row">
-                            <span>发布者: {{ testVersion?.nick_name }}</span>
-                        </div>
-                        <div v-if="byDescribeGetCommitHash(testVersion?.describe || '')" class="row">
-                            <span>
-                                GIT提交HASH:
-                                <span class="commit-hash">
-                                    {{ byDescribeGetCommitHash(testVersion?.describe || '') }}
-                                </span>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="row">
-                            <span>审核状态:
-                                <span class="audit-status" :class="{
-                                    'success': testVersion?.audit_status === WXReviewStatus.SUCCESS,
-                                    'reviewing': testVersion?.audit_status === WXReviewStatus.REVIEWING,
-                                    'fail': testVersion?.audit_status === WXReviewStatus.FAIL,
-                                }">{{ WXReviewStatusDict[testVersion?.audit_status as WXReviewStatus] }}</span>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="row">
-                            <span>备注: {{ testVersion?.describe }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </template>
-        <template v-if="devVersions.length > 0">
-            <div class="title dev">
-                <div class="dot"></div>
-                <span>开发版本</span>
-            </div>
-            <div class="version-item-list">
-                <div v-for="item in devVersions" class="version-item">
-                    <div class="col">
-                        <div class="row">
-                            <span>版本：{{ item?.version }} <span v-if="item.is_exper"
-                                    style="color: #00ACFF">[体验版本]</span></span>
                         </div>
                         <div class="row">
                             <span>发布者: {{ item?.nick_name }}</span>
@@ -99,46 +31,53 @@
                     </div>
                     <div class="col">
                         <div class="row">
+                            <span>操作:</span>
+                            <el-button v-if="versionListInfo.type === WXTaskN.VersionType.DEVELOP" size="small" plain
+                                @click="handleSubmitAudit(item)">添加提审任务</el-button>
+                        </div>
+                    </div>
+                    <div v-if="versionListInfo.type === WXTaskN.VersionType.TEST" class="col">
+                        <div class="row">
+                            <span>审核状态:
+                                <span class="audit-status" :class="{
+                                    'success': item?.audit_status === WXReviewStatus.SUCCESS,
+                                    'reviewing': item?.audit_status === WXReviewStatus.REVIEWING,
+                                    'fail': item?.audit_status === WXReviewStatus.FAIL,
+                                }">{{ WXReviewStatusDict[item?.audit_status as WXReviewStatus] }}</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row">
                             <span>备注: {{ item?.describe }}</span>
                         </div>
                     </div>
                 </div>
             </div>
         </template>
-        <div class="task-info">
-            <div class="top">
-                <span>关联任务: </span>
-                <span>{{ TaskTypeDict[taskInfo.type] }}</span>
-                <div class="task-status" :class="{
-                    'success': taskInfo.status === TaskStatus.COMPLETED,
-                    'running': taskInfo.status === TaskStatus.RUNNING,
-                    'fail': taskInfo.status === TaskStatus.FAILED,
-                }">
-                    <div class="dot"></div>
-                    <span>
-                        {{ TaskStatusDict[taskInfo.status] }}
-                    </span>
-                </div>
-            </div>
-            <span>{{ taskInfo.key }} {{ dayjs(taskInfo.result?.endTimestamp || 0).format('YYYY-MM-DD HH:mm:ss')
-            }}</span>
-        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { WXReviewStatusDict } from 'mp-assistant-common/dist/constant';
-import { WXReviewStatus } from 'mp-assistant-common/dist/types/wx';
-import { TaskStatus, TaskStatusDict, TaskTypeDict, WXTaskN } from 'mp-assistant-common/dist/work/task';
-import { computed } from 'vue';
-import { dayjs } from 'element-plus';
+import { WXReviewStatus, type VersionListItem } from 'mp-assistant-common/dist/types/wx';
+import { TaskType, WXTaskN, type BaseTaskInfo } from 'mp-assistant-common/dist/work/task';
+import { computed, inject } from 'vue';
+import type { AddTaskFormData } from '../../../AddTaskDialog/index';
+import type { WXMPItem } from 'mp-assistant-common/dist/types/wx';
+import { VersionPositioningCriteria } from 'mp-assistant-common/dist/utils/wx';
+import { VersionPositioningType } from 'mp-assistant-common/dist/utils/wx';
 
 const props = defineProps<{
-    taskInfo: WXTaskN.InspectVersionInfo
+    wxmpItem: WXMPItem;
+    relatedTask: BaseTaskInfo[];
+    inspectVersionTaskInfo: WXTaskN.InspectVersionInfo,
 }>();
 
+const handleAddTask = inject<(formData?: AddTaskFormData) => void>('handleAddTask');
+
 const versionList = computed(() => {
-    return props.taskInfo.result?.data as WXTaskN.VersionListData | undefined
+    return props.inspectVersionTaskInfo.result?.data as WXTaskN.VersionListData | undefined
 });
 
 const onlineVersion = computed(() => {
@@ -150,6 +89,57 @@ const testVersion = computed(() => {
 const devVersions = computed(() => {
     return versionList.value?.[WXTaskN.VersionType.DEVELOP] || []
 });
+
+const showVersionList = computed(() => {
+    return [
+        {
+            title: '线上版本',
+            type: WXTaskN.VersionType.ONLINE,
+            versions: [onlineVersion.value].filter(Boolean) as VersionListItem[],
+        },
+        {
+            title: '审核版本',
+            type: WXTaskN.VersionType.TEST,
+            versions: [testVersion.value].filter(Boolean) as VersionListItem[],
+        },
+        {
+            title: '开发版本',
+            type: WXTaskN.VersionType.DEVELOP,
+            versions: devVersions.value as VersionListItem[],
+        }
+    ].filter(item => item.versions.length > 0);
+});
+
+const handleSubmitAudit = (item: VersionListItem) => {
+    // 找到最近的审核任务 选项
+    const nearestAuditTaskOptions = props.relatedTask.find(task => task.type === TaskType.WX_AUDIT)?.options as WXTaskN.AuditTaskOptions | undefined;
+    handleAddTask?.({
+        appIds: [props.wxmpItem.appid],
+        type: TaskType.WX_AUDIT,
+        positioner: [
+            {
+                type: VersionPositioningType.Version,
+                criteria: VersionPositioningCriteria.Equal,
+                value: item.version || '',
+            },
+            {
+                type: VersionPositioningType.NickName,
+                criteria: VersionPositioningCriteria.Equal,
+                value: item.nick_name || '',
+            },
+            {
+                type: VersionPositioningType.Describe,
+                criteria: VersionPositioningCriteria.Equal,
+                value: item.describe || '',
+            }
+        ],
+        populateData: {
+            versionDescription: nearestAuditTaskOptions?.populateData?.versionDescription || '',
+            imagePreview: (nearestAuditTaskOptions?.populateData?.imagePreview?.split(',') || []).filter(Boolean),
+            videoPreview: (nearestAuditTaskOptions?.populateData?.videoPreview?.split(',') || []).filter(Boolean),
+        }
+    });
+}
 
 /**
  * 根据描述获取commit hash

@@ -16,6 +16,8 @@ export interface BaseTaskInfo {
     runningReportList: TaskRunningReport[];
     options?: any;
     result?: TaskExecResult;
+    startTime: number;
+    endTime: number;
 }
 
 export interface TaskRunningReport {

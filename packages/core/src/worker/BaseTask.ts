@@ -19,6 +19,9 @@ export abstract class BaseTask {
 
     protected _worker?: BaseWorker;
 
+    private __startTime: number = 0;
+    private __endTime: number = 0;
+
     get worker(): BaseWorker | null {
         return this._worker || null;
     }
@@ -63,6 +66,8 @@ export abstract class BaseTask {
             runningReportList: this.runningReportList,
             options: this.options,
             result: this.result,
+            startTime: this.__startTime,
+            endTime: this.__endTime,
         };
     }
 
@@ -70,6 +75,7 @@ export abstract class BaseTask {
         if (this.status !== TaskStatus.NOT_STARTED) {
             throw new Error('Task already started');
         }
+        this.__startTime = Date.now();
         this._setStatus(TaskStatus.RUNNING);
         try {
             // 清空运行报告
@@ -87,6 +93,7 @@ export abstract class BaseTask {
             };
             console.error('任务执行失败', error);
         } finally {
+            this.__endTime = Date.now();
             this.emitDetailChangeEvent();
         }
         return this.result;

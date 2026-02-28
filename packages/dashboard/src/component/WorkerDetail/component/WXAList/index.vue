@@ -16,7 +16,7 @@
                                 <span>
                                     {{ wxa.wxaItem.app_name }}
                                 </span>
-                                <el-button type="primary" size="small" link
+                                <el-button size="small" plain
                                     :loading="restartTaskLoadings.includes(wxa.wxaItem.appid) || wxa.inspectTaskVersionInfo?.status === TaskStatus.RUNNING"
                                     @click="handleRestartTask(wxa.wxaItem)">检测版本信息</el-button>
                             </div>
@@ -24,7 +24,33 @@
                             <div class="wxa-username">username: {{ wxa.wxaItem.username }}</div>
                         </div>
                     </div>
-                    <VersionList v-if="wxa.inspectTaskVersionInfo" :task-info="wxa.inspectTaskVersionInfo" />
+                    <div v-for="taskInfo in wxa.relatedTask" class="task-info">
+                        <div class="top">
+                            <img v-if="taskInfo.type === TaskType.WX_INSPECT_VERSION"
+                                src="@/assets/check-the-version.png" alt="task-type-icon" class="task-type-icon">
+                            <img v-if="taskInfo.type === TaskType.WX_AUDIT" src="@/assets/review.png"
+                                alt="task-type-icon" class="task-type-icon">
+                            <img v-if="taskInfo.type === TaskType.WX_PUBLISH" src="@/assets/release.png"
+                                alt="task-type-icon" class="task-type-icon">
+                            <span>{{ TaskTypeDict[taskInfo.type] }}</span>
+                            <div class="task-status" :class="{
+                                'success': taskInfo.status === TaskStatus.COMPLETED,
+                                'running': taskInfo.status === TaskStatus.RUNNING,
+                                'fail': taskInfo.status === TaskStatus.FAILED,
+                            }">
+                                <div class="dot"></div>
+                                <span>
+                                    {{ TaskStatusDict[taskInfo.status] }}
+                                </span>
+                            </div>
+                        </div>
+                        <span>
+                            {{ taskInfo.key }}
+                            {{ dayjs(taskInfo.result?.endTimestamp || 0).format('YYYY-MM-DDHH: mm: ss') }}
+                        </span>
+                    </div>
+                    <VersionList v-if="wxa.inspectTaskVersionInfo" :wxmp-item="wxa.wxaItem"
+                        :related-task="wxa.relatedTask" :inspect-version-task-info="wxa.inspectTaskVersionInfo" />
                 </div>
             </div>
         </el-scrollbar>
@@ -39,12 +65,13 @@ import { requestAddTask, requestWorkerUpdateWxaList } from '@/api';
 import { useApiCall } from '@/hooks/useApiCall';
 import type { WXMPItem } from 'mp-assistant-common/dist/types/wx';
 import { WXWorkerN } from 'mp-assistant-common/dist/work';
-import { TaskStatus, TaskType, WXTaskN } from 'mp-assistant-common/dist/work/task';
+import { TaskStatus, TaskStatusDict, TaskType, TaskTypeDict, WXTaskN, type BaseTaskInfo } from 'mp-assistant-common/dist/work/task';
 import { ref, computed } from 'vue';
 import VersionList from "./component/VersionList/index.vue"
+import { dayjs } from 'element-plus';
 
 const props = defineProps<{
-    workerDetail: WXWorkerN.WXWorkInfo
+    workerDetail: WXWorkerN.WXWorkInfo;
 }>();
 
 const emit = defineEmits<{
@@ -63,13 +90,25 @@ const filteredWxaList = computed(() => {
         wxaList.push(...props.workerDetail.wxaList.filter(wxa => wxa.app_name.includes(searchValue.value) || wxa.appid.includes(searchValue.value)));
     }
     return wxaList.map(item => {
-        const inspectTaskVersionInfo = [...props.workerDetail.taskList].reverse().filter(item => item.type === TaskType.WX_INSPECT_VERSION).find(taskItem => {
+        const relatedTask_ = [...props.workerDetail.taskList].sort((a, b) => b.startTime - a.startTime).filter(taskItem => {
             const options: WXTaskN.TaskOptions = taskItem.options;
             return options.app_name === item.app_name && options.username === item.username;
-        }) as WXTaskN.InspectVersionInfo | undefined;
+        });
+        // 同一种类型的任务只能存在一个
+        const relatedTask: BaseTaskInfo[] = [];
+        for (const taskItem of relatedTask_) {
+            const alreadyTask = relatedTask.find(taskItem_ => taskItem_.type === taskItem.type);
+            if (alreadyTask) {
+                continue;
+            }
+            relatedTask.push(taskItem);
+        }
         return {
             wxaItem: item,
-            inspectTaskVersionInfo,
+            relatedTask,
+            inspectTaskVersionInfo: relatedTask.find(taskItem => taskItem.type === TaskType.WX_INSPECT_VERSION) as WXTaskN.InspectVersionInfo | undefined,
+            auditTaskInfo: relatedTask.find(taskItem => taskItem.type === TaskType.WX_AUDIT) as WXTaskN.TaskInfo | undefined,
+            publishTaskInfo: relatedTask.find(taskItem => taskItem.type === TaskType.WX_PUBLISH) as WXTaskN.TaskInfo | undefined,
         };
     });
 });
