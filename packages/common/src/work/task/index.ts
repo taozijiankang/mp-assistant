@@ -54,6 +54,10 @@ export namespace WXTaskN {
         }
     }
 
+    export interface ReleaseTaskOptions extends TaskOptions {
+        positioner?: VersionPositioner[]
+    }
+
     export interface TaskInfo extends BaseTaskInfo {
         type: TaskType.WX_INSPECT_VERSION | TaskType.WX_AUDIT | TaskType.WX_PUBLISH;
         options: TaskOptions;
