@@ -19,6 +19,7 @@ export abstract class BaseTask {
 
     protected _worker?: BaseWorker;
 
+    private __createTime: number = 0;
     private __startTime: number = 0;
     private __endTime: number = 0;
 
@@ -40,6 +41,8 @@ export abstract class BaseTask {
     constructor(options: any) {
         this.key = getUUID();
         this.options = options;
+
+        this.__createTime = Date.now();
     }
 
     protected _setStatus(status: TaskStatus) {
@@ -66,6 +69,7 @@ export abstract class BaseTask {
             runningReportList: this.runningReportList,
             options: this.options,
             result: this.result,
+            createTime: this.__createTime,
             startTime: this.__startTime,
             endTime: this.__endTime,
         };
