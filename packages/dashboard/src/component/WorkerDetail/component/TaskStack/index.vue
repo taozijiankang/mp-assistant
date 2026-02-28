@@ -98,8 +98,9 @@
                             {{ taskReport.description }}
                         </span>
                         <div v-if="taskReport.images && taskReport.images.length > 0" class="report-item-images">
-                            <el-image v-for="(image, index) in taskReport.images" :key="image" :src="image"
-                                fit="contain" :preview-src-list="taskReport.images" preview-teleported
+                            <el-image v-for="(image, index) in taskReport.images.map(image => getFileUrl(image))"
+                                :key="image" :src="image" fit="contain"
+                                :preview-src-list="taskReport.images.map(image => getFileUrl(image))" preview-teleported
                                 :initial-index="index" />
                         </div>
                     </div>
@@ -120,7 +121,7 @@ import { WXWorkerN } from 'mp-assistant-common/dist/work';
 import { useOperationRecordStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import { Delete } from '@element-plus/icons-vue';
-import { requestRemoveTask } from '@/api';
+import { getFileUrl, requestRemoveTask } from '@/api';
 
 const props = defineProps<{
     workerDetail: WXWorkerN.WXWorkInfo
