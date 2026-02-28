@@ -27,11 +27,9 @@
       .filter-item {
         display: flex;
         align-items: center;
-
-        &.selected {
-          padding: 2px 4px;
-          border-radius: 4px;
-        }
+        cursor: pointer;
+        padding: 2px 4px;
+        border-radius: 4px;
 
         &.total {
           span {
