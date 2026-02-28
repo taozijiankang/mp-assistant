@@ -43,6 +43,13 @@ export function requestLoginWorker(key: string) {
     );
 }
 
+export function requestLogoutWorker(key: string) {
+    return request<Api.Worker.WorkerLogout.ResponseData>(
+        Api.Worker.WorkerLogout.url,
+        { method: Api.Worker.WorkerLogout.method, query: { key } }
+    );
+}
+
 export function requestWorkerUpdateWxaList(key: string) {
     return request<Api.Worker.WorkerUpdateWxaList.ResponseData>(
         Api.Worker.WorkerUpdateWxaList.url,

@@ -16,7 +16,9 @@
             </div>
             <template v-else>
                 <div class="controller">
-                    <el-button type="primary" @click="() => { }">退出登录</el-button>
+                    <el-button type="primary" :loading="handleWorkerLogoutLoading ||
+                        workerDetail.loadings.includes(WXWorkerN.LoadingType.logout)"
+                        @click="handleWorkerLogout">退出登录</el-button>
                 </div>
                 <!-- 登录 -->
                 <div class="login-content">
@@ -31,7 +33,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch, ref, provide } from 'vue';
-import { getFileUrl, requestGetWorkerDetail, requestLoginWorker } from '@/api';
+import { getFileUrl, requestGetWorkerDetail, requestLoginWorker, requestLogoutWorker } from '@/api';
 import { WXWorkerN } from 'mp-assistant-common/dist/work';
 import WXAList from './component/WXAList/index.vue';
 import TaskStack from './component/TaskStack/index.vue';
@@ -51,6 +53,13 @@ const { data: workerDetail, call: getWorkerDetail } = useApiCall(() => requestGe
 
 const { loading: handleWorkerLoginLoading, call: handleWorkerLogin } = useApiCall(async () => {
     const res = await requestLoginWorker(props.workerKey);
+    // 重写获取worker状态
+    await getWorkerDetail();
+    return res;
+});
+
+const { loading: handleWorkerLogoutLoading, call: handleWorkerLogout } = useApiCall(async () => {
+    const res = await requestLogoutWorker(props.workerKey);
     // 重写获取worker状态
     await getWorkerDetail();
     return res;

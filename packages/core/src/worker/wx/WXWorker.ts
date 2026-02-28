@@ -154,11 +154,10 @@ export class WXWorker extends BaseWorker {
             return;
         }
 
-        this.setLoading(WXWorkerN.LoadingType.login);
+        this.setLoading(WXWorkerN.LoadingType.logout);
         const browserContent = this.browserContent!;
         const page = await browserContent.newPage();
         try {
-
             await page.goto(WXMP_HOME_URL);
             const url = new URL(page.url());
 
@@ -185,16 +184,17 @@ export class WXWorker extends BaseWorker {
 
             await switchMPButtonLocator.click();
 
-            // 状态改变
-            page.on('load', () => {
-                const url = new URL(page.url());
-                if (!WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
-                    this._setLoginStatus(false);
-                    page.close();
-                }
-            });
+            await page.waitForEvent('load');
+
+            const url2 = new URL(page.url());
+            if (!WXMP_USER_PAGE_PATH_REX.test(url2.pathname)) {
+                this._setLoginStatus(false);
+            }
         } catch (error) {
+            console.error('退出登录失败', error);
+        } finally {
             await page?.close();
+            this.offLoading(WXWorkerN.LoadingType.logout);
         }
     }
 
