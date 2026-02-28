@@ -175,6 +175,7 @@ export class AuditTask extends BaseWXTask {
         try {
             const currentVersionData = await this._getVersionList(page)
             const developVersionList = currentVersionData[WXTaskN.VersionType.DEVELOP]
+            const onlineVersion = currentVersionData[WXTaskN.VersionType.ONLINE]
             const testVersionData = currentVersionData[WXTaskN.VersionType.TEST]
 
             // 参数校验
@@ -196,13 +197,17 @@ export class AuditTask extends BaseWXTask {
             });
 
             // 要提审的版本
+            if (onlineVersion && versionSatisfy(onlineVersion, positioner)) {
+                return this._buildFailedResult('当前预提审版本和线上版本一致，无需提审')
+            }
+
             const targetVersion = developVersionList?.find(version => versionSatisfy(version, positioner))
             if (!targetVersion) {
                 return this._buildFailedResult('没有找到要提审的版本')
             }
 
             // 当前没有审核中的版本，直接打开提审页
-            if (!testVersionData) {
+            if (!testVersionData || !testVersionData.audit_status) {
                 shouldClosePage = false
                 return await this._getAuditPage(page, targetVersion)
             }
@@ -215,7 +220,7 @@ export class AuditTask extends BaseWXTask {
                 case WXReviewStatus.SUCCESS:
                     if (isCurrentAuditTarget) {
                         await page.goto(`${WXMP_VERSION_MANAGEMENT_URL}${new URL(page.url()).search}`);
-                        const testLocator = await page.locator(".code_version_test")
+                        const testLocator = page.locator(".code_version_test")
                         testLocator.waitFor({ state: "visible", timeout: 100000 })
 
                         const screenshotBuffer = await testLocator.screenshot()
