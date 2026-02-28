@@ -5,6 +5,20 @@
                 <el-input v-model="filterKeyword" placeholder="请输入过滤关键词，支持小程序名称、appid、username" clearable />
                 <el-button type="primary" @click="handleAddTask">添加任务</el-button>
             </div>
+            <div class="filter">
+                <div v-for="item in filterStatusOptions" :key="item.value" class="filter-item" :class="{
+                    'total': item.value === 'all',
+                    'running': item.value === TaskStatus.RUNNING,
+                    'completed': item.value === TaskStatus.COMPLETED,
+                    'failed': item.value === TaskStatus.FAILED,
+                    'not-started': item.value === TaskStatus.NOT_STARTED,
+                    'selected': item.value === filterStatus,
+                }" @click="filterStatus = item.value">
+                    <span>{{ item.label }}</span>
+                    <span>{{taskList.filter(task => item.value === 'all' || task.status ===
+                        item.value).length}}</span>
+                </div>
+            </div>
             <el-scrollbar v-if="filteredTaskList.length > 0" class="task-list-content-scrollbar">
                 <div class="task-list-content">
                     <div v-for="taskItem in [...filteredTaskList].reverse()" :key="taskItem.key" class="task-item"
@@ -137,16 +151,53 @@ const removeTaskLoadings = ref<string[]>([]);
 const addTaskDialogRef = ref<InstanceType<typeof AddTaskDialog>>();
 
 const filterKeyword = ref('');
+const filterStatus = ref<TaskStatus | 'all'>('all');
+
+const filterStatusOptions = computed<{
+    label: string;
+    value: TaskStatus | 'all';
+}[]>(() => {
+    return [
+        {
+            label: '全部',
+            value: 'all',
+        },
+        {
+            label: '未开始',
+            value: TaskStatus.NOT_STARTED,
+        },
+        {
+            label: '执行中',
+            value: TaskStatus.RUNNING,
+        },
+        {
+            label: '完成',
+            value: TaskStatus.COMPLETED,
+        },
+        {
+            label: '失败',
+            value: TaskStatus.FAILED,
+        },
+    ];
+});
 
 const onSelectedTask = computed(() => {
     return props.workerDetail.taskList.find(task => task.key === onSelectedTaskKey.value);
 });
 
-const filteredTaskList = computed(() => {
-    if (!filterKeyword.value) {
-        return props.workerDetail.taskList;
-    }
+const taskList = computed(() => {
     return props.workerDetail.taskList;
+});
+
+const filteredTaskList = computed(() => {
+    let list = taskList.value;
+    if (filterKeyword.value) {
+        list = list.filter(task => task.key.includes(filterKeyword.value));
+    }
+    if (filterStatus.value !== 'all') {
+        list = list.filter(task => task.status === filterStatus.value);
+    }
+    return list;
 });
 
 const handleAddTask = () => {

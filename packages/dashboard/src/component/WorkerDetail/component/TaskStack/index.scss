@@ -19,6 +19,85 @@
       gap: 10px;
       padding: 0 12px;
     }
+    .filter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 12px;
+      .filter-item {
+        display: flex;
+        align-items: center;
+
+        &.selected {
+          padding: 2px 4px;
+          border-radius: 4px;
+        }
+
+        &.total {
+          span {
+            color: #917cd6;
+          }
+          &.selected {
+            background-color: #917cd6;
+            span {
+              color: #fff;
+            }
+          }
+        }
+        &.running {
+          span {
+            color: #e6a23c;
+          }
+          &.selected {
+            background-color: #e6a23c;
+            span {
+              color: #fff;
+            }
+          }
+        }
+        &.completed {
+          span {
+            color: #67c23a;
+          }
+          &.selected {
+            background-color: #67c23a;
+            span {
+              color: #fff;
+            }
+          }
+        }
+        &.failed {
+          span {
+            color: #f56c6c;
+          }
+          &.selected {
+            background-color: #f56c6c;
+            span {
+              color: #fff;
+            }
+          }
+        }
+        &.not-started {
+          span {
+            color: #909399;
+          }
+          &.selected {
+            background-color: #909399;
+            span {
+              color: #fff;
+            }
+          }
+        }
+
+        span {
+          font-family: "Source Han Sans SC";
+          font-size: 14px;
+          font-weight: 400;
+          line-height: normal;
+          font-weight: bold;
+        }
+      }
+    }
     .task-list-content-scrollbar {
       flex: 1;
       min-height: 0;

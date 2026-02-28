@@ -63,7 +63,7 @@ const filteredWxaList = computed(() => {
         wxaList.push(...props.workerDetail.wxaList.filter(wxa => wxa.app_name.includes(searchValue.value) || wxa.appid.includes(searchValue.value)));
     }
     return wxaList.map(item => {
-        const inspectTaskVersionInfo = [...props.workerDetail.taskList.reverse()].filter(item => item.type === TaskType.WX_INSPECT_VERSION).find(taskItem => {
+        const inspectTaskVersionInfo = [...props.workerDetail.taskList].reverse().filter(item => item.type === TaskType.WX_INSPECT_VERSION).find(taskItem => {
             const options: WXTaskN.TaskOptions = taskItem.options;
             return options.app_name === item.app_name && options.username === item.username;
         }) as WXTaskN.InspectVersionInfo | undefined;
