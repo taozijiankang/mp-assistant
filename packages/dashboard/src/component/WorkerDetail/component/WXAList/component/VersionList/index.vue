@@ -39,7 +39,7 @@
                         class="col">
                         <div class="row">
                             <span>操作:</span>
-                            <el-button size="small" plain @click="handleSubmitPublish()">添加发布任务</el-button>
+                            <el-button size="small" plain @click="handleSubmitPublish(item)">添加发布任务</el-button>
                         </div>
                     </div>
                     <div v-if="versionListInfo.type === WXTaskN.VersionType.TEST" class="col">
@@ -147,10 +147,27 @@ const handleSubmitAudit = (item: VersionListItem) => {
     });
 }
 
-const handleSubmitPublish = () => {
+const handleSubmitPublish = (item: VersionListItem) => {
     handleAddTask?.({
         appIds: [props.wxmpItem.appid],
         type: TaskType.WX_PUBLISH,
+        positioner: [
+            {
+                type: VersionPositioningType.Version,
+                criteria: VersionPositioningCriteria.Equal,
+                value: item.version || '',
+            },
+            {
+                type: VersionPositioningType.NickName,
+                criteria: VersionPositioningCriteria.Equal,
+                value: item.nick_name || '',
+            },
+            {
+                type: VersionPositioningType.Describe,
+                criteria: VersionPositioningCriteria.Equal,
+                value: item.describe || '',
+            }
+        ],
     });
 }
 

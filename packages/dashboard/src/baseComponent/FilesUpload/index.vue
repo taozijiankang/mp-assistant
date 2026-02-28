@@ -13,7 +13,7 @@
                     </el-icon>
                 </el-button>
             </div>
-            <el-empty v-if="files.length === 0" :image-size="80" description="暂无文件" style="padding: 0" />
+            <Empty v-if="files.length === 0" description="暂无文件" />
         </div>
         <div class="files-upload-add" v-if="multiple ? files.length < max : files.length <= 0">
             <el-button type="primary" plain @click="handleAddFile">添加文件</el-button>
@@ -26,6 +26,7 @@ import { getFileUrl, requestUploadFile } from '@/api';
 import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Delete } from '@element-plus/icons-vue';
+import Empty from '../Empty/index.vue';
 
 const props = withDefaults(defineProps<{
     files: string[];

@@ -2,10 +2,22 @@
   display: flex;
   flex-direction: column;
 
+  .task-type-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    .task-type-icon {
+      width: 15px;
+      height: 15px;
+    }
+  }
+
   .positioner-container {
     display: flex;
     flex-direction: column;
     width: 100%;
+
     .positioner-item {
       display: flex;
       flex-direction: column;
