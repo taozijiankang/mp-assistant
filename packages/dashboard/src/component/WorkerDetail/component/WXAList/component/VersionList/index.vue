@@ -16,7 +16,7 @@
                         </div>
                         <div v-if="byDescribeGetCommitHash(onlineVersion?.describe || '')" class="row">
                             <span>
-                                提交 hash:
+                                GIT提交HASH:
                                 <span class="commit-hash">
                                     {{ byDescribeGetCommitHash(onlineVersion?.describe || '') }}
                                 </span>
@@ -47,7 +47,7 @@
                         </div>
                         <div v-if="byDescribeGetCommitHash(testVersion?.describe || '')" class="row">
                             <span>
-                                提交 hash:
+                                GIT提交HASH:
                                 <span class="commit-hash">
                                     {{ byDescribeGetCommitHash(testVersion?.describe || '') }}
                                 </span>
@@ -90,7 +90,7 @@
                         </div>
                         <div v-if="byDescribeGetCommitHash(item?.describe || '')" class="row">
                             <span>
-                                提交 hash:
+                                GIT提交HASH:
                                 <span class="commit-hash">
                                     {{ byDescribeGetCommitHash(item?.describe || '') }}
                                 </span>
@@ -111,7 +111,7 @@
                 <span>{{ TaskTypeDict[taskInfo.type] }}</span>
                 <div class="task-status" :class="{
                     'success': taskInfo.status === TaskStatus.COMPLETED,
-                    'reviewing': taskInfo.status === TaskStatus.RUNNING,
+                    'running': taskInfo.status === TaskStatus.RUNNING,
                     'fail': taskInfo.status === TaskStatus.FAILED,
                 }">
                     <div class="dot"></div>
@@ -121,7 +121,7 @@
                 </div>
             </div>
             <span>{{ taskInfo.key }} {{ dayjs(taskInfo.result?.endTimestamp || 0).format('YYYY-MM-DD HH:mm:ss')
-                }}</span>
+            }}</span>
         </div>
     </div>
 </template>

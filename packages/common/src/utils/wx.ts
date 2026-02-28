@@ -50,21 +50,22 @@ export interface VersionPositioner {
  */
 export function versionSatisfy(version: VersionListItem, positioners: VersionPositioner[]) {
     return positioners.every(item => {
+        const value = item.value.trim();
         switch (item.type) {
             case VersionPositioningType.Describe:
                 return {
-                    [VersionPositioningCriteria.Equal]: version.describe === item.value,
-                    [VersionPositioningCriteria.Inclusion]: version.describe?.includes(item.value),
+                    [VersionPositioningCriteria.Equal]: version.describe === value,
+                    [VersionPositioningCriteria.Inclusion]: version.describe?.includes(value),
                 }[item.criteria]
             case VersionPositioningType.NickName:
                 return {
-                    [VersionPositioningCriteria.Equal]: version.nick_name === item.value,
-                    [VersionPositioningCriteria.Inclusion]: version.nick_name?.includes(item.value),
+                    [VersionPositioningCriteria.Equal]: version.nick_name === value,
+                    [VersionPositioningCriteria.Inclusion]: version.nick_name?.includes(value),
                 }[item.criteria]
             case VersionPositioningType.Version:
                 return {
-                    [VersionPositioningCriteria.Equal]: version.version === item.value,
-                    [VersionPositioningCriteria.Inclusion]: version.version?.includes(item.value),
+                    [VersionPositioningCriteria.Equal]: version.version === value,
+                    [VersionPositioningCriteria.Inclusion]: version.version?.includes(value),
                 }[item.criteria]
         }
     });

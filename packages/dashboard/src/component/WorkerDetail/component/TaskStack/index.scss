@@ -64,14 +64,14 @@
         &.running {
           .main {
             .task-status {
-              color: #409eff;
+              color: #e6a23c;
               .dot {
-                background-color: #409eff;
+                background-color: #e6a23c;
                 width: 15px;
                 height: 15px;
               }
               span {
-                color: #409eff;
+                color: #e6a23c;
               }
             }
           }
@@ -208,6 +208,8 @@
     flex-direction: column;
     padding: 12px;
     box-sizing: border-box;
+    border-radius: 10px;
+    border: 1px solid transparent;
 
     .title {
       color: #917cd6;
@@ -223,11 +225,16 @@
     .task-running {
       display: flex;
       flex-direction: row;
-      background-color: #409eff;
-      padding: 10px 12px;
-      border-radius: 10px;
+      align-items: center;
+      gap: 4px;
+      .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #e6a23c;
+      }
       span {
-        color: white;
+        color: #e6a23c;
         font-family: "Source Han Sans SC";
         font-size: 14px;
         font-weight: 400;

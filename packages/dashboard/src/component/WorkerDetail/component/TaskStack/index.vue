@@ -61,6 +61,7 @@
         </div>
         <div v-if="onSelectedTask" class="task-detail">
             <div v-if="onSelectedTask.status === TaskStatus.RUNNING" class="task-running">
+                <div class="dot"></div>
                 <span>任务执行中...</span>
             </div>
             <template

@@ -63,7 +63,7 @@
           flex: 1;
 
           .commit-hash {
-            color: #ffa319;
+            color: #917cd6;
             font-family: "Source Han Sans SC";
             font-size: 12px;
             font-weight: 400;
@@ -117,12 +117,12 @@
             color: #67c23a;
           }
         }
-        &.reviewing {
+        &.running {
           .dot {
-            background-color: #409eff;
+            background-color: #e6a23c;
           }
           span {
-            color: #409eff;
+            color: #e6a23c;
           }
         }
         &.fail {
