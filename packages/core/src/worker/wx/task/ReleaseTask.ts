@@ -59,8 +59,8 @@ export class ReleaseTask extends BaseWXTask {
                 msg: JSON.stringify(error),
                 endTimestamp: Date.now(),
             }
+        } finally {
+            page.close();
         }
-
-
     }
 }
