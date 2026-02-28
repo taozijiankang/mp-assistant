@@ -57,6 +57,12 @@
                                 <div class="wxa-username">username: {{ getWxaInfo(taskItem.options)?.username }}</div>
                             </div>
                         </div>
+                        <div v-if="WXTaskN.isPublishInfo(taskItem)" class="publish-qrcode-container">
+                            <span class="publish-qrcode-description">需要扫描二维码进行发布 剩余时间: {{ Math.round(taskItem.countdown)
+                                }}秒</span>
+                            <img :src="getFileUrl(taskItem.publishQRCodeFilePath)" alt="publish-qrcode"
+                                class="publish-qrcode-image" />
+                        </div>
                         <div v-if="taskItem.status !== TaskStatus.RUNNING" class="item-controller">
                             <el-button class="file-remove-button" size="small" type="danger" plain
                                 :loading="removeTaskLoadings.includes(taskItem.key)"
@@ -104,7 +110,7 @@
                 <div class="title">
                     <span>任务运行报告</span>
                 </div>
-                <el-timeline v-if="onSelectedTask.runningReportList.length > 0" class="report-timeline" reverse>
+                <el-timeline v-if="onSelectedTask.runningReportList.length > 0" class="report-timeline">
                     <el-timeline-item v-for="(taskReport, index) in onSelectedTask.runningReportList" :key="index"
                         :timestamp="dayjs(taskReport.timestamp).format('YYYY-MM-DD HH:mm:ss')" placement="top">
                         <div class="report-item">

@@ -15,12 +15,22 @@ export class ReleaseTask extends BaseWXTask {
     private __publishQRCodeFilePath: string = '';
     private __countdown: number = 0;
 
+    info(): WXTaskN.PublishInfo {
+        return {
+            ...super.info(),
+            publishQRCodeFilePath: this.__publishQRCodeFilePath,
+            countdown: this.__countdown,
+        };
+    }
+
     protected async _waitForQrcodeScan(page: Page, timeout: number = 600000): Promise<void> {
         const startDate = Date.now();
 
         while ((Date.now() - startDate) < timeout) {
             // 同步倒计时
             this.__countdown = Math.max(0, (timeout - (Date.now() - startDate)) / 1000);
+
+            this.emitDetailChangeEvent();
 
             const testVersion = (await this._getVersionList(page))[WXTaskN.VersionType.TEST];
             const flag = !!testVersion

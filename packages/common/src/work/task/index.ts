@@ -67,6 +67,14 @@ export namespace WXTaskN {
         result: TaskExecResult<GetVersionListResult[]>
     }
 
+    export interface PublishInfo extends TaskInfo {
+        publishQRCodeFilePath: string;
+        countdown: number;
+    }
+
+    export const isPublishInfo = (info: BaseTaskInfo): info is PublishInfo => {
+        return info.type === TaskType.WX_PUBLISH;
+    }
 
     export type VersionListData = {
         [VersionType.DEVELOP]?: VersionListItem[],

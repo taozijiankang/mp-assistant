@@ -16,6 +16,13 @@ export class BaseWXTask extends BaseTask {
         this.options = options;
     }
 
+    info(): WXTaskN.TaskInfo {
+        return {
+            ...super.info(),
+            options: this.options,
+        };
+    }
+
     protected _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
         throw new Error("Method not implemented.");
     }

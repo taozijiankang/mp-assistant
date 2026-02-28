@@ -104,10 +104,6 @@ export abstract class BaseTask {
         this.result = void 0;
     }
 
-    emitMessage<K extends keyof WSMessage.EventMap>(type: K, data: WSMessage.EventMap[K]) {
-        this.worker?.emitMessage(type, data);
-    }
-
     private __emitDetailChangeEventTimer: ReturnType<typeof setTimeout> | null = null;
     /**
      * 触发详情改变事件
@@ -116,9 +112,7 @@ export abstract class BaseTask {
     emitDetailChangeEvent() {
         this.__emitDetailChangeEventTimer && clearTimeout(this.__emitDetailChangeEventTimer);
         this.__emitDetailChangeEventTimer = setTimeout(() => {
-            this.emitMessage(WSMessage.Worker.DetailChange.type, {
-                key: this.key,
-            });
+            this.worker?.emitDetailChangeEvent();
         }, 0);
     }
 

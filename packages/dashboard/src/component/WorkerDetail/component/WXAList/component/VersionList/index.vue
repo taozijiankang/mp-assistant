@@ -29,11 +29,17 @@
                             </span>
                         </div>
                     </div>
-                    <div class="col">
+                    <div v-if="versionListInfo.type === WXTaskN.VersionType.DEVELOP" class="col">
                         <div class="row">
                             <span>操作:</span>
-                            <el-button v-if="versionListInfo.type === WXTaskN.VersionType.DEVELOP" size="small" plain
-                                @click="handleSubmitAudit(item)">添加提审任务</el-button>
+                            <el-button size="small" plain @click="handleSubmitAudit(item)">添加提审任务</el-button>
+                        </div>
+                    </div>
+                    <div v-if="versionListInfo.type === WXTaskN.VersionType.TEST && item?.audit_status === WXReviewStatus.SUCCESS"
+                        class="col">
+                        <div class="row">
+                            <span>操作:</span>
+                            <el-button size="small" plain @click="handleSubmitPublish()">添加发布任务</el-button>
                         </div>
                     </div>
                     <div v-if="versionListInfo.type === WXTaskN.VersionType.TEST" class="col">
@@ -138,6 +144,13 @@ const handleSubmitAudit = (item: VersionListItem) => {
             imagePreview: (nearestAuditTaskOptions?.populateData?.imagePreview?.split(',') || []).filter(Boolean),
             videoPreview: (nearestAuditTaskOptions?.populateData?.videoPreview?.split(',') || []).filter(Boolean),
         }
+    });
+}
+
+const handleSubmitPublish = () => {
+    handleAddTask?.({
+        appIds: [props.wxmpItem.appid],
+        type: TaskType.WX_PUBLISH,
     });
 }
 
