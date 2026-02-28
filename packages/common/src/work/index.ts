@@ -24,7 +24,7 @@ export namespace WXWorkerN {
     export interface WXWorkInfo extends BaseWorkInfo {
         type: WorkerType.WX;
         isLogin: boolean;
-        loginQRCodeURL: string;
+        loginQRCodeFilePath: string;
         wxaList: WXMPItem[];
     }
 

@@ -5,6 +5,7 @@ import { expect } from "playwright/test";
 import { TaskExecResult, WXTaskN } from "mp-assistant-common/dist/work/task/index.js";
 import { getVersionList } from "../../../api/index.js";
 import { VersionListItem } from "mp-assistant-common/dist/types/wx.js";
+import { saveScreenshotBufferToFile } from "../../utils/index.js";
 
 export class BaseWXTask extends BaseTask {
     readonly options: WXTaskN.TaskOptions;
@@ -82,9 +83,7 @@ export class BaseWXTask extends BaseTask {
                 }
 
                 const buffer = await mpItemLocator.screenshot();
-                // 转成base64
-                const base64 = Buffer.from(buffer).toString('base64');
-                const imageUrl = `data:image/png;base64,${base64}`;
+                const imageUrl = await saveScreenshotBufferToFile(buffer);
 
                 this._addRunningReport({
                     title: '切换小程序',

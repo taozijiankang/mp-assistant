@@ -6,6 +6,7 @@ import { requestWxaList } from "../../api/module/wx.js";
 import { WXMPItem } from "mp-assistant-common/dist/types/wx.js";
 import { taskCompleted, TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
 import { WorkerType, WXWorkerN } from "mp-assistant-common/dist/work/index.js";
+import { saveScreenshotBufferToFile } from "../utils/index.js";
 
 export class WXWorker extends BaseWorker {
     readonly type = WorkerType.WX;
@@ -15,7 +16,7 @@ export class WXWorker extends BaseWorker {
 
     private __loginPage: Page | null = null;
 
-    loginQRCodeURL: string = '';
+    loginQRCodeFilePath: string = '';
     wxaList: WXMPItem[] = [];
 
     get isLogin() {
@@ -25,7 +26,7 @@ export class WXWorker extends BaseWorker {
     info(): WXWorkerN.WXWorkInfo {
         return {
             ...super.info(),
-            loginQRCodeURL: this.loginQRCodeURL,
+            loginQRCodeFilePath: this.loginQRCodeFilePath,
             wxaList: this.wxaList,
             isLogin: this.isLogin,
         }
@@ -120,9 +121,8 @@ export class WXWorker extends BaseWorker {
                         });
                     });
                     const buffer = await loginQRCodeLocator.screenshot();
-                    // 转成base64
-                    const base64 = Buffer.from(buffer).toString('base64');
-                    this.loginQRCodeURL = `data:image/png;base64,${base64}`;
+
+                    this.loginQRCodeFilePath = await saveScreenshotBufferToFile(buffer);
 
                     // 状态改变
                     page.on('load', () => {

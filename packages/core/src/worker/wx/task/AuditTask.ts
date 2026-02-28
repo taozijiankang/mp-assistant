@@ -5,6 +5,7 @@ import { VersionListItem, WXReviewStatus } from "mp-assistant-common/dist/types/
 import { versionSatisfy } from "mp-assistant-common/dist/utils/wx.js";
 import { cancelReview } from "../../../api/index.js";
 import { WXMP_AUDIT_PAGE_URL } from "../../../constant/wx.js";
+import { saveScreenshotBufferToFile } from "../../utils/index.js";
 
 /**
  * 审核小程序任务
@@ -98,14 +99,13 @@ export class AuditTask extends BaseWXTask {
             await successLocator.waitFor({ state: "visible", timeout: 100000 });
 
             const screenshotBuffer = await page.screenshot()
-            const base64 = Buffer.from(screenshotBuffer).toString('base64');
-            const screenshotURL = `data:image/png;base64,${base64}`;
+            const screenshotFilePath = await saveScreenshotBufferToFile(screenshotBuffer);
 
             this._addRunningReport({
                 title: '提审成功',
                 description: '提审成功',
                 timestamp: Date.now(),
-                images: [screenshotURL],
+                images: [screenshotFilePath],
             })
 
             return {

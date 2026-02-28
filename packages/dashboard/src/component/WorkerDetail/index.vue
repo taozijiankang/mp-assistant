@@ -3,14 +3,14 @@
         <div v-if="WXWorkerN.isWXWorkerInfo(workerDetail)" class="wx content-container">
             <!-- 未登录 -->
             <div v-if="!workerDetail?.isLogin" class="no-login">
-                <div v-if="workerDetail.loginQRCodeURL" class="qrcode-container">
+                <div v-if="workerDetail.loginQRCodeFilePath" class="qrcode-container">
                     <div>请使用微信扫码登录</div>
-                    <img class="qrcode" :src="workerDetail.loginQRCodeURL" />
+                    <img class="qrcode" :src="getFileUrl(workerDetail.loginQRCodeFilePath)" />
                 </div>
                 <el-button type="primary" :loading="handleWorkerLoginLoading ||
                     workerDetail.loadings.includes(WXWorkerN.LoadingType.login)" @click="handleWorkerLogin">
                     {{
-                        workerDetail.loginQRCodeURL ? '重新登录' : '登录'
+                        workerDetail.loginQRCodeFilePath ? '重新登录' : '登录'
                     }}
                 </el-button>
             </div>
@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch } from 'vue';
-import { requestGetWorkerDetail, requestLoginWorker } from '@/api';
+import { getFileUrl, requestGetWorkerDetail, requestLoginWorker } from '@/api';
 import { WXWorkerN } from 'mp-assistant-common/dist/work';
 import WXAList from './component/WXAList/index.vue';
 import TaskStack from './component/TaskStack/index.vue';

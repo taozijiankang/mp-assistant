@@ -3,6 +3,7 @@ import { BaseWXTask } from "./BaseWXTask.js";
 import { TaskExecResult, TaskStatus, TaskType, WXTaskN } from "mp-assistant-common/dist/work/task/index.js";
 import { WXReviewStatus } from "mp-assistant-common/dist/types/wx.js";
 import { WXMP_VERSION_MANAGEMENT_URL } from "../../../constant/wx.js";
+import { saveScreenshotBufferToFile } from "../../utils/index.js";
 
 /**
  * 发布小程序任务
@@ -10,6 +11,8 @@ import { WXMP_VERSION_MANAGEMENT_URL } from "../../../constant/wx.js";
  */
 export class ReleaseTask extends BaseWXTask {
     readonly type = TaskType.WX_PUBLISH;
+
+    private __publishQRCodeFilePath: string = '';
 
     protected async _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
         const page = await this._switchMP(browserContent);
@@ -41,15 +44,15 @@ export class ReleaseTask extends BaseWXTask {
             await page.waitForTimeout(1000)
             const openDialog = page.locator(".weui-desktop-dialog").filter({ hasText: "发布版本" })
             const qrCodeBuffer = await openDialog.locator(".weui-desktop-qrcheck__img").screenshot()
-            // 转成base64
-            const base64 = Buffer.from(qrCodeBuffer).toString('base64');
-            const publishQRCodeURL = `data:image/png;base64,${base64}`;
+
+            const publishQRCodeFilePath = await saveScreenshotBufferToFile(qrCodeBuffer);
+
+            this.__publishQRCodeFilePath = publishQRCodeFilePath;
+
+            //判断发布成功
 
             return {
                 status: TaskStatus.COMPLETED,
-                data: {
-                    qrcodeUrl: publishQRCodeURL
-                },
                 endTimestamp: Date.now(),
             }
         } catch (error) {
