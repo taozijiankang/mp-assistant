@@ -303,17 +303,14 @@ const open = (workerKey: string, formData?: AddTaskFormData) => {
     addTaskForm.value.appIds = appIds;
     addTaskForm.value.type = type;
 
-    // 如果是审核任务，则设置审核任务表单
-    if (type === TaskType.WX_AUDIT) {
-        auditForm.value.positioner = positioner;
-        auditForm.value.populateData.versionDescription = populateData.versionDescription || '';
-        auditForm.value.populateData.imagePreview = populateData.imagePreview || [];
-        auditForm.value.populateData.videoPreview = populateData.videoPreview || [];
-    }
-    // 如果是发布任务，则设置发布任务表单
-    else if (type === TaskType.WX_PUBLISH) {
-        publishForm.value.positioner = positioner;
-    }
+    // 审核任务表单
+    auditForm.value.positioner = positioner;
+    auditForm.value.populateData.versionDescription = populateData.versionDescription || '';
+    auditForm.value.populateData.imagePreview = populateData.imagePreview || [];
+    auditForm.value.populateData.videoPreview = populateData.videoPreview || [];
+
+    // 发布任务表单
+    publishForm.value.positioner = positioner;
 
     visible.value = true;
     getWorkerDetail(workerKey);
