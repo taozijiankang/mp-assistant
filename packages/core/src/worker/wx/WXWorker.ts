@@ -149,6 +149,55 @@ export class WXWorker extends BaseWorker {
         }
     }
 
+    async logout() {
+        if (this.isLoading(WXWorkerN.LoadingType.logout)) {
+            return;
+        }
+
+        this.setLoading(WXWorkerN.LoadingType.login);
+        const browserContent = this.browserContent!;
+        const page = await browserContent.newPage();
+        try {
+
+            await page.goto(WXMP_HOME_URL);
+            const url = new URL(page.url());
+
+            // 判断页面路径
+            if (!WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
+                await page.close();
+                throw new Error('用户未登录');
+            }
+
+            // 如果侧边栏被隐藏了，则点击侧边栏展开按钮
+            const sidebarLocator = page.locator('div.little_menu_button');
+            if (await sidebarLocator.isVisible()) {
+                await sidebarLocator.click();
+            }
+            // 点击侧边栏中的账号信息栏
+            const accountInfoLocator = page.locator('div.menu_box_other_item_wrapper.account_info');
+            await expect(accountInfoLocator).toBeVisible({
+                timeout: 3 * 1000
+            });
+            await accountInfoLocator.hover();
+
+            const switchMPButtonLocator = page.locator('.menu_box_account_info_item')
+                .filter({ hasText: '退出登录' });
+
+            await switchMPButtonLocator.click();
+
+            // 状态改变
+            page.on('load', () => {
+                const url = new URL(page.url());
+                if (!WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
+                    this._setLoginStatus(false);
+                    page.close();
+                }
+            });
+        } catch (error) {
+            await page?.close();
+        }
+    }
+
     async updateWxaList() {
         if (this.isLoading(WXWorkerN.LoadingType.updateWxaListWxaList)) { return }
         this.setLoading(WXWorkerN.LoadingType.updateWxaListWxaList);

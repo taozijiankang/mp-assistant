@@ -33,6 +33,8 @@ export namespace WXWorkerN {
         login = 'login',
         /** 更新微信小程序列表 */
         updateWxaListWxaList = 'updateWxaListWxaList',
+        /** 登出 */
+        logout = 'logout',
     }
 
     export const isWXWorkerInfo = (info: BaseWorkInfo): info is WXWorkInfo => {

@@ -100,6 +100,22 @@ export namespace WorkerApi {
     }
 
     /**
+     * 登出 Worker
+     */
+    export namespace WorkerLogout {
+        export const url = '/worker-logout';
+        export const method = 'POST';
+
+        export type RequestQuery = {
+            key: string;
+        };
+
+        export type ResponseData = void;
+        export type SuccessResponse = APISuccessRes<ResponseData>;
+        export type Response = SuccessResponse | APIErrorRes;
+    }
+
+    /**
      * 获取 Worker 的小程序列表
      */
     export namespace WorkerUpdateWxaList {
