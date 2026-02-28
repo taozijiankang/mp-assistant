@@ -6,6 +6,7 @@ import { versionSatisfy } from "mp-assistant-common/dist/utils/wx.js";
 import { cancelReview } from "../../../api/index.js";
 import { WXMP_AUDIT_PAGE_URL } from "../../../constant/wx.js";
 import { saveScreenshotBufferToFile } from "../../utils/index.js";
+import fs from "fs";
 
 /**
  * 审核小程序任务
@@ -42,6 +43,11 @@ export class AuditTask extends BaseWXTask {
             const imgViewInput = ct.locator('[data-component="mp-form-item"]').filter({ hasText: "图片预览" }).locator('input[type="file"]')
             const imgList = imagePreview.split(',').filter(Boolean)
             for (let i = 0; i < imgList.length; i++) {
+                const flag = fs.existsSync(imgList[i] || '') as boolean
+                if (!flag) {
+                    throw new Error(`图片预览文件不存在: ${imgList[i]}`)
+                }
+
                 await imgViewInput.setInputFiles(imgList[i] || '')
                 await this._waitForImgUpload(ct, i + 1)
             }
@@ -53,6 +59,11 @@ export class AuditTask extends BaseWXTask {
     // 视频上传
     protected async _uploadVideoFile(ct: Locator, videoPreview: string): Promise<void> {
         if (!videoPreview) return
+        const flag = fs.existsSync(videoPreview || '') as boolean
+
+        if (!flag) {
+            throw new Error(`图片预览文件不存在: ${videoPreview}`)
+        }
 
         try {
             const videoViewInput = ct.locator('[data-component="mp-form-item"]').filter({ hasText: "视频预览" }).locator('input[type="file"]')

@@ -1,7 +1,7 @@
-import { BrowserContext } from "playwright";
+import { BrowserContext, Page } from "playwright";
 import { BaseWXTask } from "./BaseWXTask.js";
 import { TaskExecResult, TaskStatus, TaskType, WXTaskN } from "mp-assistant-common/dist/work/task/index.js";
-import { WXReviewStatus } from "mp-assistant-common/dist/types/wx.js";
+import { VersionListItem, WXReviewStatus } from "mp-assistant-common/dist/types/wx.js";
 import { WXMP_VERSION_MANAGEMENT_URL } from "../../../constant/wx.js";
 import { saveScreenshotBufferToFile } from "../../utils/index.js";
 
@@ -13,6 +13,30 @@ export class ReleaseTask extends BaseWXTask {
     readonly type = TaskType.WX_PUBLISH;
 
     private __publishQRCodeFilePath: string = '';
+    private __countdown: number = 0;
+
+    protected async _waitForQrcodeScan(page: Page, testVersion: VersionListItem, timeout: number = 600000): Promise<void> {
+        const startDate = Date.now();
+
+        while ((Date.now() - startDate) < timeout) {
+            // 同步倒计时
+            this.__countdown = Math.max(0, (timeout - (Date.now() - startDate)) / 1000);
+
+            const onlineVersion = (await this._getVersionList(page))[WXTaskN.VersionType.ONLINE];
+            const flag =
+                onlineVersion?.version === testVersion.version &&
+                onlineVersion?.nick_name === testVersion.nick_name &&
+                onlineVersion?.describe === testVersion.describe;
+
+            if (flag) {
+                return;
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, 200));
+        }
+
+        throw new Error('二维码扫描超时');
+    }
 
     protected async _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
         const page = await this._switchMP(browserContent);
@@ -50,6 +74,7 @@ export class ReleaseTask extends BaseWXTask {
             this.__publishQRCodeFilePath = publishQRCodeFilePath;
 
             //判断发布成功
+            await this._waitForQrcodeScan(page, testVersionList);
 
             return {
                 status: TaskStatus.COMPLETED,
