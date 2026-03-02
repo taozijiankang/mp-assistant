@@ -18,7 +18,7 @@ const repositoryInfo = {
 
 const packagesDir = path.join(__dirname, "../packages");
 
-const defaultVersion = "1.0.0";
+const defaultVersion = "0.0.0";
 
 /**
  * @typedef {Object} IterationVersionOptions

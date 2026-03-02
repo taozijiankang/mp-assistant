@@ -1,11 +1,11 @@
 {
-  "name": "mp-assistant-scripts",
-  "version": "1.0.0",
+  "name": "@mp-assistant/scripts",
+  "version": "0.0.1",
   "description": "",
   "type": "module",
   "private": true,
   "bin": {
-    "package": "./src/bin/package.js"
+    "mp-c": "./src/bin/index.js"
   },
   "keywords": [],
   "author": "",

@@ -1,0 +1,21 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background: #faf9fe;
+  .header {
+    height: 40px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+  }
+  .worker-detail {
+    flex: 1;
+    padding: 10px;
+    box-sizing: border-box;
+    min-height: 0;
+  }
+}

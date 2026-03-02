@@ -7,30 +7,27 @@ module.exports = {
     { value: "optimize", name: "optimize: 优化" },
     {
       value: "refactor",
-      name: "refactor: 重构（既不是新增功能，也不是修复bug的代码变动）"
+      name: "refactor: 重构（既不是新增功能，也不是修复bug的代码变动）",
     },
     { value: "perf", name: "perf: 性能优化" },
     { value: "test", name: "test: 增加测试" },
     {
       value: "chore",
-      name: "chore: 其他修改"
+      name: "chore: 其他修改",
     },
     { value: "revert", name: "revert: 回滚" },
-    { value: "build", name: "build: 打包" }
+    { value: "build", name: "build: 打包" },
   ],
   scopes: [
     { value: "", name: "empty: 空" },
     { value: "all", name: "all: 全部" },
-    { value: "background", name: "background: 后台脚本" },
-    { value: "common", name: "common: 公共模块" },
-    { value: "config", name: "config: 配置相关" },
-    { value: "extensions", name: "extensions: 扩展相关" },
-    { value: "inject", name: "inject: 注入脚本" },
-    { value: "pages", name: "pages: 页面相关" },
-    { value: "scripts", name: "scripts: 脚本相关" },
-    { value: "shared", name: "shared: 共享模块" },
+    { value: "dashboard", name: "dashboard: 仪表盘" },
+    { value: "server", name: "server: 服务端" },
+    { value: "cli", name: "cli: 命令行工具" },
+    { value: "scripts", name: "scripts: 脚本" },
+    { value: "config", name: "config: 配置" },
+    { value: "common", name: "common: 公共" },
     { value: "other", name: "other: 其他" },
-    { value: "release-content", name: "release-content: 发布内容" }
   ],
   messages: {
     type: "选择提交类型:",
@@ -39,8 +36,8 @@ module.exports = {
     body: "详细描述（可选，使用 '|' 换行）:",
     breaking: "破坏性变更说明（可选）:",
     footer: "关联的 issue（可选，例如: Closes #123）:",
-    confirmCommit: "确认提交?"
+    confirmCommit: "确认提交?",
   },
   subjectLimit: 100,
-  skipQuestions: ["breaking", "footer"]
+  skipQuestions: ["breaking", "footer"],
 };

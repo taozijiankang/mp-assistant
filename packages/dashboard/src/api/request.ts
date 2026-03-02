@@ -1,0 +1,75 @@
+import { ElMessage } from "element-plus";
+import { ApiPrefix } from "@mp-assistant/common/dist/api/index.js";
+import type { APIRes, APISuccessRes } from "@mp-assistant/common/dist/api/type";
+import qs from "qs";
+
+/**
+ * 获取 API 基础 URL
+ * 生产环境下使用相对路径（同源部署），开发环境通过 vite proxy 代理
+ */
+export const getBaseApiURL = () => {
+    return new URL(ApiPrefix, import.meta.env.VITE_BASE_API_URL || location.origin).href;
+};
+
+export interface RequestOptions {
+    method?: string,
+    query?: Record<string, string>;
+    body?: any;
+    headers?: Record<string, string>;
+    file?: File;
+}
+
+/**
+ * 通用请求方法
+ */
+export async function request<T>(
+    url: string,
+    options: RequestOptions = {}
+): Promise<APISuccessRes<T>> {
+    let { method = "GET", query = {}, body, file, headers } = options;
+    const resolvedURL = getBaseApiURL() + url + (query ? `?${qs.stringify({
+        ...query,
+        /** 
+         * TODO:因为是局域网请求，所以不需要浏览器做流量限制
+         */
+        __random: `${Date.now()}-${Math.random()}`
+    })}` : "");
+
+    if (file) {
+        const data = new FormData();
+        data.append('file', file);
+        body = data;
+    }
+
+    const fetchOptions: RequestInit = {
+        method: method.toUpperCase(),
+        headers: {
+            ...(file ? {} : {
+                "Content-Type": "application/json",
+            }),
+            ...headers,
+        },
+        body: method.toUpperCase() !== "GET" ? (file ? body : JSON.stringify(body || {})) : undefined,
+    };
+
+    let response: Response;
+    try {
+        response = await fetch(resolvedURL, fetchOptions);
+    } catch (error) {
+        ElMessage.error(error instanceof Error ? error.message : String(error));
+        throw error;
+    }
+
+    if (!response.ok) {
+        ElMessage.error(`HTTP Error: ${response.status} ${response.statusText}`);
+        throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+    }
+
+    const resData: APIRes<T> = await response.json();
+    if (resData.code !== 200) {
+        ElMessage.error(resData.message || "API Error");
+        throw new Error(resData.message);
+    }
+    return resData as APISuccessRes<T>;
+}
+

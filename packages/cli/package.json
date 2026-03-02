@@ -1,22 +1,37 @@
 {
-  "name": "mp-assistant-cli",
-  "version": "1.0.0",
+  "name": "@mp-assistant/cli",
+  "version": "0.0.1",
   "description": "",
   "type": "module",
   "main": "index.js",
+  "bin": {
+    "mp-assistant": "./dist/bin/index.js"
+  },
   "scripts": {
-    "build": "tsc",
-    "build-w": "tsc --watch"
+    "clear-build-product": "mp-c clear-build-product",
+    "dev": "tsc --watch",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "mp-assistant-common": "workspace:*",
-    "mp-assistant-server": "workspace:*"
+    "@fastify/cors": "^11.2.0",
+    "@fastify/multipart": "^9.4.0",
+    "@fastify/static": "^9.0.0",
+    "@fastify/websocket": "^11.2.0",
+    "commander": "^14.0.3",
+    "dayjs": "^1.11.13",
+    "fastify": "^5.7.4",
+    "@mp-assistant/common": "workspace:*",
+    "@mp-assistant/core": "workspace:*",
+    "@mp-assistant/dashboard": "workspace:*",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
-    "mp-assistant-configuration": "workspace:*"
+    "@types/ws": "^8.18.1",
+    "@mp-assistant/configuration": "workspace:*",
+    "@mp-assistant/scripts": "workspace:*"
   },
   "repository": {
     "type": "git",

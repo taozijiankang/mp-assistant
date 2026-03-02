@@ -1,22 +1,26 @@
 {
-  "name": "mp-assistant-common",
-  "version": "1.0.0",
+  "name": "@mp-assistant/common",
+  "version": "0.0.1",
   "description": "",
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "build-w": "tsc --watch"
+    "clear-build-product": "mp-c clear-build-product",
+    "dev": "tsc --watch",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "crypto-js": "^4.2.0"
+    "crypto-js": "^4.2.0",
+    "mitt": "^3.0.1",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "mp-assistant-configuration": "workspace:*",
-    "@types/crypto-js": "^4.2.2"
+    "@types/crypto-js": "^4.2.2",
+    "@mp-assistant/configuration": "workspace:*",
+    "@mp-assistant/scripts": "workspace:*"
   },
   "repository": {
     "type": "git",
