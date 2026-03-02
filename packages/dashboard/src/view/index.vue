@@ -16,7 +16,7 @@ import { ref } from 'vue';
 import WorkList from '@/component/WorkList/index.vue';
 import EditConfigDialog from '@/component/EditConfigDialog/index.vue';
 import WorkerDetail from '@/component/WorkerDetail/index.vue';
-import type { BaseWorkInfo } from 'mp-assistant-common/dist/work';
+import type { BaseWorkInfo } from '@mp-assistant/common/dist/work';
 import { useOperationRecordStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 

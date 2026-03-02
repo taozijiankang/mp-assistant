@@ -34,11 +34,11 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch, ref, provide } from 'vue';
 import { getFileUrl, requestGetWorkerDetail, requestLoginWorker, requestLogoutWorker } from '@/api';
-import { WXWorkerN } from 'mp-assistant-common/dist/work';
+import { WXWorkerN } from '@mp-assistant/common/dist/work';
 import WXAList from './component/WXAList/index.vue';
 import TaskStack from './component/TaskStack/index.vue';
 import { WSMessageEvent } from '@/event/WSMessageEvent';
-import { WSMessage } from 'mp-assistant-common/dist/ws';
+import { WSMessage } from '@mp-assistant/common/dist/ws';
 import { useApiCall } from '@/hooks/useApiCall';
 import AddTaskDialog from './component/AddTaskDialog/index.vue';
 import type { AddTaskFormData } from './component/AddTaskDialog/index';

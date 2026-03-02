@@ -65,14 +65,14 @@
 </template>
 
 <script setup lang="ts">
-import { WXReviewStatusDict } from 'mp-assistant-common/dist/constant';
-import { WXReviewStatus, type VersionListItem } from 'mp-assistant-common/dist/types/wx';
-import { TaskType, WXTaskN, type BaseTaskInfo } from 'mp-assistant-common/dist/work/task';
+import { WXReviewStatusDict } from '@mp-assistant/common/dist/constant';
+import { WXReviewStatus, type VersionListItem } from '@mp-assistant/common/dist/types/wx';
+import { TaskType, WXTaskN, type BaseTaskInfo } from '@mp-assistant/common/dist/work/task';
 import { computed, inject } from 'vue';
 import type { AddTaskFormData } from '../../../AddTaskDialog/index';
-import type { WXMPItem } from 'mp-assistant-common/dist/types/wx';
-import { VersionPositioningCriteria } from 'mp-assistant-common/dist/utils/wx';
-import { VersionPositioningType } from 'mp-assistant-common/dist/utils/wx';
+import type { WXMPItem } from '@mp-assistant/common/dist/types/wx';
+import { VersionPositioningCriteria } from '@mp-assistant/common/dist/utils/wx';
+import { VersionPositioningType } from '@mp-assistant/common/dist/utils/wx';
 
 const props = defineProps<{
     wxmpItem: WXMPItem;

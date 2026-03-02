@@ -60,6 +60,15 @@ importers:
       '@fastify/websocket':
         specifier: ^11.2.0
         version: 11.2.0
+      '@mp-assistant/common':
+        specifier: workspace:*
+        version: link:../common
+      '@mp-assistant/core':
+        specifier: workspace:*
+        version: link:../core
+      '@mp-assistant/dashboard':
+        specifier: workspace:*
+        version: link:../dashboard
       commander:
         specifier: ^14.0.3
         version: 14.0.3
@@ -69,28 +78,19 @@ importers:
       fastify:
         specifier: ^5.7.4
         version: 5.7.4
-      mp-assistant-common:
-        specifier: workspace:*
-        version: link:../common
-      mp-assistant-core:
-        specifier: workspace:*
-        version: link:../core
-      mp-assistant-dashboard:
-        specifier: workspace:*
-        version: link:../dashboard
       ws:
         specifier: ^8.19.0
         version: 8.19.0
     devDependencies:
+      '@mp-assistant/configuration':
+        specifier: workspace:*
+        version: link:../configuration
+      '@mp-assistant/scripts':
+        specifier: workspace:*
+        version: link:../scripts
       '@types/ws':
         specifier: ^8.18.1
         version: 8.18.1
-      mp-assistant-configuration:
-        specifier: workspace:*
-        version: link:../configuration
-      mp-assistant-scripts:
-        specifier: workspace:*
-        version: link:../scripts
 
   packages/common:
     dependencies:
@@ -104,37 +104,37 @@ importers:
         specifier: ^13.0.0
         version: 13.0.0
     devDependencies:
+      '@mp-assistant/configuration':
+        specifier: workspace:*
+        version: link:../configuration
+      '@mp-assistant/scripts':
+        specifier: workspace:*
+        version: link:../scripts
       '@types/crypto-js':
         specifier: ^4.2.2
         version: 4.2.2
-      mp-assistant-configuration:
-        specifier: workspace:*
-        version: link:../configuration
-      mp-assistant-scripts:
-        specifier: workspace:*
-        version: link:../scripts
 
   packages/configuration: {}
 
   packages/core:
     dependencies:
+      '@mp-assistant/common':
+        specifier: workspace:*
+        version: link:../common
       '@playwright/test':
         specifier: ^1.58.2
         version: 1.58.2
       dayjs:
         specifier: ^1.11.13
         version: 1.11.19
-      mp-assistant-common:
-        specifier: workspace:*
-        version: link:../common
       playwright:
         specifier: ^1.58.2
         version: 1.58.2
     devDependencies:
-      mp-assistant-configuration:
+      '@mp-assistant/configuration':
         specifier: workspace:*
         version: link:../configuration
-      mp-assistant-scripts:
+      '@mp-assistant/scripts':
         specifier: workspace:*
         version: link:../scripts
 
@@ -143,6 +143,9 @@ importers:
       '@element-plus/icons-vue':
         specifier: ^2.3.1
         version: 2.3.2(vue@3.5.27(typescript@5.8.3))
+      '@mp-assistant/common':
+        specifier: workspace:*
+        version: link:../common
       color:
         specifier: ^5.0.0
         version: 5.0.3
@@ -152,9 +155,6 @@ importers:
       element-plus:
         specifier: ^2.9.7
         version: 2.13.2(vue@3.5.27(typescript@5.8.3))
-      mp-assistant-common:
-        specifier: workspace:*
-        version: link:../common
       pinia:
         specifier: ^3.0.4
         version: 3.0.4(typescript@5.8.3)(vue@3.5.27(typescript@5.8.3))

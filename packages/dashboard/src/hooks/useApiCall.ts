@@ -1,4 +1,4 @@
-import type { APISuccessRes } from "mp-assistant-common/dist/api/type";
+import type { APISuccessRes } from "@mp-assistant/common/dist/api/type";
 import { ref } from "vue";
 
 /**

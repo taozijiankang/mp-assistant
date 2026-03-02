@@ -1,4 +1,4 @@
-import { WSMessage } from "mp-assistant-common/dist/ws/index.js";
+import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
 import { WSStore } from "../store/WSStore.js";
 
 export class WSMessageEvent extends WSMessage.Event {

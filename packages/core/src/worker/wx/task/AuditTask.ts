@@ -1,8 +1,8 @@
 import { BrowserContext, Locator, Page } from "playwright";
 import { BaseWXTask } from "./BaseWXTask.js";
-import { TaskExecResult, TaskStatus, TaskType, WXTaskN } from "mp-assistant-common/dist/work/task/index.js";
-import { VersionListItem, WXReviewStatus } from "mp-assistant-common/dist/types/wx.js";
-import { versionSatisfy } from "mp-assistant-common/dist/utils/wx.js";
+import { TaskExecResult, TaskStatus, TaskType, WXTaskN } from "@mp-assistant/common/dist/work/task/index.js";
+import { VersionListItem, WXReviewStatus } from "@mp-assistant/common/dist/types/wx.js";
+import { versionSatisfy } from "@mp-assistant/common/dist/utils/wx.js";
 import { cancelReview } from "../../../api/index.js";
 import { WXMP_AUDIT_PAGE_URL, WXMP_VERSION_MANAGEMENT_URL } from "../../../constant/wx.js";
 import { saveScreenshotBufferToFile } from "../../utils/index.js";

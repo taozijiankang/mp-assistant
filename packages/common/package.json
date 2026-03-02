@@ -1,6 +1,6 @@
 {
-  "name": "mp-assistant-common",
-  "version": "0.0.0",
+  "name": "@mp-assistant/common",
+  "version": "0.0.1",
   "description": "",
   "type": "module",
   "main": "index.js",
@@ -19,8 +19,8 @@
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
-    "mp-assistant-configuration": "workspace:*",
-    "mp-assistant-scripts": "workspace:*"
+    "@mp-assistant/configuration": "workspace:*",
+    "@mp-assistant/scripts": "workspace:*"
   },
   "repository": {
     "type": "git",

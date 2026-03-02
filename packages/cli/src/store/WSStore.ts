@@ -1,7 +1,7 @@
-import { getUUID } from "mp-assistant-common/dist/utils/index.js";
+import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
 import { WebSocket } from "ws";
-import { EventEmitter } from "mp-assistant-common/dist/event/EventEmitter.js";
-import { WSMessage, WSMessageFormat } from "mp-assistant-common/dist/ws/index.js";
+import { EventEmitter } from "@mp-assistant/common/dist/event/EventEmitter.js";
+import { WSMessage, WSMessageFormat } from "@mp-assistant/common/dist/ws/index.js";
 
 export interface EventMap {
     /** 收到ws消息 */

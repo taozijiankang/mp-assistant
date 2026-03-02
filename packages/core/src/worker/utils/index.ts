@@ -1,7 +1,7 @@
 import path from "path";
 import dayjs from "dayjs";
-import { getUUID } from "mp-assistant-common/dist/utils/index.js";
-import { getFilesDir } from "mp-assistant-common/dist/pathManage.js";
+import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
+import { getFilesDir } from "@mp-assistant/common/dist/pathManage.js";
 import fs from "fs";
 
 export async function saveScreenshotBufferToFile(buffer: Buffer) {

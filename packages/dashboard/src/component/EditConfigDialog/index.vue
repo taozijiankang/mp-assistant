@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { requestGetConfig, requestSetConfig } from '@/api';
-import type { Api } from 'mp-assistant-common/dist/api/index.js';
+import type { Api } from '@mp-assistant/common/dist/api/index.js';
 import { ElMessage } from 'element-plus';
 import type { FormRules } from 'element-plus';
 import type { ElForm } from 'element-plus';

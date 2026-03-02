@@ -112,12 +112,12 @@ import { requestAddTask, requestGetWorkerDetail } from '@/api';
 import { ElMessage } from 'element-plus';
 import type { FormRules } from 'element-plus';
 import type { ElForm } from 'element-plus';
-import { TaskType, WXTaskN } from 'mp-assistant-common/dist/work/task';
+import { TaskType, WXTaskN } from '@mp-assistant/common/dist/work/task';
 import type { AddTaskForm, AddTaskFormData } from './index';
-import { TaskTypeOptions } from 'mp-assistant-common/dist/work/task';
-import { WXWorkerN } from 'mp-assistant-common/dist/work';
-import type { VersionPositioner } from 'mp-assistant-common/dist/utils/wx';
-import { VersionPositioningCriteria, VersionPositioningCriteriaOptions, VersionPositioningType, VersionPositioningTypeOptions } from 'mp-assistant-common/dist/utils/wx';
+import { TaskTypeOptions } from '@mp-assistant/common/dist/work/task';
+import { WXWorkerN } from '@mp-assistant/common/dist/work';
+import type { VersionPositioner } from '@mp-assistant/common/dist/utils/wx';
+import { VersionPositioningCriteria, VersionPositioningCriteriaOptions, VersionPositioningType, VersionPositioningTypeOptions } from '@mp-assistant/common/dist/utils/wx';
 import FilesUpload from '@/baseComponent/FilesUpload/index.vue';
 import Empty from '@/baseComponent/Empty/index.vue';
 

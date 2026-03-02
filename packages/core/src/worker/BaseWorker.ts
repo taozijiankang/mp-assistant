@@ -1,12 +1,12 @@
 import { BrowserContext, chromium, LaunchOptions } from "playwright";
-import { getUUID } from "mp-assistant-common/dist/utils/index.js";
+import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
 import path, { extname } from "path";
-import { wait } from "mp-assistant-common/dist/utils/global.js";
+import { wait } from "@mp-assistant/common/dist/utils/global.js";
 import { BaseTask } from "./BaseTask.js";
-import { TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
-import { BaseWorkerOptions, BaseWorkInfo, WorkerType } from "mp-assistant-common/dist/work/index.js";
-import { WSMessage } from "mp-assistant-common/dist/ws/message.js"
-import { getChromeUserDataDir } from "mp-assistant-common/dist/pathManage.js";
+import { TaskStatus } from "@mp-assistant/common/dist/work/task/index.js";
+import { BaseWorkerOptions, BaseWorkInfo, WorkerType } from "@mp-assistant/common/dist/work/index.js";
+import { WSMessage } from "@mp-assistant/common/dist/ws/message.js"
+import { getChromeUserDataDir } from "@mp-assistant/common/dist/pathManage.js";
 
 export abstract class BaseWorker {
   readonly type?: WorkerType;

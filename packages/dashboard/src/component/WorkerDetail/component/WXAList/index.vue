@@ -63,9 +63,9 @@
 <script setup lang="ts">
 import { requestAddTask, requestWorkerUpdateWxaList } from '@/api';
 import { useApiCall } from '@/hooks/useApiCall';
-import type { WXMPItem } from 'mp-assistant-common/dist/types/wx';
-import { WXWorkerN } from 'mp-assistant-common/dist/work';
-import { TaskStatus, TaskStatusDict, TaskType, TaskTypeDict, WXTaskN, type BaseTaskInfo } from 'mp-assistant-common/dist/work/task';
+import type { WXMPItem } from '@mp-assistant/common/dist/types/wx';
+import { WXWorkerN } from '@mp-assistant/common/dist/work';
+import { TaskStatus, TaskStatusDict, TaskType, TaskTypeDict, WXTaskN, type BaseTaskInfo } from '@mp-assistant/common/dist/work/task';
 import { ref, computed } from 'vue';
 import VersionList from "./component/VersionList/index.vue"
 import { dayjs } from 'element-plus';

@@ -1,4 +1,4 @@
-import { Api } from "mp-assistant-common/dist/api/index.js";
+import { Api } from "@mp-assistant/common/dist/api/index.js";
 import { getBaseApiURL, request } from "../request";
 
 export function requestUploadFile(file: File) {

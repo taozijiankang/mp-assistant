@@ -19,10 +19,10 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
-import { WorkerTypeOptions } from 'mp-assistant-common/dist/work/index.js';
+import { WorkerTypeOptions } from '@mp-assistant/common/dist/work/index.js';
 import { requestAddWorker } from '@/api';
-import { WorkerType } from 'mp-assistant-common/dist/work/index.js';
-import type { Api } from 'mp-assistant-common/dist/api/index.js';
+import { WorkerType } from '@mp-assistant/common/dist/work/index.js';
+import type { Api } from '@mp-assistant/common/dist/api/index.js';
 import { ElMessage } from 'element-plus';
 import type { FormRules } from 'element-plus';
 import type { ElForm } from 'element-plus';

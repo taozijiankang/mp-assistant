@@ -1,6 +1,6 @@
 import { ElMessage } from "element-plus";
-import { ApiPrefix } from "mp-assistant-common/dist/api/index.js";
-import type { APIRes, APISuccessRes } from "mp-assistant-common/dist/api/type";
+import { ApiPrefix } from "@mp-assistant/common/dist/api/index.js";
+import type { APIRes, APISuccessRes } from "@mp-assistant/common/dist/api/type";
 import qs from "qs";
 
 /**

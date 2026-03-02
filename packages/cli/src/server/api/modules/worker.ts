@@ -1,12 +1,12 @@
 import { FastifyInstance } from "fastify";
 import { WorkerStore } from "../../../store/WorkerStore.js";
-import { Api } from "mp-assistant-common/dist/api/index.js";
-import { createWorker, isWXWorker } from "mp-assistant-core/dist/worker/index.js";
+import { Api } from "@mp-assistant/common/dist/api/index.js";
+import { createWorker, isWXWorker } from "@mp-assistant/core/dist/worker/index.js";
 import { ConfigStore } from "../../../store/ConfigStore.js";
-import { createTask } from "mp-assistant-core/dist/worker/wx/task/index.js";
-import { getSuccessApiResponse, getErrorApiResponse } from "mp-assistant-common/dist/api/utils.js";
+import { createTask } from "@mp-assistant/core/dist/worker/wx/task/index.js";
+import { getSuccessApiResponse, getErrorApiResponse } from "@mp-assistant/common/dist/api/utils.js";
 import { WSStore } from "../../../store/WSStore.js";
-import { WSMessage } from "mp-assistant-common/dist/ws/message.js";
+import { WSMessage } from "@mp-assistant/common/dist/ws/message.js";
 import { WSMessageEvent } from "../../../event/WSMessageEvent.js";
 
 export const registerWorkerApi = (fastify: FastifyInstance) => {

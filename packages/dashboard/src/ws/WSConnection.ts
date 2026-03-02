@@ -1,6 +1,6 @@
-import type { WSMessageFormat } from "mp-assistant-common/dist/ws";
-import { WSMessage, WSUrl } from "mp-assistant-common/dist/ws/index.js";
-import { EventEmitter } from "mp-assistant-common/dist/event/EventEmitter";
+import type { WSMessageFormat } from "@mp-assistant/common/dist/ws";
+import { WSMessage, WSUrl } from "@mp-assistant/common/dist/ws/index.js";
+import { EventEmitter } from "@mp-assistant/common/dist/event/EventEmitter";
 
 /**
  * 获取 API 基础 URL

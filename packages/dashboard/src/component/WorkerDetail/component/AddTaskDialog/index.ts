@@ -1,5 +1,5 @@
-import type { TaskType } from "mp-assistant-common/dist/work/task";
-import type { VersionPositioner } from "mp-assistant-common/dist/utils/wx";
+import type { TaskType } from "@mp-assistant/common/dist/work/task";
+import type { VersionPositioner } from "@mp-assistant/common/dist/utils/wx";
 
 export interface AddTaskForm {
     appIds: string[];

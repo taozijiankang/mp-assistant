@@ -2,7 +2,7 @@ import { InspectVersionTask } from "./InspectVersionTask.js";
 import { AuditTask } from "./AuditTask.js";
 import { ReleaseTask } from "./ReleaseTask.js";
 import { BaseTask } from "../../BaseTask.js";
-import { TaskType, WXTaskN } from "mp-assistant-common/dist/work/task/index.js";
+import { TaskType, WXTaskN } from "@mp-assistant/common/dist/work/task/index.js";
 
 export {
     InspectVersionTask,

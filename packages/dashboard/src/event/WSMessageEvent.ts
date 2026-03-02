@@ -1,4 +1,4 @@
-import { WSMessage } from "mp-assistant-common/dist/ws";
+import { WSMessage } from "@mp-assistant/common/dist/ws";
 import { WSConnection } from "../ws/WSConnection";
 
 export class WSMessageEvent extends WSMessage.Event {

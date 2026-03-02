@@ -1,8 +1,8 @@
-import { WorkerType } from "mp-assistant-common/dist/work/index.js";
-import { getStoreDir } from "mp-assistant-common/dist/pathManage.js";
+import { WorkerType } from "@mp-assistant/common/dist/work/index.js";
+import { getStoreDir } from "@mp-assistant/common/dist/pathManage.js";
 import { useLocalStore } from "../hooks/useLocalStore.js";
-import type { BaseWorker } from "mp-assistant-core/dist/worker/BaseWorker.js";
-import { createWorker } from "mp-assistant-core/dist/worker/index.js";
+import type { BaseWorker } from "@mp-assistant/core/dist/worker/BaseWorker.js";
+import { createWorker } from "@mp-assistant/core/dist/worker/index.js";
 import { WSMessageEvent } from "../event/WSMessageEvent.js";
 
 interface WorkerStoreItem {

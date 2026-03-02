@@ -1,4 +1,4 @@
-import { Api } from "mp-assistant-common/dist/api/index.js";
+import { Api } from "@mp-assistant/common/dist/api/index.js";
 import { request } from "../request";
 
 export function requestGetConfig() {

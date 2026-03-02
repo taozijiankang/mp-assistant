@@ -7,8 +7,8 @@ import fastifyWebsocket from '@fastify/websocket'
 import { ConfigStore } from './store/ConfigStore.js';
 import { registerWebSocket } from './server/ws/index.js';
 import { registerApi } from './server/api/index.js';
-import { ApiPrefix } from 'mp-assistant-common/dist/api/index.js';
-import { getErrorApiResponse } from 'mp-assistant-common/dist/api/utils.js';
+import { ApiPrefix } from '@mp-assistant/common/dist/api/index.js';
+import { getErrorApiResponse } from '@mp-assistant/common/dist/api/utils.js';
 import { WorkerStore } from './store/WorkerStore.js';
 import fastifyCors from '@fastify/cors';
 import multipart from '@fastify/multipart';
@@ -51,9 +51,9 @@ const startServer = async () => {
         allowedHeaders: ['Content-Type', 'Authorization'],
     });
 
-    // 注册静态目录，指向 mp-assistant-dashboard 包的 dist 目录
+    // 注册静态目录，指向 @mp-assistant/dashboard 包的 dist 目录
     const dashboardDir = path.join(
-        path.dirname(require.resolve('mp-assistant-dashboard/package.json')),
+        path.dirname(require.resolve('@mp-assistant/dashboard/package.json')),
         'dist'
     );
     await fastify.register(fastifyStatic, {

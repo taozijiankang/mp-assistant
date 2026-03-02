@@ -1,13 +1,13 @@
 import { FastifyInstance } from "fastify";
-import { Api } from "mp-assistant-common/dist/api/index.js";
-import { getErrorApiResponse, getSuccessApiResponse } from "mp-assistant-common/dist/api/utils.js";
+import { Api } from "@mp-assistant/common/dist/api/index.js";
+import { getErrorApiResponse, getSuccessApiResponse } from "@mp-assistant/common/dist/api/utils.js";
 import { pipeline } from "node:stream/promises";
 import fs from "node:fs"
 import path from "node:path";
 import dayjs from "dayjs";
-import { getUUID } from "mp-assistant-common/dist/utils/index.js";
-import { getFilesDir } from "mp-assistant-common/dist/pathManage.js";
-import { pathNormalize } from "mp-assistant-common/dist/utils/node.js";
+import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
+import { getFilesDir } from "@mp-assistant/common/dist/pathManage.js";
+import { pathNormalize } from "@mp-assistant/common/dist/utils/node.js";
 
 export const registerCommonApi = (fastify: FastifyInstance) => {
     fastify.post(Api.Common.UploadFile.url, async function (req, reply): Promise<Api.Common.UploadFile.Response> {

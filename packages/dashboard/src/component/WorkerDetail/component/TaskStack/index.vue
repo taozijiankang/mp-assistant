@@ -60,7 +60,7 @@
                         <div v-if="WXTaskN.isPublishInfo(taskItem) && taskItem.publishQRCodeFilePath && taskItem.status === TaskStatus.RUNNING"
                             class="publish-qrcode-container">
                             <span class="publish-qrcode-description">需要扫描二维码进行发布 剩余时间: {{ Math.round(taskItem.countdown)
-                            }}秒</span>
+                                }}秒</span>
                             <img :src="getFileUrl(taskItem.publishQRCodeFilePath)" alt="publish-qrcode"
                                 class="publish-qrcode-image" />
                         </div>
@@ -135,10 +135,10 @@
 </template>
 
 <script setup lang="ts">
-import { TaskStatus, TaskStatusDict, TaskType, TaskTypeDict, WXTaskN, type BaseTaskInfo } from 'mp-assistant-common/dist/work/task';
+import { TaskStatus, TaskStatusDict, TaskType, TaskTypeDict, WXTaskN, type BaseTaskInfo } from '@mp-assistant/common/dist/work/task';
 import { ref, computed, inject } from 'vue';
 import { dayjs, ElMessageBox } from 'element-plus';
-import { WXWorkerN } from 'mp-assistant-common/dist/work';
+import { WXWorkerN } from '@mp-assistant/common/dist/work';
 import { useOperationRecordStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import { Delete } from '@element-plus/icons-vue';

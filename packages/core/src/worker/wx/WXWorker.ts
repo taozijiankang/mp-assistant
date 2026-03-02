@@ -3,9 +3,9 @@ import { BaseWorker } from "../BaseWorker.js";
 import { WXMP_HOME_URL, WXMP_LOGIN_PATH, WXMP_USER_PAGE_PATH_REX } from "../../constant/wx.js";
 import { expect } from "playwright/test";
 import { requestWxaList } from "../../api/module/wx.js";
-import { WXMPItem } from "mp-assistant-common/dist/types/wx.js";
-import { taskCompleted, TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
-import { WorkerType, WXWorkerN } from "mp-assistant-common/dist/work/index.js";
+import { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
+import { taskCompleted, TaskStatus } from "@mp-assistant/common/dist/work/task/index.js";
+import { WorkerType, WXWorkerN } from "@mp-assistant/common/dist/work/index.js";
 import { saveScreenshotBufferToFile } from "../utils/index.js";
 
 export class WXWorker extends BaseWorker {
@@ -196,6 +196,9 @@ export class WXWorker extends BaseWorker {
         } finally {
             await page?.close();
             this.offLoading(WXWorkerN.LoadingType.logout);
+
+            //重新登录
+            this.login();
         }
     }
 

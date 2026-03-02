@@ -1,6 +1,6 @@
 {
-  "name": "mp-assistant-core",
-  "version": "0.0.0",
+  "name": "@mp-assistant/core",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -13,8 +13,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "mp-assistant-configuration": "workspace:*",
-    "mp-assistant-scripts": "workspace:*"
+    "@mp-assistant/configuration": "workspace:*",
+    "@mp-assistant/scripts": "workspace:*"
   },
   "repository": {
     "type": "git",
@@ -23,7 +23,7 @@
   "dependencies": {
     "@playwright/test": "^1.58.2",
     "dayjs": "^1.11.13",
-    "mp-assistant-common": "workspace:*",
+    "@mp-assistant/common": "workspace:*",
     "playwright": "^1.58.2"
   }
 }

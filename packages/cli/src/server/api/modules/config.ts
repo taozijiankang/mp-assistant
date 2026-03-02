@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { ConfigStore } from "../../../store/ConfigStore.js";
-import { Api } from "mp-assistant-common/dist/api/index.js";
-import { getSuccessApiResponse } from "mp-assistant-common/dist/api/utils.js";
+import { Api } from "@mp-assistant/common/dist/api/index.js";
+import { getSuccessApiResponse } from "@mp-assistant/common/dist/api/utils.js";
 
 
 export const registerConfigApi = (fastify: FastifyInstance) => {
