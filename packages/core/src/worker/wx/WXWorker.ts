@@ -153,9 +153,10 @@ export class WXWorker extends BaseWorker {
         if (this.isLoading(WXWorkerN.LoadingType.logout)) {
             return;
         }
-
         this.setLoading(WXWorkerN.LoadingType.logout);
+
         const browserContent = this.browserContent!;
+
         const page = await browserContent.newPage();
         try {
             await page.goto(WXMP_HOME_URL);
@@ -163,8 +164,8 @@ export class WXWorker extends BaseWorker {
 
             // 判断页面路径
             if (!WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
-                await page.close();
-                throw new Error('用户未登录');
+                this._setLoginStatus(false);
+                return;
             }
 
             // 如果侧边栏被隐藏了，则点击侧边栏展开按钮
