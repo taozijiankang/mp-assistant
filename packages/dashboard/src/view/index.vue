@@ -1,7 +1,10 @@
 <template>
   <div class="app-container">
     <div class="header">
-      <span>小程序助手 控制台</span>
+      <div class="header-title">
+        <img src="@/assets/logo.png" alt="小程序助手" class="header-title-logo" />
+        <span class="header-title-text">小程序助手 控制台</span>
+      </div>
       <el-button type="primary" @click="handleEditConfig">编辑配置</el-button>
     </div>
     <div class="worker-list">

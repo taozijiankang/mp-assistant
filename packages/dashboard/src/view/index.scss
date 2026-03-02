@@ -11,6 +11,21 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 10px;
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      .header-title-logo {
+        width: 30px;
+        height: 30px;
+      }
+      .header-title-text {
+        font-size: 16px;
+        color: #00b240;
+        font-weight: bold;
+      }
+    }
   }
   .worker-detail {
     flex: 1;

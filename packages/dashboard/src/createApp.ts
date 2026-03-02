@@ -1,7 +1,8 @@
 import type { Component } from "vue";
 import "./assets/main.css";
 import "element-plus/dist/index.css";
-import ElementPlus from 'element-plus'
+import ElementPlus from 'element-plus';
+import "./styles/index.scss";
 
 import { createApp as createVueApp } from "vue";
 import { WSConnection } from "./ws/WSConnection";
