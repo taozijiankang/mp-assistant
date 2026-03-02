@@ -12,4 +12,16 @@ export namespace CommonApi {
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }
+
+    /**
+     * 获取文件
+     */
+    export namespace GetFile {
+        export const url = '/get-file';
+        export const method = 'GET';
+
+        export type RequestQuery = {
+            filePath: string;
+        };
+    }
 }

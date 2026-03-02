@@ -2,20 +2,105 @@
   display: flex;
   gap: 10px;
   height: 100%;
+  width: 800px;
   .task-list {
-    min-width: 0;
-    flex: 2;
+    width: 400px;
     display: flex;
     flex-direction: column;
-    border: 1px solid #c5c5c5;
-    padding: 10px;
-    border-radius: 10px;
+    padding: 12px 0;
     gap: 10px;
+    border-radius: 20px;
+    border: 1.5px solid #eeecf9;
+    background: linear-gradient(177deg, #f5f5ff 0.77%, #f5f8fd 97.87%), #fff;
     .controller {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
+      padding: 0 12px;
+    }
+    .filter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 12px;
+      .filter-item {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 2px 4px;
+        border-radius: 4px;
+
+        &.total {
+          span {
+            color: #917cd6;
+          }
+          &.selected {
+            background-color: #917cd6;
+            span {
+              color: #fff;
+            }
+          }
+        }
+        &.running {
+          span {
+            color: #e6a23c;
+          }
+          &.selected {
+            background-color: #e6a23c;
+            span {
+              color: #fff;
+            }
+          }
+        }
+        &.completed {
+          span {
+            color: #67c23a;
+          }
+          &.selected {
+            background-color: #67c23a;
+            span {
+              color: #fff;
+            }
+          }
+        }
+        &.failed {
+          span {
+            color: #f56c6c;
+          }
+          &.selected {
+            background-color: #f56c6c;
+            span {
+              color: #fff;
+            }
+          }
+        }
+        &.not-started {
+          span {
+            color: #909399;
+          }
+          &.selected {
+            background-color: #909399;
+            span {
+              color: #fff;
+            }
+          }
+        }
+
+        span {
+          font-family: "Source Han Sans SC";
+          font-size: 14px;
+          font-weight: 400;
+          line-height: normal;
+          font-weight: bold;
+        }
+      }
+    }
+    .task-list-content-scrollbar {
+      flex: 1;
+      min-height: 0;
+      border-radius: 10px;
+      padding: 0 12px;
     }
     .task-list-content {
       flex: 1;
@@ -28,35 +113,70 @@
       box-sizing: border-box;
       .task-item {
         display: flex;
+        padding: 8px 12px;
         flex-direction: column;
-        align-items: start;
-        gap: 10px;
-        background-color: #ededed;
-        padding: 10px;
-        border-radius: 5px;
+        align-items: flex-start;
+        border-radius: 8px;
+        background: #fff;
+        border: 1px solid transparent;
+        gap: 5px;
 
         &.selected {
           border: 1px solid #409eff;
+          box-shadow: 0 0 8px rgba(64, 158, 255, 0.3), 0 0 16px rgba(64, 158, 255, 0.2);
         }
 
         &.not-started {
           .main {
-            color: #909399;
+            .task-status {
+              .dot {
+                background-color: #909399;
+              }
+              span {
+                color: #909399;
+              }
+            }
           }
         }
         &.running {
           .main {
-            color: #409eff;
+            .task-status {
+              color: #e6a23c;
+              .dot {
+                background-color: #e6a23c;
+                width: 15px;
+                height: 15px;
+              }
+              span {
+                color: #e6a23c;
+              }
+            }
           }
         }
         &.completed {
           .main {
-            color: #67c23a;
+            .task-status {
+              color: #67c23a;
+              .dot {
+                background-color: #67c23a;
+              }
+              span {
+                color: #67c23a;
+              }
+            }
           }
         }
         &.failed {
           .main {
-            color: #f56c6c;
+            .task-status {
+              color: #f56c6c;
+              .dot {
+                background-color: #f56c6c;
+              }
+              span {
+                color: #f56c6c;
+              }
+            }
           }
         }
 
@@ -64,37 +184,233 @@
           display: flex;
           align-items: center;
           gap: 10px;
-          .task-type {
-            padding: 2px 6px;
-            border-radius: 4px;
-            background-color: #f0f0f0;
+          width: 100%;
+          justify-content: space-between;
+          .task-type-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            .task-type-icon {
+              width: 20px;
+              height: 20px;
+            }
+            .task-type {
+              color: #1d2129;
+              font-family: "Source Han Sans SC";
+              font-size: 14px;
+              font-weight: 700;
+              line-height: 20px;
+            }
+          }
+          .task-status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            .dot {
+              width: 6px;
+              height: 6px;
+              border-radius: 50%;
+              background-color: #909399;
+              transition: all 0.3s ease-in-out;
+            }
+            span {
+              color: #1d2129;
+              font-family: "Source Han Sans SC";
+              font-size: 14px;
+              font-weight: 400;
+              line-height: normal;
+              font-weight: 700;
+            }
           }
         }
 
-        .task-options {
+        .task-key {
           display: flex;
-          gap: 4px;
-          align-items: center;
-          color: #606266;
+          span {
+            color: #86909c;
+            font-family: "Source Han Sans SC";
+            font-size: 10px;
+            font-weight: 400;
+            line-height: normal;
+          }
+        }
 
-          .app-icon {
-            width: 30px;
-            height: 30px;
+        .wxa-info-container {
+          display: flex;
+          flex-direction: row;
+          gap: 10px;
+          .wxa-icon {
+            width: 40px;
+            height: 40px;
             border-radius: 4px;
           }
+
+          .wxa-info {
+            display: flex;
+            flex-direction: column;
+            .wxa-name {
+              color: #1d2129;
+              font-family: "Source Han Sans SC";
+              font-size: 14px;
+              font-weight: 400;
+              line-height: normal;
+            }
+            .wxa-appid,
+            .wxa-username {
+              color: #86909c;
+              font-family: "Source Han Sans SC";
+              font-size: 10px;
+              font-weight: 400;
+              line-height: normal;
+            }
+          }
+        }
+
+        .publish-qrcode-container {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          align-items: center;
+          .publish-qrcode-image {
+            width: 100%;
+            height: 100%;
+          }
+          .publish-qrcode-description {
+            color: #e6a23c;
+            font-family: "Source Han Sans SC";
+            font-size: 14px;
+            font-weight: 400;
+            line-height: normal;
+          }
+        }
+
+        .item-controller {
+          display: flex;
+          flex-direction: row;
+          gap: 10px;
+          justify-content: flex-end;
+          width: 100%;
+          box-sizing: border-box;
         }
       }
     }
   }
-  .task-report {
+  .task-detail-scrollbar {
     flex: 1;
     min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    padding: 12px;
+    box-sizing: border-box;
+    background-color: white;
+    border-radius: 20px;
+  }
+  .task-detail {
     gap: 10px;
     display: flex;
     flex-direction: column;
 
+    .title {
+      color: #917cd6;
+      font-family: "Source Han Sans SC";
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 22px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .task-running {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 4px;
+      .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #e6a23c;
+      }
+      span {
+        color: #e6a23c;
+        font-family: "Source Han Sans SC";
+        font-size: 14px;
+        font-weight: 400;
+      }
+    }
+
+    .task-result-content {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      .task-result {
+        display: flex;
+        flex-direction: row;
+        &.completed {
+          color: #67c23a;
+        }
+        &.failed {
+          color: #f56c6c;
+        }
+        span {
+          font-family: "Source Han Sans SC";
+          font-size: 14px;
+          font-weight: 700;
+          line-height: 20px;
+        }
+      }
+      .task-result-time {
+        display: flex;
+        flex-direction: row;
+        span {
+          font-family: "Source Han Sans SC";
+          font-size: 14px;
+          font-weight: 400;
+          color: #86909c;
+        }
+      }
+      .result-msg {
+        display: flex;
+        flex-direction: row;
+        span {
+          font-family: "Source Han Sans SC";
+          font-size: 14px;
+          font-weight: 400;
+        }
+      }
+    }
+
     .report-timeline {
       padding: 0;
+
+      .report-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        .report-item-title {
+          color: #1d2129;
+          font-family: "Source Han Sans SC";
+          font-size: 14px;
+          font-weight: 700;
+          line-height: 20px;
+        }
+        .report-item-description {
+          color: #606266;
+          font-family: "Source Han Sans SC";
+          font-size: 12px;
+          font-weight: 400;
+          line-height: 18px;
+        }
+        .report-item-images {
+          display: flex;
+          flex-direction: row;
+          gap: 4px;
+          .el-image {
+            width: 100%;
+          }
+        }
+      }
     }
   }
 }

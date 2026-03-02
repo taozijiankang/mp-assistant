@@ -6,6 +6,7 @@ import { requestWxaList } from "../../api/module/wx.js";
 import { WXMPItem } from "mp-assistant-common/dist/types/wx.js";
 import { taskCompleted, TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
 import { WorkerType, WXWorkerN } from "mp-assistant-common/dist/work/index.js";
+import { saveScreenshotBufferToFile } from "../utils/index.js";
 
 export class WXWorker extends BaseWorker {
     readonly type = WorkerType.WX;
@@ -15,7 +16,7 @@ export class WXWorker extends BaseWorker {
 
     private __loginPage: Page | null = null;
 
-    loginQRCodeURL: string = '';
+    loginQRCodeFilePath: string = '';
     wxaList: WXMPItem[] = [];
 
     get isLogin() {
@@ -25,7 +26,7 @@ export class WXWorker extends BaseWorker {
     info(): WXWorkerN.WXWorkInfo {
         return {
             ...super.info(),
-            loginQRCodeURL: this.loginQRCodeURL,
+            loginQRCodeFilePath: this.loginQRCodeFilePath,
             wxaList: this.wxaList,
             isLogin: this.isLogin,
         }
@@ -120,9 +121,8 @@ export class WXWorker extends BaseWorker {
                         });
                     });
                     const buffer = await loginQRCodeLocator.screenshot();
-                    // 转成base64
-                    const base64 = Buffer.from(buffer).toString('base64');
-                    this.loginQRCodeURL = `data:image/png;base64,${base64}`;
+
+                    this.loginQRCodeFilePath = await saveScreenshotBufferToFile(buffer);
 
                     // 状态改变
                     page.on('load', () => {
@@ -146,6 +146,56 @@ export class WXWorker extends BaseWorker {
         }
         finally {
             this.offLoading(WXWorkerN.LoadingType.login);
+        }
+    }
+
+    async logout() {
+        if (this.isLoading(WXWorkerN.LoadingType.logout)) {
+            return;
+        }
+        this.setLoading(WXWorkerN.LoadingType.logout);
+
+        const browserContent = this.browserContent!;
+
+        const page = await browserContent.newPage();
+        try {
+            await page.goto(WXMP_HOME_URL);
+            const url = new URL(page.url());
+
+            // 判断页面路径
+            if (!WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
+                this._setLoginStatus(false);
+                return;
+            }
+
+            // 如果侧边栏被隐藏了，则点击侧边栏展开按钮
+            const sidebarLocator = page.locator('div.little_menu_button');
+            if (await sidebarLocator.isVisible()) {
+                await sidebarLocator.click();
+            }
+            // 点击侧边栏中的账号信息栏
+            const accountInfoLocator = page.locator('div.menu_box_other_item_wrapper.account_info');
+            await expect(accountInfoLocator).toBeVisible({
+                timeout: 3 * 1000
+            });
+            await accountInfoLocator.hover();
+
+            const switchMPButtonLocator = page.locator('.menu_box_account_info_item')
+                .filter({ hasText: '退出登录' });
+
+            await switchMPButtonLocator.click();
+
+            await page.waitForEvent('load');
+
+            const url2 = new URL(page.url());
+            if (!WXMP_USER_PAGE_PATH_REX.test(url2.pathname)) {
+                this._setLoginStatus(false);
+            }
+        } catch (error) {
+            console.error('退出登录失败', error);
+        } finally {
+            await page?.close();
+            this.offLoading(WXWorkerN.LoadingType.logout);
         }
     }
 

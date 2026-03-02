@@ -5,6 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "clear-build-product": "mp-c clear-build-product",
     "dev": "tsc --watch",
     "build": "tsc"
   },
@@ -26,7 +27,8 @@
   },
   "devDependencies": {
     "@types/ws": "^8.18.1",
-    "mp-assistant-configuration": "workspace:*"
+    "mp-assistant-configuration": "workspace:*",
+    "mp-assistant-scripts": "workspace:*"
   },
   "repository": {
     "type": "git",

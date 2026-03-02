@@ -5,6 +5,7 @@ import { expect } from "playwright/test";
 import { TaskExecResult, WXTaskN } from "mp-assistant-common/dist/work/task/index.js";
 import { getVersionList } from "../../../api/index.js";
 import { VersionListItem } from "mp-assistant-common/dist/types/wx.js";
+import { saveScreenshotBufferToFile } from "../../utils/index.js";
 
 export class BaseWXTask extends BaseTask {
     readonly options: WXTaskN.TaskOptions;
@@ -13,6 +14,13 @@ export class BaseWXTask extends BaseTask {
         super(options);
 
         this.options = options;
+    }
+
+    info(): WXTaskN.TaskInfo {
+        return {
+            ...super.info(),
+            options: this.options,
+        };
     }
 
     protected _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
@@ -80,16 +88,22 @@ export class BaseWXTask extends BaseTask {
                 if (!await expect(mpItemLocator).toBeVisible({ timeout: 1000 }).then(() => true, () => false)) {
                     throw new Error('未找到小程序账号项');
                 }
-                if (!await mpItemLocator.locator('.current_login').filter({ hasText: '当前登录' }).isVisible()) {
-                    await mpItemLocator.click();
-                    await page.waitForEvent('load');
-                }
+
+                const buffer = await mpItemLocator.screenshot();
+                const imageUrl = await saveScreenshotBufferToFile(buffer);
+
                 this._addRunningReport({
                     title: '切换小程序',
                     description: `切换小程序: ${this.options.app_name} - ${this.options.username}`,
                     timestamp: Date.now(),
-                    images: [],
+                    images: [imageUrl],
                 });
+
+                if (!await mpItemLocator.locator('.current_login').filter({ hasText: '当前登录' }).isVisible()) {
+                    await mpItemLocator.click();
+                    await page.waitForEvent('load');
+                }
+
                 resolve(page);
             }
             catch (error) {

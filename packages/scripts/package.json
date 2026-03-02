@@ -5,7 +5,7 @@
   "type": "module",
   "private": true,
   "bin": {
-    "package": "./src/bin/package.js"
+    "mp-c": "./src/bin/index.js"
   },
   "keywords": [],
   "author": "",

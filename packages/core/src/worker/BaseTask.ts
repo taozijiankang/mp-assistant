@@ -19,6 +19,10 @@ export abstract class BaseTask {
 
     protected _worker?: BaseWorker;
 
+    private __createTime: number = 0;
+    private __startTime: number = 0;
+    private __endTime: number = 0;
+
     get worker(): BaseWorker | null {
         return this._worker || null;
     }
@@ -37,6 +41,8 @@ export abstract class BaseTask {
     constructor(options: any) {
         this.key = getUUID();
         this.options = options;
+
+        this.__createTime = Date.now();
     }
 
     protected _setStatus(status: TaskStatus) {
@@ -63,6 +69,9 @@ export abstract class BaseTask {
             runningReportList: this.runningReportList,
             options: this.options,
             result: this.result,
+            createTime: this.__createTime,
+            startTime: this.__startTime,
+            endTime: this.__endTime,
         };
     }
 
@@ -70,6 +79,7 @@ export abstract class BaseTask {
         if (this.status !== TaskStatus.NOT_STARTED) {
             throw new Error('Task already started');
         }
+        this.__startTime = Date.now();
         this._setStatus(TaskStatus.RUNNING);
         try {
             // 清空运行报告
@@ -82,8 +92,13 @@ export abstract class BaseTask {
             this._setStatus(TaskStatus.FAILED);
             this.result = {
                 status: TaskStatus.FAILED,
+                endTimestamp: Date.now(),
+                msg: error instanceof Error ? error.message : '未知错误',
             };
             console.error('任务执行失败', error);
+        } finally {
+            this.__endTime = Date.now();
+            this.emitDetailChangeEvent();
         }
         return this.result;
     }
@@ -91,10 +106,6 @@ export abstract class BaseTask {
     async destroy() {
         this.__runningReportList = [];
         this.result = void 0;
-    }
-
-    emitMessage<K extends keyof WSMessage.EventMap>(type: K, data: WSMessage.EventMap[K]) {
-        this.worker?.emitMessage(type, data);
     }
 
     private __emitDetailChangeEventTimer: ReturnType<typeof setTimeout> | null = null;
@@ -105,9 +116,7 @@ export abstract class BaseTask {
     emitDetailChangeEvent() {
         this.__emitDetailChangeEventTimer && clearTimeout(this.__emitDetailChangeEventTimer);
         this.__emitDetailChangeEventTimer = setTimeout(() => {
-            this.emitMessage(WSMessage.Worker.DetailChange.type, {
-                key: this.key,
-            });
+            this.worker?.emitDetailChangeEvent();
         }, 0);
     }
 

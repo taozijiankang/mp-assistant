@@ -7,8 +7,8 @@ import qs from "qs";
  * 获取 API 基础 URL
  * 生产环境下使用相对路径（同源部署），开发环境通过 vite proxy 代理
  */
-const getBaseURL = () => {
-    return new URL(ApiPrefix, import.meta.env.VITE_API_URL).href;
+export const getBaseApiURL = () => {
+    return new URL(ApiPrefix, import.meta.env.VITE_BASE_API_URL || location.origin).href;
 };
 
 export interface RequestOptions {
@@ -27,7 +27,7 @@ export async function request<T>(
     options: RequestOptions = {}
 ): Promise<APISuccessRes<T>> {
     let { method = "GET", query = {}, body, file, headers } = options;
-    const resolvedURL = getBaseURL() + url + (query ? `?${qs.stringify({
+    const resolvedURL = getBaseApiURL() + url + (query ? `?${qs.stringify({
         ...query,
         /** 
          * TODO:因为是局域网请求，所以不需要浏览器做流量限制

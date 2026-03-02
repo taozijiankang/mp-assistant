@@ -24,3 +24,11 @@ export function getStoreDir() {
   }
   return dir;
 }
+
+export function getFilesDir() {
+  const dir = path.join(getRootDir(), './node_modules/.files');
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  return dir;
+}

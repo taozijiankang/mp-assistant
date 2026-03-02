@@ -1,12 +1,12 @@
 import { BrowserContext, chromium, LaunchOptions } from "playwright";
 import { getUUID } from "mp-assistant-common/dist/utils/index.js";
-import { getChromeUserDataDir } from "../pathManage.js";
 import path, { extname } from "path";
 import { wait } from "mp-assistant-common/dist/utils/global.js";
 import { BaseTask } from "./BaseTask.js";
 import { TaskStatus } from "mp-assistant-common/dist/work/task/index.js";
 import { BaseWorkerOptions, BaseWorkInfo, WorkerType } from "mp-assistant-common/dist/work/index.js";
 import { WSMessage } from "mp-assistant-common/dist/ws/message.js"
+import { getChromeUserDataDir } from "mp-assistant-common/dist/pathManage.js";
 
 export abstract class BaseWorker {
   readonly type?: WorkerType;
@@ -102,9 +102,14 @@ export abstract class BaseWorker {
    */
   async removeTask(taskKey: string) {
     const task = this.__taskList.find(t => t.key === taskKey);
-    if (task) {
-      await task.destroy();
+    if (!task) {
+      return;
     }
+    //如果任务在运行中则不能删除
+    if (task.status === TaskStatus.RUNNING) {
+      return;
+    }
+    await task.destroy();
     this.__taskList = this.__taskList.filter(t => t.key !== taskKey);
 
     this.emitDetailChangeEvent();

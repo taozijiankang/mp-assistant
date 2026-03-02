@@ -5,6 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "clear-build-product": "mp-c clear-build-product",
     "dev": "tsc --watch",
     "build": "tsc"
   },
@@ -18,7 +19,8 @@
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
-    "mp-assistant-configuration": "workspace:*"
+    "mp-assistant-configuration": "workspace:*",
+    "mp-assistant-scripts": "workspace:*"
   },
   "repository": {
     "type": "git",

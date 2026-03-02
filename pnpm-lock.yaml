@@ -88,6 +88,9 @@ importers:
       mp-assistant-configuration:
         specifier: workspace:*
         version: link:../configuration
+      mp-assistant-scripts:
+        specifier: workspace:*
+        version: link:../scripts
 
   packages/common:
     dependencies:
@@ -107,6 +110,9 @@ importers:
       mp-assistant-configuration:
         specifier: workspace:*
         version: link:../configuration
+      mp-assistant-scripts:
+        specifier: workspace:*
+        version: link:../scripts
 
   packages/configuration: {}
 
@@ -115,6 +121,9 @@ importers:
       '@playwright/test':
         specifier: ^1.58.2
         version: 1.58.2
+      dayjs:
+        specifier: ^1.11.13
+        version: 1.11.19
       mp-assistant-common:
         specifier: workspace:*
         version: link:../common
@@ -125,6 +134,9 @@ importers:
       mp-assistant-configuration:
         specifier: workspace:*
         version: link:../configuration
+      mp-assistant-scripts:
+        specifier: workspace:*
+        version: link:../scripts
 
   packages/dashboard:
     dependencies:

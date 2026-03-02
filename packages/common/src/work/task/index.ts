@@ -1,4 +1,5 @@
 import { VersionListItem } from "../../types/wx.js";
+import { VersionPositioner } from "../../utils/wx.js";
 import { TaskStatus, TaskType } from "./const.js";
 
 export * from "./const.js";
@@ -15,6 +16,9 @@ export interface BaseTaskInfo {
     runningReportList: TaskRunningReport[];
     options?: any;
     result?: TaskExecResult;
+    createTime: number;
+    startTime: number;
+    endTime: number;
 }
 
 export interface TaskRunningReport {
@@ -26,6 +30,7 @@ export interface TaskRunningReport {
 
 export interface TaskExecResult<T = any> {
     status: TaskStatus.COMPLETED | TaskStatus.FAILED;
+    endTimestamp: number;
     data?: T;
     msg?: string;
 }
@@ -39,9 +44,19 @@ export namespace WXTaskN {
     }
 
     export interface AuditTaskOptions extends TaskOptions {
-        describe?: string;
-        nick_name?: string;
-        version?: string;
+        positioner?: VersionPositioner[]
+        populateData?: {
+            // 版本描述
+            versionDescription?: string
+            // 图片预览
+            imagePreview?: string
+            // 视频预览
+            videoPreview?: string
+        }
+    }
+
+    export interface ReleaseTaskOptions extends TaskOptions {
+        positioner?: VersionPositioner[]
     }
 
     export interface TaskInfo extends BaseTaskInfo {
@@ -57,6 +72,14 @@ export namespace WXTaskN {
         result: TaskExecResult<GetVersionListResult[]>
     }
 
+    export interface PublishInfo extends TaskInfo {
+        publishQRCodeFilePath: string;
+        countdown: number;
+    }
+
+    export const isPublishInfo = (info: BaseTaskInfo): info is PublishInfo => {
+        return info.type === TaskType.WX_PUBLISH;
+    }
 
     export type VersionListData = {
         [VersionType.DEVELOP]?: VersionListItem[],
