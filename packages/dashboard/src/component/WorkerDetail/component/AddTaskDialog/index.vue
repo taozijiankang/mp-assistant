@@ -236,6 +236,10 @@ const handleRemovePositioner = (index: number, type: TaskType) => {
 };
 
 const handleAddTask = async () => {
+    if (!workerDetail.value) {
+        return;
+    }
+
     // 验证任务表单
     if (!(await elFormRef.value?.validate().catch(() => false))) {
         return;
@@ -258,9 +262,14 @@ const handleAddTask = async () => {
     try {
         for (const appId of addTaskForm.value.appIds) {
             const appDetail = workerDetail.value?.wxaList.find(app => app.appid === appId);
-            let options: WXTaskN.TaskOptions = {
+
+            const wxTaskOptions: WXTaskN.TaskOptions = {
                 app_name: appDetail?.app_name || '',
                 username: appDetail?.username || '',
+            }
+
+            let options: WXTaskN.TaskOptions = {
+                ...wxTaskOptions,
             };
 
             // 如果是审核任务，则添加审核任务选项
@@ -283,10 +292,18 @@ const handleAddTask = async () => {
                 } as WXTaskN.ReleaseTaskOptions;
             }
 
-            await requestAddTask(workerDetail.value!.key, {
+            await requestAddTask(workerDetail.value.key, {
                 type: addTaskForm.value.type,
                 options,
             });
+
+            // 如果是发布或者审核任务则多添加一个版本检查任务
+            if (addTaskForm.value.type === TaskType.WX_AUDIT || addTaskForm.value.type === TaskType.WX_PUBLISH) {
+                await requestAddTask(workerDetail.value.key, {
+                    type: TaskType.WX_INSPECT_VERSION,
+                    options: wxTaskOptions
+                });
+            }
         }
         visible.value = false;
         ElMessage.success('Add task success');
