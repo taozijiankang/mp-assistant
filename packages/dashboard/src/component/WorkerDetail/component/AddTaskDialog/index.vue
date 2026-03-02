@@ -17,12 +17,11 @@
                         </el-radio-button>
                     </el-radio-group>
                 </el-form-item>
-                <el-form-item label="AppID" prop="appIds">
-                    <el-select v-model="addTaskForm.appIds" multiple filterable default-first-option
-                        placeholder="请选择需要添加任务的小程序">
-                        <el-option v-for="app in workerDetail?.wxaList || []" :key="app.appid"
-                            :label="app.app_name + ' (' + app.appid + ')'" :value="app.appid" />
-                    </el-select>
+                <el-form-item label="小程序" prop="appIds">
+                    <SelectMp :wxa-list="workerDetail?.wxaList || []" :selectedValue="addTaskForm.appIds"
+                        @update:selectedValue="(values) => {
+                            addTaskForm.appIds = values;
+                        }" />
                 </el-form-item>
             </el-form>
             <!-- 审核任务表单 -->
@@ -120,6 +119,7 @@ import type { VersionPositioner } from '@mp-assistant/common/dist/utils/wx';
 import { VersionPositioningCriteria, VersionPositioningCriteriaOptions, VersionPositioningType, VersionPositioningTypeOptions } from '@mp-assistant/common/dist/utils/wx';
 import FilesUpload from '@/baseComponent/FilesUpload/index.vue';
 import Empty from '@/baseComponent/Empty/index.vue';
+import SelectMp from '@/baseComponent/SelectMp/index.vue';
 
 const elFormRef = ref<InstanceType<typeof ElForm>>();
 
