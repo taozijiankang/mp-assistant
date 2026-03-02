@@ -34,6 +34,6 @@ jobs:
       - name: 安装依赖
         run: pnpm install
 
-      - name: 构建
+      - name: 构建测试
         run: |
           pnpm run build
