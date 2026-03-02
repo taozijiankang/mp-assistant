@@ -66,6 +66,10 @@ const { loading: handleWorkerLogoutLoading, call: handleWorkerLogout } = useApiC
 });
 
 watch(() => props.workerKey, () => {
+    if (!props.workerKey) {
+        workerDetail.value = null;
+        return
+    }
     getWorkerDetail();
 });
 

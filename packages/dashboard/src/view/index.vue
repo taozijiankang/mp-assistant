@@ -5,10 +5,11 @@
         <img src="@/assets/logo.png" alt="小程序助手" class="header-title-logo" />
         <span class="header-title-text">小程序助手 控制台</span>
       </div>
-      <el-button type="primary" @click="handleEditConfig">编辑配置</el-button>
+      <el-button type="primary" @click="handleEditConfig" plain :icon="Setting"></el-button>
     </div>
     <div class="worker-list">
-      <WorkList :currentWorkerKey="currentWorkerKey" @onWorkerItemClick="handleWorkerItemClick" />
+      <WorkList :currentWorkerKey="currentWorkerKey" @onWorkerItemClick="handleWorkerItemClick"
+        @onWorkerListChange="handleWorkerListChange" />
     </div>
     <WorkerDetail class="worker-detail" :workerKey="currentWorkerKey" />
     <EditConfigDialog ref="editConfigDialogRef" />
@@ -22,6 +23,7 @@ import WorkerDetail from '@/component/WorkerDetail/index.vue';
 import type { BaseWorkInfo } from '@mp-assistant/common/dist/work';
 import { useOperationRecordStore } from '@/stores';
 import { storeToRefs } from 'pinia';
+import { Setting } from '@element-plus/icons-vue';
 
 const editConfigDialogRef = ref<InstanceType<typeof EditConfigDialog>>();
 
@@ -35,6 +37,10 @@ const handleEditConfig = () => {
 const handleWorkerItemClick = (workerItem: BaseWorkInfo) => {
   operationRecordStore.setCurrentWorkerKey(workerItem.key);
 };
+
+const handleWorkerListChange = () => {
+  operationRecordStore.setCurrentWorkerKey('');
+}
 </script>
 
 <style scoped lang="scss">

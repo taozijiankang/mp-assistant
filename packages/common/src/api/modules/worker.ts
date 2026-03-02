@@ -49,6 +49,22 @@ export namespace WorkerApi {
     }
 
     /**
+     * 暂停 Worker
+     */
+    export namespace PauseWorker {
+        export const url = '/worker-pause';
+        export const method = 'POST';
+
+        export type RequestQuery = {
+            key: string;
+        };
+
+        export type ResponseData = void;
+        export type SuccessResponse = APISuccessRes<ResponseData>;
+        export type Response = SuccessResponse | APIErrorRes;
+    }
+
+    /**
      * 删除 Worker
      */
     export namespace RemoveWorker {

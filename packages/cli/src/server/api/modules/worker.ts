@@ -9,6 +9,7 @@ import { WSStore } from "../../../store/WSStore.js";
 import { WSMessage } from "@mp-assistant/common/dist/ws/message.js";
 import { WSMessageEvent } from "../../../event/WSMessageEvent.js";
 import fs from 'fs';
+import { WorkerStatus } from "@mp-assistant/common/dist/work/index.js";
 
 export const registerWorkerApi = (fastify: FastifyInstance) => {
     fastify.get(Api.Worker.GetWorkerList.url, async (request, reply): Promise<Api.Worker.GetWorkerList.Response> => {
@@ -56,6 +57,19 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         return getSuccessApiResponse(worker.info());
     });
 
+    fastify.post(Api.Worker.PauseWorker.url, async (request, reply): Promise<Api.Worker.PauseWorker.Response> => {
+        const { key } = request.query as Api.Worker.PauseWorker.RequestQuery;
+        const worker = WorkerStore.instance.workerList.find(item => item.key === key);
+        if (!worker) {
+            return getErrorApiResponse('Worker not found', 404);
+        }
+
+        worker.pause();
+
+        WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
+        return getSuccessApiResponse(undefined);
+    })
+
     fastify.delete(Api.Worker.RemoveWorker.url, async (request, reply): Promise<Api.Worker.RemoveWorker.Response> => {
         const { key } = request.query as Api.Worker.RemoveWorker.RequestQuery;
 
@@ -63,6 +77,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         if (!worker) {
             return getErrorApiResponse('Worker not found', 404);
         }
+
         await worker.destroy();
         WorkerStore.instance.removeWorker(worker);
 

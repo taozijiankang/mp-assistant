@@ -3,10 +3,10 @@
   flex-direction: column;
   height: 100vh;
   width: 100vw;
-  background: #faf9fe;
+  background: #fff;
   .header {
     height: 40px;
-    border-bottom: 1px solid #e0e0e0;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -29,8 +29,9 @@
   }
   .worker-detail {
     flex: 1;
-    padding: 10px;
+    padding: 0 10px 10px 10px;
     box-sizing: border-box;
     min-height: 0;
+    background-color: #fff;
   }
 }
