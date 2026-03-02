@@ -2,7 +2,7 @@
     <div class="task-stack">
         <div class="task-list">
             <div class="controller">
-                <el-input v-model="filterKeyword" placeholder="请输入过滤关键词，支持小程序名称、appid、username" clearable />
+                <el-input v-model="filterKeyword" placeholder="请输入过滤关键词 多个关键词用空格分隔" clearable />
                 <el-button type="primary" @click="handleAddTask?.()">添加任务</el-button>
             </div>
             <div class="filter">
@@ -48,6 +48,10 @@
                         </div>
                         <div class="task-key">
                             <span>{{ taskItem.key }}</span>
+                        </div>
+                        <div v-if="taskItem.result?.status === TaskStatus.FAILED && taskItem.result?.msg"
+                            class="result-fill-message">
+                            <span>{{ taskItem.result?.msg }}</span>
                         </div>
                         <div v-if="getWxaInfo(taskItem.options)" class="wxa-info-container">
                             <img class="wxa-icon" :src="getWxaInfo(taskItem.options)?.app_headimg" />
@@ -144,6 +148,7 @@ import { storeToRefs } from 'pinia';
 import { Delete } from '@element-plus/icons-vue';
 import { getFileUrl, requestRemoveTask } from '@/api';
 import type { AddTaskFormData } from '../AddTaskDialog/index';
+import fuzzysort from 'fuzzysort';
 
 const props = defineProps<{
     workerDetail: WXWorkerN.WXWorkInfo;
@@ -197,11 +202,53 @@ const taskList = computed(() => {
 
 const filteredTaskList = computed(() => {
     let list = taskList.value;
-    if (filterKeyword.value) {
-        list = list.filter(task => task.key.includes(filterKeyword.value));
-    }
     if (filterStatus.value !== 'all') {
         list = list.filter(task => task.status === filterStatus.value);
+    }
+    if (filterKeyword.value) {
+        const fuzzysortKeys: {
+            key: (item: BaseTaskInfo) => string;
+            weight: number;
+        }[] = [
+                {
+                    // 任务类型
+                    key: item => TaskTypeDict[item.type],
+                    weight: 3,
+                },
+                {
+                    // 任务状态
+                    key: item => TaskStatusDict[item.status],
+                    weight: 2,
+                },
+                {
+                    // 任务关键字
+                    key: item => item.key,
+                    weight: 1,
+                },
+                {
+                    // 小程序名称
+                    key: item => getWxaInfo(item.options)?.app_name || '',
+                    weight: 2,
+                },
+                {
+                    // appid
+                    key: item => getWxaInfo(item.options)?.appid || '',
+                    weight: 2,
+                },
+                {
+                    // username
+                    key: item => getWxaInfo(item.options)?.username || '',
+                    weight: 2,
+                },
+            ];
+        list = fuzzysort.go(filterKeyword.value, list, {
+            keys: fuzzysortKeys.map(item => item.key),
+            scoreFn: item => {
+                return fuzzysortKeys.reduce((a, b, i) => {
+                    return a + item[i].score * b.weight;
+                }, 0);
+            },
+        }).map(item => item.obj);
     }
     return list;
 });

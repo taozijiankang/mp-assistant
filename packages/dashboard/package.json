@@ -10,11 +10,12 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
-    "@mp-assistant/common": "workspace:*",
     "@element-plus/icons-vue": "^2.3.1",
+    "@mp-assistant/common": "workspace:*",
     "color": "^5.0.0",
     "dayjs": "^1.11.13",
     "element-plus": "^2.9.7",
+    "fuzzysort": "^3.1.0",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
     "qs": "^6.15.0",
