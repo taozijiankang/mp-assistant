@@ -1,6 +1,6 @@
 import { BrowserContext, chromium, LaunchOptions } from "playwright";
 import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
-import path, { extname } from "path";
+import path from "path";
 import { wait } from "@mp-assistant/common/dist/utils/global.js";
 import { BaseTask } from "./BaseTask.js";
 import { TaskStatus } from "@mp-assistant/common/dist/work/task/index.js";

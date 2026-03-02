@@ -8,8 +8,7 @@
       <el-button type="primary" @click="handleEditConfig" plain :icon="Setting"></el-button>
     </div>
     <div class="worker-list">
-      <WorkList :currentWorkerKey="currentWorkerKey" @onWorkerItemClick="handleWorkerItemClick"
-        @onWorkerListChange="handleWorkerListChange" />
+      <WorkList :currentWorkerKey="currentWorkerKey" @currentWorkerKeyChange="handleCurrentWorkerKeyChange" />
     </div>
     <WorkerDetail class="worker-detail" :workerKey="currentWorkerKey" />
     <EditConfigDialog ref="editConfigDialogRef" />
@@ -20,7 +19,6 @@ import { ref } from 'vue';
 import WorkList from '@/component/WorkList/index.vue';
 import EditConfigDialog from '@/component/EditConfigDialog/index.vue';
 import WorkerDetail from '@/component/WorkerDetail/index.vue';
-import type { BaseWorkInfo } from '@mp-assistant/common/dist/work';
 import { useOperationRecordStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import { Setting } from '@element-plus/icons-vue';
@@ -34,13 +32,9 @@ const handleEditConfig = () => {
   editConfigDialogRef.value?.open();
 };
 
-const handleWorkerItemClick = (workerItem: BaseWorkInfo) => {
-  operationRecordStore.setCurrentWorkerKey(workerItem.key);
+const handleCurrentWorkerKeyChange = (key: string) => {
+  operationRecordStore.setCurrentWorkerKey(key);
 };
-
-const handleWorkerListChange = () => {
-  operationRecordStore.setCurrentWorkerKey('');
-}
 </script>
 
 <style scoped lang="scss">

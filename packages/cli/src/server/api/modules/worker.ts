@@ -10,6 +10,7 @@ import { WSMessage } from "@mp-assistant/common/dist/ws/message.js";
 import { WSMessageEvent } from "../../../event/WSMessageEvent.js";
 import fs from 'fs';
 import { WorkerStatus } from "@mp-assistant/common/dist/work/index.js";
+import { TaskStatus } from "@mp-assistant/common/dist/work/task/const.js";
 
 export const registerWorkerApi = (fastify: FastifyInstance) => {
     fastify.get(Api.Worker.GetWorkerList.url, async (request, reply): Promise<Api.Worker.GetWorkerList.Response> => {
@@ -78,7 +79,13 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
             return getErrorApiResponse('Worker not found', 404);
         }
 
-        await worker.destroy();
+        // 如果任务正在运行则不能删除
+        if (worker.taskList.some(item => item.status === TaskStatus.RUNNING)) {
+            return getErrorApiResponse('Worker正在运行中，请先暂停，或者等任务执行完成后再删除', 400);
+        }
+
+        worker.destroy();
+
         WorkerStore.instance.removeWorker(worker);
 
         WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());

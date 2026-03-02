@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
-import { requestGetWorkerList, requestPauseWorker, requestRemoveWorker } from '@/api';
+import { requestGetWorkerList, requestRemoveWorker } from '@/api';
 import AddWorkerDialog from '@/component/AddWorkerDialog/index.vue';
 import { WSMessage } from "@mp-assistant/common/dist/ws/message.js"
 import { WSMessageEvent } from '@/event/WSMessageEvent';
@@ -27,8 +27,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (e: 'onWorkerItemClick', worker: BaseWorkInfo): void;
-    (e: 'onWorkerListChange'): void;
+    (e: 'currentWorkerKeyChange', key: string): void;
 }>();
 
 const addWorkerDialogRef = ref<InstanceType<typeof AddWorkerDialog>>();
@@ -40,12 +39,12 @@ const getWorkerList = async () => {
     workerList.value = data;
 
     if (!workerList.value || !workerList.value.length) {
-        emit('onWorkerListChange');
+        emit('currentWorkerKeyChange', '');
         return
     }
 
     if (!props.currentWorkerKey || !workerList.value.some(item => item.key === props.currentWorkerKey)) {
-        emit('onWorkerItemClick', data[0]);
+        emit('currentWorkerKeyChange', data[0]?.key);
     }
 }
 
@@ -54,7 +53,7 @@ const handleTabsEdit = (targetName: TabPaneName | undefined, action: 'remove' | 
 }
 
 const handleWorkerItemClick = (e: TabsPaneContext) => {
-    emit('onWorkerItemClick', workerList.value[Number(e.index) ?? 0]);
+    emit('currentWorkerKeyChange', workerList.value[Number(e.index) ?? 0]?.key);
 }
 
 const handleAddWorker = () => {
@@ -74,12 +73,6 @@ const handleTabRemove = async (key: TabPaneName) => {
         return
     }
 
-    const flag = targetWorker.taskList.some(el => el.status === TaskStatus.RUNNING);
-
-    if (flag) {
-        ElMessage.error('Worker正在运行中，请先暂停')
-        return
-    }
     await requestRemoveWorker(targetWorker.key);
     ElMessage.success('Worker删除成功');
 }
