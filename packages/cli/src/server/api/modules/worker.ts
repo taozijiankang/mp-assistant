@@ -51,6 +51,12 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
             executablePath: ConfigStore.instance.config.executablePath,
             headless: ConfigStore.instance.config.headless,
         });
+
+        // 如果是微信worker则自动触发登录
+        if (isWXWorker(worker)) {
+            worker.login();
+        }
+
         WorkerStore.instance.addWorker(worker);
 
         WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
