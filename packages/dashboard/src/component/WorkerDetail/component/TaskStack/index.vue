@@ -66,8 +66,12 @@
                         </div>
                         <div v-if="WXTaskN.isPublishInfo(taskItem) && taskItem.publishQRCodeFilePath && taskItem.status === TaskStatus.RUNNING"
                             class="publish-qrcode-container">
-                            <span class="publish-qrcode-description">需要扫描二维码进行发布 剩余时间: {{ Math.round(taskItem.countdown)
-                                }}秒</span>
+                            <div class="publish-qrcode-header">
+                                <span class="publish-qrcode-description">需要扫描二维码进行发布 剩余时间: {{
+                                    Math.round(taskItem.countdown)
+                                    }}秒</span>
+
+                            </div>
                             <img :src="getFileUrl(taskItem.publishQRCodeFilePath)" alt="publish-qrcode"
                                 class="publish-qrcode-image" />
                         </div>

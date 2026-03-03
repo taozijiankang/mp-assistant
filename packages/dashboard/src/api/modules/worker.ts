@@ -85,3 +85,10 @@ export function requestGetTaskDetail(key: string, taskKey: string) {
     );
 }
 
+export function requestGetPublishQRCode(key: string, taskKey: string) {
+    return request<Api.Worker.GetPublishQRCode.ResponseData>(
+        Api.Worker.GetPublishQRCode.url,
+        { method: Api.Worker.GetPublishQRCode.method, query: { key, taskKey } }
+    );
+}
+

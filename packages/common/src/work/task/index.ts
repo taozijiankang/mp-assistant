@@ -75,6 +75,7 @@ export namespace WXTaskN {
     export interface PublishInfo extends TaskInfo {
         publishQRCodeFilePath: string;
         countdown: number;
+        refreshLoading: boolean;
     }
 
     export const isPublishInfo = (info: BaseTaskInfo): info is PublishInfo => {
