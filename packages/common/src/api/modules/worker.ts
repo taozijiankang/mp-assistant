@@ -51,8 +51,8 @@ export namespace WorkerApi {
     /**
      * 暂停 Worker
      */
-    export namespace PauseWorker {
-        export const url = '/worker-pause';
+    export namespace PauseAndRecoverWorker {
+        export const url = '/worker-pauseAndRecover';
         export const method = 'POST';
 
         export type RequestQuery = {
@@ -198,6 +198,23 @@ export namespace WorkerApi {
         };
 
         export type ResponseData = BaseTaskInfo;
+        export type SuccessResponse = APISuccessRes<ResponseData>;
+        export type Response = SuccessResponse | APIErrorRes;
+    }
+
+    /**
+     * 获取发布二维码
+     */
+    export namespace GetPublishQRCode {
+        export const url = '/worker-getPublishQRCode';
+        export const method = 'POST';
+
+        export type RequestQuery = {
+            key: string;
+            taskKey: string;
+        };
+
+        export type ResponseData = void;
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }

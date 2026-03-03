@@ -69,6 +69,8 @@ const handleTabRemove = async (key: TabPaneName) => {
 
     ElMessageBox.confirm(`确定删除Worker：${targetWorker?.name}吗？`, '提示', {
         type: 'warning',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
     }).then(async () => {
         if (!targetWorker) {
             ElMessage.error('Worker不存在')

@@ -22,10 +22,10 @@ export function requestAddWorker(body: Api.Worker.AddWorker.RequestBody) {
     );
 }
 
-export function requestPauseWorker(key: string) {
-    return request<Api.Worker.PauseWorker.ResponseData>(
-        Api.Worker.PauseWorker.url,
-        { method: Api.Worker.PauseWorker.method, query: { key } }
+export function requestPauseAndRecoverWorker(key: string) {
+    return request<Api.Worker.PauseAndRecoverWorker.ResponseData>(
+        Api.Worker.PauseAndRecoverWorker.url,
+        { method: Api.Worker.PauseAndRecoverWorker.method, query: { key } }
     );
 }
 
@@ -82,6 +82,13 @@ export function requestGetTaskDetail(key: string, taskKey: string) {
     return request<Api.Worker.TaskDetail.ResponseData>(
         Api.Worker.TaskDetail.url,
         { method: Api.Worker.TaskDetail.method, query: { key, taskKey } }
+    );
+}
+
+export function requestGetPublishQRCode(key: string, taskKey: string) {
+    return request<Api.Worker.GetPublishQRCode.ResponseData>(
+        Api.Worker.GetPublishQRCode.url,
+        { method: Api.Worker.GetPublishQRCode.method, query: { key, taskKey } }
     );
 }
 

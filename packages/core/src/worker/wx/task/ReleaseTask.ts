@@ -1,4 +1,4 @@
-import { BrowserContext, Page } from "playwright";
+import { BrowserContext, Locator, Page } from "playwright";
 import { BaseWXTask } from "./BaseWXTask.js";
 import { TaskExecResult, TaskStatus, TaskType, WXTaskN } from "@mp-assistant/common/dist/work/task/index.js";
 import { VersionListItem, WXReviewStatus } from "@mp-assistant/common/dist/types/wx.js";
@@ -15,6 +15,8 @@ export class ReleaseTask extends BaseWXTask {
 
     private __publishQRCodeFilePath: string = '';
     private __countdown: number = 0;
+    private __currentPage: Page | null = null;
+    private __refreshLoading: boolean = false;
 
     readonly options: WXTaskN.ReleaseTaskOptions;
 
@@ -29,23 +31,41 @@ export class ReleaseTask extends BaseWXTask {
             ...super.info(),
             publishQRCodeFilePath: this.__publishQRCodeFilePath,
             countdown: this.__countdown,
+            refreshLoading: this.__refreshLoading,
         };
     }
 
-    protected async _waitForQrcodeScan(page: Page, timeout: number = 60000): Promise<void> {
+    protected async _waitForQrcodeScan(page: Page, timeout: number = 180000): Promise<void> {
         const startDate = Date.now();
 
         while ((Date.now() - startDate) < timeout) {
+            const openDialog = page.locator(".weui-desktop-dialog").filter({ hasText: "发布版本" })
+            // 二维码过期
+            const refreshBtn = openDialog.getByRole("link", { name: "刷新" })
             // 同步倒计时
             this.__countdown = Math.max(0, (timeout - (Date.now() - startDate)) / 1000);
-
             this.emitDetailChangeEvent();
-            const onlineVersion = (await this._getVersionList(page))[WXTaskN.VersionType.ONLINE] || {};
 
-            const flag = versionSatisfy(onlineVersion, this?.options?.positioner || [])
+            const refreshBtnVisible = await refreshBtn.isVisible()
 
-            if (flag) {
-                return;
+            // 二维码过期时，主动刷新并重新截取二维码，避免一直等待到超时
+            if (refreshBtnVisible) {
+                await refreshBtn.click();
+                await page.waitForTimeout(1000);
+                await this.getQrcodePath();
+                this.emitDetailChangeEvent();
+                await new Promise((resolve) => setTimeout(resolve, 200));
+                continue;
+            }
+
+            if (!refreshBtnVisible) {
+                const onlineVersion = (await this._getVersionList(page))[WXTaskN.VersionType.ONLINE] || {};
+
+                const flag = versionSatisfy(onlineVersion, this?.options?.positioner || [])
+
+                if (flag) {
+                    return;
+                }
             }
 
             await new Promise((resolve) => setTimeout(resolve, 200));
@@ -54,9 +74,55 @@ export class ReleaseTask extends BaseWXTask {
         throw new Error('二维码扫描超时');
     }
 
+    /**
+     * 获取二维码路径
+     * @param ct - 容器
+     * @returns 二维码路径
+     */
+    async getQrcodePath() {
+        try {
+            const openDialog = this.__currentPage?.locator(".weui-desktop-dialog").filter({ hasText: "发布版本" })
+            if (!openDialog) return false;
+
+            const qrCodeLocator = openDialog.locator(".weui-desktop-qrcheck__img")
+            const publishQRCodeURL = await qrCodeLocator.getAttribute('src') || '';
+
+            if (!publishQRCodeURL) return false
+            // 检查图片资源加载情况
+            await qrCodeLocator.evaluate((img: HTMLImageElement) => {
+                return new Promise<void>((resolve, reject) => {
+                    // 如果图片已经加载完成 (Already loaded)
+                    if (img.complete && img.naturalWidth > 0) {
+                        resolve();
+                    } else {
+                        // 否则监听 load 和 error 事件
+                        img.onload = () => resolve();
+                        img.onerror = () => reject(new Error('Image load failed'));
+                    }
+                });
+            });
+
+            const qrCodeBuffer = await qrCodeLocator.screenshot()
+            const publishQRCodeFilePath = await saveScreenshotBufferToFile(qrCodeBuffer);
+
+            this.__publishQRCodeFilePath = publishQRCodeFilePath;
+
+            return true
+
+        } catch (error) {
+            console.log(error);
+
+            return false;
+        } finally {
+            this.__refreshLoading = false;
+        }
+    }
+
     protected async _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
         const page = await this._switchMP(browserContent);
         await page.goto(`${WXMP_VERSION_MANAGEMENT_URL}${new URL(page.url()).search}`);
+
+        this.__currentPage = page;
 
         try {
             const currentVersionData = await this._getVersionList(page)
@@ -147,50 +213,10 @@ export class ReleaseTask extends BaseWXTask {
             await submitBtn.click()
 
             await page.waitForTimeout(1000)
-            const openDialog = page.locator(".weui-desktop-dialog").filter({ hasText: "发布版本" })
 
-            const qrCodeLocator = openDialog.locator(".weui-desktop-qrcheck__img")
-
-            const publishQRCodeURL = await qrCodeLocator.getAttribute('src') || '';
-
-            if (publishQRCodeURL) {
-                // 检查图片资源加载情况
-                await qrCodeLocator.evaluate((img: HTMLImageElement) => {
-                    return new Promise<void>((resolve, reject) => {
-                        // 如果图片已经加载完成 (Already loaded)
-                        if (img.complete && img.naturalWidth > 0) {
-                            resolve();
-                        } else {
-                            // 否则监听 load 和 error 事件
-                            img.onload = () => resolve();
-                            img.onerror = () => reject(new Error('Image load failed'));
-                        }
-                    });
-                });
-
-                const qrCodeBuffer = await qrCodeLocator.screenshot()
-                const publishQRCodeFilePath = await saveScreenshotBufferToFile(qrCodeBuffer);
-                this.__publishQRCodeFilePath = publishQRCodeFilePath;
-
-                this._addRunningReport({
-                    title: "等待扫码发布",
-                    timestamp: Date.now(),
-                    description: `当前版本: ${testVersionData?.version}`,
-                });
-
-                //判断发布成功
-                await this._waitForQrcodeScan(page);
-
-                this._addRunningReport({
-                    title: "发布成功",
-                    timestamp: Date.now(),
-                });
-
-                return {
-                    status: TaskStatus.COMPLETED,
-                    endTimestamp: Date.now(),
-                }
-            } else {
+            // 检查图片资源加载情况
+            const qrCodeLoadingStatus = await this.getQrcodePath();
+            if (!qrCodeLoadingStatus) {
                 return {
                     status: TaskStatus.FAILED,
                     data: null,
@@ -198,6 +224,26 @@ export class ReleaseTask extends BaseWXTask {
                     endTimestamp: Date.now(),
                 }
             }
+
+            this._addRunningReport({
+                title: "等待扫码发布",
+                timestamp: Date.now(),
+                description: `当前版本: ${testVersionData?.version}`,
+            });
+
+            //判断是否扫码发布
+            await this._waitForQrcodeScan(page);
+
+            this._addRunningReport({
+                title: "发布成功",
+                timestamp: Date.now(),
+            });
+
+            return {
+                status: TaskStatus.COMPLETED,
+                endTimestamp: Date.now(),
+            }
+
         } catch (error) {
             return {
                 status: TaskStatus.FAILED,

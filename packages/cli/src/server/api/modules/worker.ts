@@ -3,7 +3,7 @@ import { WorkerStore } from "../../../store/WorkerStore.js";
 import { Api } from "@mp-assistant/common/dist/api/index.js";
 import { createWorker, isWXWorker } from "@mp-assistant/core/dist/worker/index.js";
 import { ConfigStore } from "../../../store/ConfigStore.js";
-import { createTask } from "@mp-assistant/core/dist/worker/wx/task/index.js";
+import { createTask, isReleaseTask } from "@mp-assistant/core/dist/worker/wx/task/index.js";
 import { getSuccessApiResponse, getErrorApiResponse } from "@mp-assistant/common/dist/api/utils.js";
 import { WSStore } from "../../../store/WSStore.js";
 import { WSMessage } from "@mp-assistant/common/dist/ws/message.js";
@@ -64,17 +64,17 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         return getSuccessApiResponse(worker.info());
     });
 
-    fastify.post(Api.Worker.PauseWorker.url, async (request, reply): Promise<Api.Worker.PauseWorker.Response> => {
-        const { key } = request.query as Api.Worker.PauseWorker.RequestQuery;
+    fastify.post(Api.Worker.PauseAndRecoverWorker.url, async (request, reply): Promise<Api.Worker.PauseAndRecoverWorker.Response> => {
+        const { key } = request.query as Api.Worker.PauseAndRecoverWorker.RequestQuery;
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {
             return getErrorApiResponse('Worker not found', 404);
         }
 
-        worker.pause();
+        worker.pauseAndRecover();
 
         WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
-        return getSuccessApiResponse(undefined);
+        return getSuccessApiResponse(undefined, worker.status === WorkerStatus.PAUSED ? '暂停Worker成功' : '恢复Worker成功');
     })
 
     fastify.delete(Api.Worker.RemoveWorker.url, async (request, reply): Promise<Api.Worker.RemoveWorker.Response> => {
@@ -203,4 +203,27 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         }
         return getSuccessApiResponse(task.info());
     });
+
+    fastify.post(Api.Worker.GetPublishQRCode.url, async (request, reply): Promise<Api.Worker.GetPublishQRCode.Response> => {
+        const { key, taskKey } = request.query as Api.Worker.GetPublishQRCode.RequestQuery;
+        const worker = WorkerStore.instance.workerList.find(item => item.key === key);
+        if (!worker) {
+            return getErrorApiResponse('Worker not found', 404);
+        }
+        const task = worker.taskList.find(item => item.key === taskKey);
+        if (!task) {
+            return getErrorApiResponse('Task not found', 404);
+        }
+
+        if (!isReleaseTask(task)) {
+            return getErrorApiResponse('Task type not supported', 400);
+        }
+
+        const qrCodeLoadingStatus = await task.getQrcodePath();
+        if (!qrCodeLoadingStatus) {
+            return getErrorApiResponse('Publish QR code path not found', 404);
+        }
+
+        return getSuccessApiResponse(undefined);
+    })
 }   

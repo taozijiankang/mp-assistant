@@ -131,7 +131,11 @@ export abstract class BaseWorker {
     this.emitDetailChangeEvent();
   }
 
-  pause() {
+  pauseAndRecover() {
+    if (this.status === WorkerStatus.PAUSED) {
+      this.status = WorkerStatus.RUNNING;
+      return;
+    }
     this.status = WorkerStatus.PAUSED;
   }
 
