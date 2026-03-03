@@ -19,7 +19,7 @@ import { WSMessage } from "@mp-assistant/common/dist/ws/message.js"
 import { WSMessageEvent } from '@/event/WSMessageEvent';
 import type { BaseWorkInfo } from '@mp-assistant/common/dist/work';
 import type { TabPaneName, TabsPaneContext } from 'element-plus';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 const props = defineProps<{
     currentWorkerKey: string;
@@ -67,13 +67,18 @@ const handleTabRemove = async (key: TabPaneName) => {
     const { data } = await requestGetWorkerList();
     const targetWorker = data.find(item => item.key === key);
 
-    if (!targetWorker) {
-        ElMessage.error('Worker不存在')
-        return
-    }
+    ElMessageBox.confirm(`确定删除Worker：${targetWorker?.name}吗？`, '提示', {
+        type: 'warning',
+    }).then(async () => {
+        if (!targetWorker) {
+            ElMessage.error('Worker不存在')
+            return
+        }
 
-    await requestRemoveWorker(targetWorker.key);
-    ElMessage.success('Worker删除成功');
+        await requestRemoveWorker(targetWorker.key);
+        ElMessage.success('Worker删除成功');
+    })
+
 }
 
 onMounted(() => {
