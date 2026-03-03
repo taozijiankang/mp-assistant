@@ -85,7 +85,7 @@ const startServer = async () => {
     });
 
     try {
-        await fastify.listen({ port: ConfigStore.instance.config.port })
+        await fastify.listen({ host: '0.0.0.0', port: ConfigStore.instance.config.port })
         console.log(`Server is running on http://localhost:${ConfigStore.instance.config.port}`);
     } catch (err) {
         fastify.log.error(err)
