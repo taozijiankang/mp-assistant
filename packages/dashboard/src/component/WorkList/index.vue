@@ -19,7 +19,6 @@ import { WSMessage } from "@mp-assistant/common/dist/ws/message.js"
 import { WSMessageEvent } from '@/event/WSMessageEvent';
 import type { BaseWorkInfo } from '@mp-assistant/common/dist/work';
 import type { TabPaneName, TabsPaneContext } from 'element-plus';
-import { TaskStatus } from '@mp-assistant/common/dist/work/task';
 import { ElMessage } from 'element-plus';
 
 const props = defineProps<{

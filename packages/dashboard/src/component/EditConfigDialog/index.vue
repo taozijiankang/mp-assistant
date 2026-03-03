@@ -1,5 +1,6 @@
 <template>
-    <el-dialog v-model="visible" title="编辑配置" width="800px">
+    <el-dialog v-model="visible" title="编辑配置" width="800px" :show-close="!focusOpen" :close-on-click-modal="!focusOpen"
+        :close-on-press-escape="!focusOpen">
         <div class="content-container">
             <el-alert title="提示" type="info" show-icon :closable="false">
                 修改配置后需要重启小程序助手才能生效
@@ -16,7 +17,7 @@
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" :loading="loading" @click="handleSaveConfig">保存配置</el-button>
-                    <el-button @click="visible = false">取消</el-button>
+                    <el-button v-if="!focusOpen" @click="visible = false">取消</el-button>
                 </el-form-item>
             </el-form>
         </div>
@@ -35,6 +36,8 @@ const elFormRef = ref<InstanceType<typeof ElForm>>();
 const visible = ref(false);
 
 const loading = ref(false);
+
+const focusOpen = ref(false);
 
 const configForm = ref<Api.Config.GetConfig.ResponseData>({
     executablePath: '',
@@ -77,8 +80,10 @@ const handleSaveConfig = async () => {
     }
 };
 
-const open = () => {
+const open = (focus: boolean = false) => {
     visible.value = true;
+
+    focusOpen.value = focus;
 
     getConfig();
 };
