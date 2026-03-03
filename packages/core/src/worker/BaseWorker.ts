@@ -1,12 +1,13 @@
 import { BrowserContext, chromium, LaunchOptions } from "playwright";
 import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
-import path, { extname } from "path";
+import path from "path";
 import { wait } from "@mp-assistant/common/dist/utils/global.js";
 import { BaseTask } from "./BaseTask.js";
 import { TaskStatus } from "@mp-assistant/common/dist/work/task/index.js";
-import { BaseWorkerOptions, BaseWorkInfo, WorkerType } from "@mp-assistant/common/dist/work/index.js";
+import { BaseWorkerOptions, BaseWorkInfo, WorkerStatus, WorkerType, WXWorkerN } from "@mp-assistant/common/dist/work/index.js";
 import { WSMessage } from "@mp-assistant/common/dist/ws/message.js"
 import { getChromeUserDataDir } from "@mp-assistant/common/dist/pathManage.js";
+import fs from "fs";
 
 export abstract class BaseWorker {
   readonly type?: WorkerType;
@@ -18,6 +19,8 @@ export abstract class BaseWorker {
   private __browserContent: BrowserContext | null = null;
 
   private __taskList: BaseTask[] = [];
+
+  private __status: WorkerStatus = WorkerStatus.RUNNING;
 
   private __currentRunningTaskKey = '';
 
@@ -40,6 +43,18 @@ export abstract class BaseWorker {
 
   get browserContent() {
     return this.__browserContent;
+  }
+
+  set status(status: WorkerStatus) {
+    if (this.__status === status) {
+      return;
+    }
+    this.__status = status;
+    this.emitDetailChangeEvent();
+  }
+
+  get status() {
+    return this.__status;
   }
 
   get taskList() {
@@ -71,6 +86,7 @@ export abstract class BaseWorker {
       type: this.type!,
       taskList: this.taskList.map(task => task.info()),
       loadings: [...this.__loadings],
+      status: this.status,
     }
   }
 
@@ -115,13 +131,44 @@ export abstract class BaseWorker {
     this.emitDetailChangeEvent();
   }
 
-  destroy() {
-    this.__browserContent?.close();
+  pauseAndRecover() {
+    if (this.status === WorkerStatus.PAUSED) {
+      this.status = WorkerStatus.RUNNING;
+      return;
+    }
+    this.status = WorkerStatus.PAUSED;
+  }
+
+  async destroy() {
+    if (this.isLoading(WXWorkerN.LoadingType.deleteUserDataDir)) {
+      return;
+    }
+
+    this.setLoading(WXWorkerN.LoadingType.deleteUserDataDir);
+    this.status = WorkerStatus.DELETED;
+
+    try {
+      await this.__browserContent?.close();
+      const userDataDir = path.join(getChromeUserDataDir(), this.key);
+      const stats = fs.statSync(userDataDir, { throwIfNoEntry: false })
+
+      if (stats && stats.isDirectory()) {
+        // 持久化目录下可能存在缓存文件，需强制递归删除避免 ENOTEMPTY
+        fs.rmSync(userDataDir, { recursive: true, force: true });
+      }
+    } catch (error) {
+
+      console.log('删除用户数据目录失败', error);
+    } finally {
+      this.offLoading(WXWorkerN.LoadingType.deleteUserDataDir);
+    }
   }
 
   private async __taskCycle() {
     try {
-      await this._taskCycleExecutor();
+      if (this.status === WorkerStatus.RUNNING) {
+        await this._taskCycleExecutor();
+      }
     } catch (error) {
       console.error('任务执行失败', error);
     }

@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch, ref, provide } from 'vue';
-import { getFileUrl, requestGetWorkerDetail, requestLoginWorker, requestLogoutWorker } from '@/api';
+import { getFileUrl, requestGetWorkerDetail, requestGetWorkerList, requestLoginWorker, requestLogoutWorker } from '@/api';
 import { WXWorkerN } from '@mp-assistant/common/dist/work';
 import WXAList from './component/WXAList/index.vue';
 import TaskStack from './component/TaskStack/index.vue';
@@ -66,12 +66,22 @@ const { loading: handleWorkerLogoutLoading, call: handleWorkerLogout } = useApiC
 });
 
 watch(() => props.workerKey, () => {
+    if (!props.workerKey) {
+        workerDetail.value = null;
+        return
+    }
     getWorkerDetail();
 });
 
-const handleWorkerListChange = (data: WSMessage.Worker.DetailChange.Data) => {
-    if (data.key === props.workerKey) {
-        getWorkerDetail();
+const handleWorkerListChange = async (data: WSMessage.Worker.DetailChange.Data) => {
+    const { data: workList } = await requestGetWorkerList();
+    // 如果workerList中存在该key，并且该key是当前选中的worker，则获取worker详情
+    if (workList.some(item => item.key === data.key)) {
+        if (data.key === props.workerKey) {
+            await getWorkerDetail();
+        }
+    } else {
+        workerDetail.value = null;
     }
 }
 

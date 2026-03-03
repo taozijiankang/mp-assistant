@@ -1,13 +1,13 @@
 <template>
-    <el-dialog v-model="visible" title="添加Worker" width="500px">
+    <el-dialog v-model="visible" title="添加 Worker" width="500px">
         <el-form ref="elFormRef" :model="form" label-width="120px" :rules="rules">
-            <el-form-item label="type" prop="type">
+            <el-form-item label="类型" prop="type">
                 <el-select v-model="form.type">
                     <el-option v-for="item in WorkerTypeOptions" :key="item.value" :label="item.label"
                         :value="item.value" />
                 </el-select>
             </el-form-item>
-            <el-form-item label="name" prop="name">
+            <el-form-item label="名称" prop="name">
                 <el-input v-model="form.name" clearable />
             </el-form-item>
             <el-form-item>

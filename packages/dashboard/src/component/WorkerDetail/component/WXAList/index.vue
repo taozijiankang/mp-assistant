@@ -1,7 +1,7 @@
 <template>
     <div class="wxa-list">
         <div class="controller">
-            <el-input v-model="searchValue" placeholder="请输入小程序名称或AppID进行搜索" clearable />
+            <el-input v-model="searchValue" placeholder="请输入过滤关键词 多个关键词用空格分隔" clearable />
             <el-button type="primary"
                 :loading="refreshWxaListLoading || workerDetail.loadings.includes(WXWorkerN.LoadingType.updateWxaListWxaList)"
                 @click="handleRefreshWxaList">刷新小程序列表</el-button>
@@ -63,12 +63,14 @@
 <script setup lang="ts">
 import { requestAddTask, requestWorkerUpdateWxaList } from '@/api';
 import { useApiCall } from '@/hooks/useApiCall';
-import type { WXMPItem } from '@mp-assistant/common/dist/types/wx';
+import type { WXMPItem, WXReviewStatus } from '@mp-assistant/common/dist/types/wx';
 import { WXWorkerN } from '@mp-assistant/common/dist/work';
 import { TaskStatus, TaskStatusDict, TaskType, TaskTypeDict, WXTaskN, type BaseTaskInfo } from '@mp-assistant/common/dist/work/task';
 import { ref, computed } from 'vue';
 import VersionList from "./component/VersionList/index.vue"
 import { dayjs } from 'element-plus';
+import fuzzysort from 'fuzzysort';
+import { WXReviewStatusDict } from '@mp-assistant/common/dist/constant';
 
 const props = defineProps<{
     workerDetail: WXWorkerN.WXWorkInfo;
@@ -82,27 +84,24 @@ const searchValue = ref('');
 
 const restartTaskLoadings = ref<string[]>([]);
 
-const filteredWxaList = computed(() => {
-    const wxaList: WXMPItem[] = [];
-    if (!searchValue.value) {
-        wxaList.push(...props.workerDetail.wxaList);
-    } else {
-        wxaList.push(...props.workerDetail.wxaList.filter(wxa => wxa.app_name.includes(searchValue.value) || wxa.appid.includes(searchValue.value)));
-    }
-    return wxaList.map(item => {
-        const relatedTask_ = [...props.workerDetail.taskList].sort((a, b) => b.startTime - a.startTime).filter(taskItem => {
+const wxaList = computed(() => {
+    return props.workerDetail.wxaList.map(item => {
+        // 获取相关任务
+        const relatedTask_ = props.workerDetail.taskList.filter(taskItem => {
             const options: WXTaskN.TaskOptions = taskItem.options;
             return options.app_name === item.app_name && options.username === item.username;
         });
+
         // 同一种类型的任务只能存在一个
         const relatedTask: BaseTaskInfo[] = [];
-        for (const taskItem of relatedTask_) {
+        for (const taskItem of relatedTask_.sort((a, b) => b.createTime - a.createTime)) {
             const alreadyTask = relatedTask.find(taskItem_ => taskItem_.type === taskItem.type);
             if (alreadyTask) {
                 continue;
             }
             relatedTask.push(taskItem);
         }
+
         return {
             wxaItem: item,
             relatedTask,
@@ -111,6 +110,50 @@ const filteredWxaList = computed(() => {
             publishTaskInfo: relatedTask.find(taskItem => taskItem.type === TaskType.WX_PUBLISH) as WXTaskN.TaskInfo | undefined,
         };
     });
+});
+
+const filteredWxaList = computed(() => {
+    if (!searchValue.value) {
+        return wxaList.value;
+    }
+    const fuzzysortKeys: {
+        key: (item: { wxaItem: WXMPItem, inspectTaskVersionInfo: WXTaskN.InspectVersionInfo | undefined }) => string;
+        weight: number;
+    }[] = [
+            {
+                // 小程序名称
+                key: item => item.wxaItem.app_name,
+                weight: 3,
+            },
+            {
+                // appid
+                key: item => item.wxaItem.appid,
+                weight: 2,
+            },
+            {
+                // username
+                key: item => item.wxaItem.username,
+                weight: 1,
+            },
+            {
+                // 审核状态
+                key: item => {
+                    const result = item.inspectTaskVersionInfo?.result?.data as WXTaskN.VersionListData | undefined;
+                    // 审核版本
+                    const auditVersion = result?.[WXTaskN.VersionType.TEST];
+                    return WXReviewStatusDict[auditVersion?.audit_status as WXReviewStatus] || '';
+                },
+                weight: 1,
+            },
+        ];
+    return fuzzysort.go(searchValue.value, wxaList.value, {
+        keys: fuzzysortKeys.map(item => item.key),
+        scoreFn: item => {
+            return fuzzysortKeys.reduce((a, b, i) => {
+                return a + item[i].score * b.weight;
+            }, 0);
+        },
+    }).map(item => item.obj);
 });
 
 const { loading: refreshWxaListLoading, call: handleRefreshWxaList } = useApiCall(async () => {

@@ -3,19 +3,36 @@
   flex-direction: column;
   height: 100vh;
   width: 100vw;
-  background: #faf9fe;
+  background: #fff;
   .header {
     height: 40px;
-    border-bottom: 1px solid #e0e0e0;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 10px;
+    margin-bottom: 10px;
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      .header-title-logo {
+        width: 30px;
+        height: 30px;
+      }
+      .header-title-text {
+        font-size: 16px;
+        color: #00b240;
+        font-weight: bold;
+      }
+    }
   }
   .worker-detail {
     flex: 1;
-    padding: 10px;
+    padding: 0 10px 10px 10px;
     box-sizing: border-box;
     min-height: 0;
+    background-color: #fff;
   }
 }

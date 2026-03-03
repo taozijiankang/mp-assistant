@@ -2,8 +2,11 @@
     <div class="task-stack">
         <div class="task-list">
             <div class="controller">
-                <el-input v-model="filterKeyword" placeholder="请输入过滤关键词，支持小程序名称、appid、username" clearable />
+                <el-input v-model="filterKeyword" placeholder="请输入过滤关键词 多个关键词用空格分隔" clearable />
                 <el-button type="primary" @click="handleAddTask?.()">添加任务</el-button>
+                <el-icon class="pause-icon" @click="handleChangeWorkerStatus">
+                    <component :is="StatusIcon" />
+                </el-icon>
             </div>
             <div class="filter">
                 <div v-for="item in filterStatusOptions" :key="item.value" class="filter-item" :class="{
@@ -49,6 +52,10 @@
                         <div class="task-key">
                             <span>{{ taskItem.key }}</span>
                         </div>
+                        <div v-if="taskItem.result?.status === TaskStatus.FAILED && taskItem.result?.msg"
+                            class="result-fill-message">
+                            <span>{{ taskItem.result?.msg }}</span>
+                        </div>
                         <div v-if="getWxaInfo(taskItem.options)" class="wxa-info-container">
                             <img class="wxa-icon" :src="getWxaInfo(taskItem.options)?.app_headimg" />
                             <div class="wxa-info">
@@ -59,8 +66,12 @@
                         </div>
                         <div v-if="WXTaskN.isPublishInfo(taskItem) && taskItem.publishQRCodeFilePath && taskItem.status === TaskStatus.RUNNING"
                             class="publish-qrcode-container">
-                            <span class="publish-qrcode-description">需要扫描二维码进行发布 剩余时间: {{ Math.round(taskItem.countdown)
-                                }}秒</span>
+                            <div class="publish-qrcode-header">
+                                <span class="publish-qrcode-description">需要扫描二维码进行发布 剩余时间: {{
+                                    Math.round(taskItem.countdown)
+                                    }}秒</span>
+
+                            </div>
                             <img :src="getFileUrl(taskItem.publishQRCodeFilePath)" alt="publish-qrcode"
                                 class="publish-qrcode-image" />
                         </div>
@@ -137,13 +148,14 @@
 <script setup lang="ts">
 import { TaskStatus, TaskStatusDict, TaskType, TaskTypeDict, WXTaskN, type BaseTaskInfo } from '@mp-assistant/common/dist/work/task';
 import { ref, computed, inject } from 'vue';
-import { dayjs, ElMessageBox } from 'element-plus';
-import { WXWorkerN } from '@mp-assistant/common/dist/work';
+import { dayjs, ElMessage, ElMessageBox } from 'element-plus';
+import { WorkerStatus, WXWorkerN } from '@mp-assistant/common/dist/work';
 import { useOperationRecordStore } from '@/stores';
 import { storeToRefs } from 'pinia';
-import { Delete } from '@element-plus/icons-vue';
-import { getFileUrl, requestRemoveTask } from '@/api';
+import { Delete, VideoPause, VideoPlay } from '@element-plus/icons-vue';
+import { getFileUrl, requestPauseAndRecoverWorker, requestRemoveTask } from '@/api';
 import type { AddTaskFormData } from '../AddTaskDialog/index';
+import fuzzysort from 'fuzzysort';
 
 const props = defineProps<{
     workerDetail: WXWorkerN.WXWorkInfo;
@@ -197,13 +209,59 @@ const taskList = computed(() => {
 
 const filteredTaskList = computed(() => {
     let list = taskList.value;
-    if (filterKeyword.value) {
-        list = list.filter(task => task.key.includes(filterKeyword.value));
-    }
     if (filterStatus.value !== 'all') {
         list = list.filter(task => task.status === filterStatus.value);
     }
+    if (filterKeyword.value) {
+        const fuzzysortKeys: {
+            key: (item: BaseTaskInfo) => string;
+            weight: number;
+        }[] = [
+                {
+                    // 任务类型
+                    key: item => TaskTypeDict[item.type],
+                    weight: 3,
+                },
+                {
+                    // 任务状态
+                    key: item => TaskStatusDict[item.status],
+                    weight: 2,
+                },
+                {
+                    // 任务关键字
+                    key: item => item.key,
+                    weight: 1,
+                },
+                {
+                    // 小程序名称
+                    key: item => getWxaInfo(item.options)?.app_name || '',
+                    weight: 2,
+                },
+                {
+                    // appid
+                    key: item => getWxaInfo(item.options)?.appid || '',
+                    weight: 2,
+                },
+                {
+                    // username
+                    key: item => getWxaInfo(item.options)?.username || '',
+                    weight: 2,
+                },
+            ];
+        list = fuzzysort.go(filterKeyword.value, list, {
+            keys: fuzzysortKeys.map(item => item.key),
+            scoreFn: item => {
+                return fuzzysortKeys.reduce((a, b, i) => {
+                    return a + item[i].score * b.weight;
+                }, 0);
+            },
+        }).map(item => item.obj);
+    }
     return list;
+});
+
+const StatusIcon = computed(() => {
+    return props.workerDetail.status === WorkerStatus.PAUSED ? VideoPlay : VideoPause;
 });
 
 const handleTaskClick = (taskItem: BaseTaskInfo) => {
@@ -231,6 +289,11 @@ const handleDestroyTask = (taskItem: BaseTaskInfo) => {
         }
     });
 };
+
+const handleChangeWorkerStatus = async () => {
+    const { message } = await requestPauseAndRecoverWorker(props.workerDetail.key);
+    ElMessage.success(message || '');
+}
 
 </script>
 

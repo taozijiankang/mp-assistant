@@ -106,7 +106,7 @@ const showVersionList = computed(() => {
         {
             title: '审核版本',
             type: WXTaskN.VersionType.TEST,
-            versions: [testVersion.value].filter(Boolean) as VersionListItem[],
+            versions: ([testVersion.value].filter(Boolean) as VersionListItem[]).filter(el => el.audit_status),
         },
         {
             title: '开发版本',

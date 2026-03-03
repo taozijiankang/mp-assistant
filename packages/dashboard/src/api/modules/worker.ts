@@ -22,6 +22,13 @@ export function requestAddWorker(body: Api.Worker.AddWorker.RequestBody) {
     );
 }
 
+export function requestPauseAndRecoverWorker(key: string) {
+    return request<Api.Worker.PauseAndRecoverWorker.ResponseData>(
+        Api.Worker.PauseAndRecoverWorker.url,
+        { method: Api.Worker.PauseAndRecoverWorker.method, query: { key } }
+    );
+}
+
 export function requestRemoveWorker(key: string) {
     return request<Api.Worker.RemoveWorker.ResponseData>(
         Api.Worker.RemoveWorker.url,
@@ -75,6 +82,13 @@ export function requestGetTaskDetail(key: string, taskKey: string) {
     return request<Api.Worker.TaskDetail.ResponseData>(
         Api.Worker.TaskDetail.url,
         { method: Api.Worker.TaskDetail.method, query: { key, taskKey } }
+    );
+}
+
+export function requestGetPublishQRCode(key: string, taskKey: string) {
+    return request<Api.Worker.GetPublishQRCode.ResponseData>(
+        Api.Worker.GetPublishQRCode.url,
+        { method: Api.Worker.GetPublishQRCode.method, query: { key, taskKey } }
     );
 }
 
