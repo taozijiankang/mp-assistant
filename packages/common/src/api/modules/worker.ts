@@ -51,8 +51,8 @@ export namespace WorkerApi {
     /**
      * 暂停 Worker
      */
-    export namespace PauseWorker {
-        export const url = '/worker-pause';
+    export namespace PauseAndRecoverWorker {
+        export const url = '/worker-pauseAndRecover';
         export const method = 'POST';
 
         export type RequestQuery = {

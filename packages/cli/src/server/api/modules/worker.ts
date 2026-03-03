@@ -58,17 +58,17 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         return getSuccessApiResponse(worker.info());
     });
 
-    fastify.post(Api.Worker.PauseWorker.url, async (request, reply): Promise<Api.Worker.PauseWorker.Response> => {
-        const { key } = request.query as Api.Worker.PauseWorker.RequestQuery;
+    fastify.post(Api.Worker.PauseAndRecoverWorker.url, async (request, reply): Promise<Api.Worker.PauseAndRecoverWorker.Response> => {
+        const { key } = request.query as Api.Worker.PauseAndRecoverWorker.RequestQuery;
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {
             return getErrorApiResponse('Worker not found', 404);
         }
 
-        worker.pause();
+        worker.pauseAndRecover();
 
         WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
-        return getSuccessApiResponse(undefined);
+        return getSuccessApiResponse(undefined, worker.status === WorkerStatus.PAUSED ? '暂停Worker成功' : '恢复Worker成功');
     })
 
     fastify.delete(Api.Worker.RemoveWorker.url, async (request, reply): Promise<Api.Worker.RemoveWorker.Response> => {

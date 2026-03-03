@@ -18,6 +18,11 @@
       justify-content: space-between;
       gap: 10px;
       padding: 0 12px;
+      .pause-icon {
+        cursor: pointer;
+        font-size: 20px;
+        color: #409eff;
+      }
     }
     .filter {
       display: flex;
