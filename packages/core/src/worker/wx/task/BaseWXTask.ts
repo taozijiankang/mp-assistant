@@ -93,7 +93,7 @@ export class BaseWXTask extends BaseTask {
                 const imageUrl = await saveScreenshotBufferToFile(buffer);
 
                 this._addRunningReport({
-                    title: '切换小程序',
+                    title: '切换小程序成功',
                     description: `切换小程序: ${this.options.app_name} - ${this.options.username}`,
                     timestamp: Date.now(),
                     images: [imageUrl],
