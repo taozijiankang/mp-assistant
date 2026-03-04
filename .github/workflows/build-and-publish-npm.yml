@@ -39,12 +39,12 @@ jobs:
       - name: 安装依赖
         run: pnpm install
 
+      - name: 迭代版本号
+        run: node ./.node/iteration-version.js -m ${{vars.MAJOR_VN}} -n ${{vars.MINOR_VN}}
+
       - name: 构建
         run: |
           pnpm run build
-
-      - name: 迭代版本号
-        run: node ./.node/iteration-version.js -m ${{vars.MAJOR_VN}} -n ${{vars.MINOR_VN}}
 
       - name: 发布包到 npm
         run: pnpm publish -r --access public --no-git-checks
