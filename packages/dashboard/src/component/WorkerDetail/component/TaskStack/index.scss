@@ -18,10 +18,15 @@
       justify-content: space-between;
       gap: 10px;
       padding: 0 12px;
-      .pause-icon {
+      .worker-status-icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
-        font-size: 20px;
-        color: #409eff;
+        .worker-status-icon {
+          width: 20px;
+          height: 20px;
+        }
       }
     }
     .filter {
