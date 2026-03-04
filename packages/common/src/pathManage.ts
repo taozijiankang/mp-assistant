@@ -10,7 +10,7 @@ export function getRootDir() {
 }
 
 export function getChromeUserDataDir() {
-  const dir = path.join(getRootDir(), './node_modules/.chrome_user_data');
+  const dir = path.join(process.cwd(), './node_modules/.chrome_user_data');
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -18,7 +18,7 @@ export function getChromeUserDataDir() {
 }
 
 export function getStoreDir() {
-  const dir = path.join(getRootDir(), './node_modules/.store');
+  const dir = path.join(process.cwd(), './node_modules/.store');
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -26,7 +26,7 @@ export function getStoreDir() {
 }
 
 export function getFilesDir() {
-  const dir = path.join(getRootDir(), './node_modules/.files');
+  const dir = path.join(process.cwd(), './node_modules/.files');
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
