@@ -42,6 +42,7 @@ import { WSMessage } from '@mp-assistant/common/dist/ws';
 import { useApiCall } from '@/hooks/useApiCall';
 import AddTaskDialog from './component/AddTaskDialog/index.vue';
 import type { AddTaskFormData } from './component/AddTaskDialog/index';
+import { getSuccessApiResponse } from '@mp-assistant/common/dist/api/utils';
 
 const props = defineProps<{
     workerKey: string;
@@ -49,7 +50,13 @@ const props = defineProps<{
 
 const addTaskDialogRef = ref<InstanceType<typeof AddTaskDialog>>();
 
-const { data: workerDetail, call: getWorkerDetail } = useApiCall(() => requestGetWorkerDetail(props.workerKey));
+const { data: workerDetail, call: getWorkerDetail } = useApiCall(async () => {
+    const { data: workList } = await requestGetWorkerList();
+    if (workList.some(item => item.key === props.workerKey)) {
+        return await requestGetWorkerDetail(props.workerKey);
+    }
+    return getSuccessApiResponse(null);
+});
 
 const { loading: handleWorkerLoginLoading, call: handleWorkerLogin } = useApiCall(async () => {
     const res = await requestLoginWorker(props.workerKey);
@@ -66,22 +73,12 @@ const { loading: handleWorkerLogoutLoading, call: handleWorkerLogout } = useApiC
 });
 
 watch(() => props.workerKey, () => {
-    if (!props.workerKey) {
-        workerDetail.value = null;
-        return
-    }
     getWorkerDetail();
 });
 
 const handleWorkerListChange = async (data: WSMessage.Worker.DetailChange.Data) => {
-    const { data: workList } = await requestGetWorkerList();
-    // 如果workerList中存在该key，并且该key是当前选中的worker，则获取worker详情
-    if (workList.some(item => item.key === data.key)) {
-        if (data.key === props.workerKey) {
-            await getWorkerDetail();
-        }
-    } else {
-        workerDetail.value = null;
+    if (data.key === props.workerKey) {
+        await getWorkerDetail();
     }
 }
 
