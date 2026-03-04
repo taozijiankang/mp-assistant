@@ -4,7 +4,6 @@
   flex-direction: row;
   align-items: center;
   height: 50px;
-  padding: 0 10px;
   box-sizing: border-box;
   gap: 10px;
 
@@ -12,6 +11,10 @@
     overflow-x: auto;
     flex: 1;
     min-width: 0;
+
+    ::v-deep(.el-tabs__header) {
+      padding: 0 10px;
+    }
   }
 
   .custom-tabs-label {
