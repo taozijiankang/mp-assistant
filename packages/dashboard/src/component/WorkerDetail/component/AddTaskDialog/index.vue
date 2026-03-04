@@ -39,7 +39,10 @@
                                     <el-option v-for="item in VersionPositioningCriteriaOptions" :key="item.value"
                                         :label="item.label" :value="item.value" />
                                 </el-select>
-                                <el-input class="value-input" v-model="item.value" placeholder="请输入版本定位值" clearable />
+                                <el-input v-if="item.type === VersionPositioningType.Describe" autosize type="textarea"
+                                    class="value-input" v-model="item.value" placeholder="请输入版本定位值" clearable />
+                                <el-input v-else class="value-input" v-model="item.value" placeholder="请输入版本定位值"
+                                    clearable />
                                 <el-button type="danger"
                                     @click="handleRemovePositioner(index, TaskType.WX_AUDIT)">删除</el-button>
                             </div>
@@ -81,7 +84,10 @@
                                     <el-option v-for="item in VersionPositioningCriteriaOptions" :key="item.value"
                                         :label="item.label" :value="item.value" />
                                 </el-select>
-                                <el-input class="value-input" v-model="item.value" placeholder="请输入版本定位值" clearable />
+                                <el-input v-if="item.type === VersionPositioningType.Describe" autosize type="textarea"
+                                    class="value-input" v-model="item.value" placeholder="请输入版本定位值" clearable />
+                                <el-input v-else class="value-input" v-model="item.value" placeholder="请输入版本定位值"
+                                    clearable />
                                 <el-button type="danger"
                                     @click="handleRemovePositioner(index, TaskType.WX_PUBLISH)">删除</el-button>
                             </div>
