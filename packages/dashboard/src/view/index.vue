@@ -3,7 +3,8 @@
     <div class="header">
       <div class="header-title">
         <img src="@/assets/logo.png" alt="小程序助手" class="header-title-logo" />
-        <span class="header-title-text">小程序助手 控制台</span>
+        <span class="header-title-text">小程序助手 控制台 </span>
+        <span class="header-title-text">v{{ packageInfo.version }}</span>
       </div>
       <el-button type="primary" @click="handleEditConfig" plain :icon="Setting"></el-button>
     </div>
@@ -23,6 +24,8 @@ import { useOperationRecordStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import { Setting } from '@element-plus/icons-vue';
 import { requestGetConfig } from '@/api/modules/config';
+
+const packageInfo = __PACKAGE_INFO__;
 
 const editConfigDialogRef = ref<InstanceType<typeof EditConfigDialog>>();
 

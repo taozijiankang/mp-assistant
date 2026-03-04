@@ -4,6 +4,14 @@ import vue from "@vitejs/plugin-vue";
 import vueDevTools from "vite-plugin-vue-devtools";
 import { exec } from "node:child_process";
 import vueJsx from "@vitejs/plugin-vue-jsx";
+import path from "node:path";
+import fs from "node:fs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const packageJsonPath = path.join(__dirname, "package.json");
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -15,6 +23,7 @@ export default defineConfig({
   },
   define: {
     "process.env": {},
+    __PACKAGE_INFO__: packageJson,
     __COMMIT_INFO__: {
       hash: await getGitInfo("%h"),
       author: await getGitInfo("%an"),

@@ -69,7 +69,7 @@
                             <div class="publish-qrcode-header">
                                 <span class="publish-qrcode-description">需要扫描二维码进行发布 剩余时间: {{
                                     Math.round(taskItem.countdown)
-                                    }}秒</span>
+                                }}秒</span>
 
                             </div>
                             <img :src="getFileUrl(taskItem.publishQRCodeFilePath)" alt="publish-qrcode"
@@ -142,6 +142,7 @@
                 <el-empty v-else description="暂无任务运行报告" />
             </div>
         </el-scrollbar>
+        <el-empty v-else class="no-task-data" description="暂无任务数据" />
     </div>
 </template>
 
