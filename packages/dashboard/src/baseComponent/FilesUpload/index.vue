@@ -16,7 +16,7 @@
             <Empty v-if="files.length === 0" description="暂无文件" />
         </div>
         <div class="files-upload-add" v-if="multiple ? files.length < max : files.length <= 0">
-            <el-button type="primary" plain @click="handleAddFile">添加文件</el-button>
+            <el-button plain @click="handleAddFile">添加文件</el-button>
         </div>
     </div>
 </template>

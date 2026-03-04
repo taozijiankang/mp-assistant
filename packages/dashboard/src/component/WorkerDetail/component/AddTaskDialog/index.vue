@@ -50,8 +50,7 @@
                         </div>
                         <Empty v-if="auditForm.positioner.length === 0" description="暂无版本定位条件" />
                         <div class="positioner-add">
-                            <el-button type="primary" plain
-                                @click="handleAddPositioner(TaskType.WX_AUDIT)">添加版本定位条件</el-button>
+                            <el-button plain @click="handleAddPositioner(TaskType.WX_AUDIT)">添加版本定位条件</el-button>
                         </div>
                     </div>
                 </el-form-item>
@@ -96,8 +95,7 @@
                         <el-empty v-if="publishForm.positioner.length === 0" style="padding: 0" :image-size="80"
                             description="暂无版本定位条件" />
                         <div class="positioner-add">
-                            <el-button type="primary" plain
-                                @click="handleAddPositioner(TaskType.WX_PUBLISH)">添加版本定位条件</el-button>
+                            <el-button plain @click="handleAddPositioner(TaskType.WX_PUBLISH)">添加版本定位条件</el-button>
                         </div>
                     </div>
                 </el-form-item>
