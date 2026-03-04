@@ -18,10 +18,15 @@
       justify-content: space-between;
       gap: 10px;
       padding: 0 12px;
-      .pause-icon {
+      .worker-status-icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
-        font-size: 20px;
-        color: #409eff;
+        .worker-status-icon {
+          width: 20px;
+          height: 20px;
+        }
       }
     }
     .filter {
@@ -134,9 +139,6 @@
         &.not-started {
           .main {
             .task-status {
-              .dot {
-                background-color: #909399;
-              }
               span {
                 color: #909399;
               }
@@ -147,11 +149,6 @@
           .main {
             .task-status {
               color: #e6a23c;
-              .dot {
-                background-color: #e6a23c;
-                width: 15px;
-                height: 15px;
-              }
               span {
                 color: #e6a23c;
               }
@@ -162,9 +159,6 @@
           .main {
             .task-status {
               color: #67c23a;
-              .dot {
-                background-color: #67c23a;
-              }
               span {
                 color: #67c23a;
               }
@@ -175,9 +169,6 @@
           .main {
             .task-status {
               color: #f56c6c;
-              .dot {
-                background-color: #f56c6c;
-              }
               span {
                 color: #f56c6c;
               }
@@ -211,13 +202,12 @@
             display: flex;
             align-items: center;
             gap: 4px;
-            .dot {
-              width: 6px;
-              height: 6px;
-              border-radius: 50%;
-              background-color: #909399;
-              transition: all 0.3s ease-in-out;
+
+            .task-status-icon {
+              width: 20px;
+              height: 20px;
             }
+
             span {
               color: #1d2129;
               font-family: "Source Han Sans SC";

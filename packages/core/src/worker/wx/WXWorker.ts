@@ -38,6 +38,9 @@ export class WXWorker extends BaseWorker {
         }
         this.__isLogin = s;
         this.emitDetailChangeEvent();
+
+        // 如果登录成功，更新小程序列表
+        this.updateWxaList();
     }
 
     protected async _taskCycleExecutor() {

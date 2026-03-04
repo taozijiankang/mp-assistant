@@ -4,6 +4,15 @@
             @edit="handleTabsEdit" @tab-add="handleAddWorker" @tab-click="handleWorkerItemClick"
             @tab-remove="handleTabRemove">
             <el-tab-pane v-for="worker in workerList" :key="worker.key" :label="worker.name" :name="worker.key">
+                <template #label>
+                    <div class="custom-tabs-label">
+                        <template v-if="worker.type === WorkerType.WX">
+                            <img v-if="worker.key === currentWorkerKey" src="@/assets/wx.png" alt="worker" />
+                            <img v-else src="@/assets/wx_.png" alt="worker" />
+                        </template>
+                        <span>{{ worker.name }}</span>
+                    </div>
+                </template>
             </el-tab-pane>
         </el-tabs>
 
@@ -20,6 +29,7 @@ import { WSMessageEvent } from '@/event/WSMessageEvent';
 import type { BaseWorkInfo } from '@mp-assistant/common/dist/work';
 import type { TabPaneName, TabsPaneContext } from 'element-plus';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { WorkerType } from '@mp-assistant/common/dist/work';
 
 const props = defineProps<{
     currentWorkerKey: string;
@@ -35,6 +45,7 @@ const workerList = ref<BaseWorkInfo[]>([]);
 
 const getWorkerList = async () => {
     const { data } = await requestGetWorkerList();
+
     workerList.value = data;
 
     if (!workerList.value || !workerList.value.length) {

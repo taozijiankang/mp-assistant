@@ -4,9 +4,12 @@
             <div class="controller">
                 <el-input v-model="filterKeyword" placeholder="请输入过滤关键词 多个关键词用空格分隔" clearable />
                 <el-button type="primary" @click="handleAddTask?.()">添加任务</el-button>
-                <el-icon class="pause-icon" @click="handleChangeWorkerStatus">
-                    <component :is="StatusIcon" />
-                </el-icon>
+                <div class="worker-status-icon-container" @click="handleChangeWorkerStatus">
+                    <img v-if="props.workerDetail.status === WorkerStatus.PAUSED" src="@/assets/pause.png"
+                        alt="worker-status-icon" class="worker-status-icon">
+                    <img v-if="props.workerDetail.status === WorkerStatus.RUNNING" src="@/assets/play.png"
+                        alt="worker-status-icon" class="worker-status-icon">
+                </div>
             </div>
             <div class="filter">
                 <div v-for="item in filterStatusOptions" :key="item.value" class="filter-item" :class="{
@@ -43,10 +46,12 @@
                                 <span class="task-type">{{ TaskTypeDict[taskItem.type] }} 任务</span>
                             </div>
                             <div class="task-status">
-                                <span class="dot"></span>
-                                <span>
-                                    {{ TaskStatusDict[taskItem.status] }}
-                                </span>
+                                <img v-if="taskItem.status === TaskStatus.RUNNING" src="@/assets/running.png"
+                                    alt="task-status-icon" class="task-status-icon">
+                                <img v-if="taskItem.status === TaskStatus.COMPLETED" src="@/assets/completed.png"
+                                    alt="task-status-icon" class="task-status-icon">
+                                <img v-if="taskItem.status === TaskStatus.FAILED" src="@/assets/failed.png"
+                                    alt="task-status-icon" class="task-status-icon">
                             </div>
                         </div>
                         <div class="task-key">
@@ -259,10 +264,6 @@ const filteredTaskList = computed(() => {
         }).map(item => item.obj);
     }
     return list;
-});
-
-const StatusIcon = computed(() => {
-    return props.workerDetail.status === WorkerStatus.PAUSED ? VideoPlay : VideoPause;
 });
 
 const handleTaskClick = (taskItem: BaseTaskInfo) => {

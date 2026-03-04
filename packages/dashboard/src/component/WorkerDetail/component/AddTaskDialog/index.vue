@@ -39,7 +39,10 @@
                                     <el-option v-for="item in VersionPositioningCriteriaOptions" :key="item.value"
                                         :label="item.label" :value="item.value" />
                                 </el-select>
-                                <el-input class="value-input" v-model="item.value" placeholder="请输入版本定位值" clearable />
+                                <el-input v-if="item.type === VersionPositioningType.Describe" autosize type="textarea"
+                                    class="value-input" v-model="item.value" placeholder="请输入版本定位值" clearable />
+                                <el-input v-else class="value-input" v-model="item.value" placeholder="请输入版本定位值"
+                                    clearable />
                                 <el-button type="danger"
                                     @click="handleRemovePositioner(index, TaskType.WX_AUDIT)">删除</el-button>
                             </div>
@@ -47,8 +50,7 @@
                         </div>
                         <Empty v-if="auditForm.positioner.length === 0" description="暂无版本定位条件" />
                         <div class="positioner-add">
-                            <el-button type="primary" plain
-                                @click="handleAddPositioner(TaskType.WX_AUDIT)">添加版本定位条件</el-button>
+                            <el-button plain @click="handleAddPositioner(TaskType.WX_AUDIT)">添加版本定位条件</el-button>
                         </div>
                     </div>
                 </el-form-item>
@@ -81,7 +83,10 @@
                                     <el-option v-for="item in VersionPositioningCriteriaOptions" :key="item.value"
                                         :label="item.label" :value="item.value" />
                                 </el-select>
-                                <el-input class="value-input" v-model="item.value" placeholder="请输入版本定位值" clearable />
+                                <el-input v-if="item.type === VersionPositioningType.Describe" autosize type="textarea"
+                                    class="value-input" v-model="item.value" placeholder="请输入版本定位值" clearable />
+                                <el-input v-else class="value-input" v-model="item.value" placeholder="请输入版本定位值"
+                                    clearable />
                                 <el-button type="danger"
                                     @click="handleRemovePositioner(index, TaskType.WX_PUBLISH)">删除</el-button>
                             </div>
@@ -90,8 +95,7 @@
                         <el-empty v-if="publishForm.positioner.length === 0" style="padding: 0" :image-size="80"
                             description="暂无版本定位条件" />
                         <div class="positioner-add">
-                            <el-button type="primary" plain
-                                @click="handleAddPositioner(TaskType.WX_PUBLISH)">添加版本定位条件</el-button>
+                            <el-button plain @click="handleAddPositioner(TaskType.WX_PUBLISH)">添加版本定位条件</el-button>
                         </div>
                     </div>
                 </el-form-item>
