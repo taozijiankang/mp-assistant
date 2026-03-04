@@ -43,10 +43,12 @@
                                 <span class="task-type">{{ TaskTypeDict[taskItem.type] }} 任务</span>
                             </div>
                             <div class="task-status">
-                                <span class="dot"></span>
-                                <span>
-                                    {{ TaskStatusDict[taskItem.status] }}
-                                </span>
+                                <img v-if="taskItem.status === TaskStatus.RUNNING" src="@/assets/running.png"
+                                    alt="task-status-icon" class="task-status-icon">
+                                <img v-if="taskItem.status === TaskStatus.COMPLETED" src="@/assets/completed.png"
+                                    alt="task-status-icon" class="task-status-icon">
+                                <img v-if="taskItem.status === TaskStatus.FAILED" src="@/assets/failed.png"
+                                    alt="task-status-icon" class="task-status-icon">
                             </div>
                         </div>
                         <div class="task-key">
