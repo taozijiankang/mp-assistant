@@ -326,6 +326,11 @@
     background-color: white;
     border-radius: 20px;
   }
+
+  .no-task-data {
+    flex: 1;
+  }
+
   .task-detail {
     gap: 10px;
     display: flex;
