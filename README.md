@@ -17,6 +17,51 @@
 - **文件能力**：支持上传提审素材（图片/视频），并通过接口回读
 - **实时通知**：通过 WebSocket 推送 Worker 列表和详情变化
 
+## 使用方式
+
+### 安装 CLI 包
+
+从 npm 全局安装后即可在任意目录使用 `mp-assistant` 命令：
+
+```bash
+# 使用 npm
+npm install -g @mp-assistant/cli
+
+# 或使用 pnpm
+pnpm add -g @mp-assistant/cli
+
+# 或使用 yarn
+yarn global add @mp-assistant/cli
+```
+
+不安装也可通过 `npx` 直接运行：
+
+```bash
+npx @mp-assistant/cli start
+```
+
+### 启动服务
+
+安装完成后，在终端执行：
+
+```bash
+mp-assistant start
+```
+
+可选参数：
+
+- `-e, --executablePath <path>`：浏览器可执行文件路径
+- `-h, --headless <headless>`：是否无头模式（true/false）
+- `-p, --port <port>`：服务端口（默认 `3001`）
+
+示例：
+
+```bash
+mp-assistant start -e "C:\Program Files\Google\Chrome\Application\chrome.exe" -h false -p 3001
+```
+
+> 若在项目本地开发，也可以使用 `node packages/cli/dist/bin/index.js start` 或 `pnpm --filter @mp-assistant/cli dev` 配合构建后运行。
+
 ## 技术栈
 
 - **后端/CLI**：Node.js + TypeScript + Fastify + Playwright
