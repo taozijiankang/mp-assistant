@@ -6,7 +6,10 @@
             <el-tab-pane v-for="worker in workerList" :key="worker.key" :label="worker.name" :name="worker.key">
                 <template #label>
                     <div class="custom-tabs-label">
-                        <img v-if="worker.type === WorkerType.WX" src="@/assets/wx.png" alt="worker" />
+                        <template v-if="worker.type === WorkerType.WX">
+                            <img v-if="worker.key === currentWorkerKey" src="@/assets/wx.png" alt="worker" />
+                            <img v-else src="@/assets/wx_.png" alt="worker" />
+                        </template>
                         <span>{{ worker.name }}</span>
                     </div>
                 </template>
