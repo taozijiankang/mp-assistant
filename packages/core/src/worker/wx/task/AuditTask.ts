@@ -14,6 +14,7 @@ import fs from "fs";
  */
 export class AuditTask extends BaseWXTask {
     readonly type = TaskType.WX_AUDIT;
+
     readonly options: WXTaskN.AuditTaskOptions;
 
     constructor(options: WXTaskN.AuditTaskOptions) {
@@ -30,28 +31,6 @@ export class AuditTask extends BaseWXTask {
             return JSON.stringify(error)
         } catch {
             return String(error)
-        }
-    }
-
-    private _buildFailedResult(msg: string, code: WXReviewStatus = WXReviewStatus.FAIL): TaskExecResult {
-        return {
-            status: TaskStatus.FAILED,
-            data: {
-                code
-            },
-            msg,
-            endTimestamp: Date.now(),
-        }
-    }
-
-    private _buildCompletedResult(msg: string, code: WXReviewStatus = WXReviewStatus.SUCCESS): TaskExecResult {
-        return {
-            status: TaskStatus.COMPLETED,
-            data: {
-                code
-            },
-            msg,
-            endTimestamp: Date.now(),
         }
     }
 
@@ -110,7 +89,7 @@ export class AuditTask extends BaseWXTask {
     }
 
     // 提审流程
-    protected async _getAuditPage(page: Page, targetVersion: VersionListItem): Promise<TaskExecResult> {
+    protected async _getAuditPage(page: Page, targetVersion: VersionListItem) {
         this._addRunningReport({
             title: "提审中",
             timestamp: Date.now(),
@@ -159,16 +138,19 @@ export class AuditTask extends BaseWXTask {
                 images: [screenshotFilePath],
             })
 
-            return this._buildCompletedResult(successLocator ? '提审成功' : '提审失败', successLocator ? WXReviewStatus.SUCCESS : WXReviewStatus.FAIL)
+            return this._complete(TaskStatus.COMPLETED, {
+                msg: successLocator ? '提审成功' : '提审失败'
+            })
         } catch (error) {
-            console.log('提审失败', error);
-            return this._buildFailedResult(this._errorToMessage(error))
+            return this._complete(TaskStatus.FAILED, {
+                msg: this._errorToMessage(error)
+            })
         } finally {
             await page.close();
         }
     }
 
-    protected async _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
+    protected async _start(browserContent: BrowserContext) {
         const page = await this._switchMP(browserContent);
         let shouldClosePage = true
 
@@ -187,7 +169,10 @@ export class AuditTask extends BaseWXTask {
             });
 
             if (!positioner?.length || !populateData || !Object.keys(populateData).length) {
-                return this._buildFailedResult('缺少相关参数')
+                this._complete(TaskStatus.FAILED, {
+                    msg: '缺少相关参数'
+                });
+                return;
             }
 
             this._addRunningReport({
@@ -198,12 +183,18 @@ export class AuditTask extends BaseWXTask {
 
             // 要提审的版本
             if (onlineVersion && versionSatisfy(onlineVersion, positioner)) {
-                return this._buildFailedResult('当前预提审版本和线上版本一致，无需提审')
+                this._complete(TaskStatus.FAILED, {
+                    msg: '当前预提审版本和线上版本一致，无需提审'
+                });
+                return;
             }
 
             const targetVersion = developVersionList?.find(version => versionSatisfy(version, positioner))
             if (!targetVersion) {
-                return this._buildFailedResult('没有找到要提审的版本')
+                this._complete(TaskStatus.FAILED, {
+                    msg: '没有找到要提审的版本'
+                });
+                return;
             }
 
             // 当前没有审核中的版本，直接打开提审页
@@ -233,7 +224,10 @@ export class AuditTask extends BaseWXTask {
                             images: [screenshotFilePath],
                         })
 
-                        return this._buildCompletedResult('当前版本已通过审核，请发布')
+                        this._complete(TaskStatus.COMPLETED, {
+                            msg: '当前版本已通过审核，请发布'
+                        });
+                        return;
                     }
                     // 重新提审
                     shouldOpenAuditPage = true
@@ -241,7 +235,10 @@ export class AuditTask extends BaseWXTask {
                 // 审核中的版本是准备提审的版本，则不需要重新提审
                 case WXReviewStatus.REVIEWING:
                     if (isCurrentAuditTarget) {
-                        return this._buildFailedResult('当前版本正在审核中，请耐心等待', WXReviewStatus.REVIEWING)
+                        this._complete(TaskStatus.FAILED, {
+                            msg: '当前版本正在审核中，请耐心等待'
+                        });
+                        return;
                     }
 
                     // 当前审核版本不是目标版本，先取消审核
@@ -261,12 +258,13 @@ export class AuditTask extends BaseWXTask {
                 return await this._getAuditPage(page, targetVersion)
             }
 
-            return {
-                status: TaskStatus.FAILED,
-                endTimestamp: Date.now(),
-            }
+            return this._complete(TaskStatus.FAILED, {
+                msg: '没有找到要提审的版本'
+            });
         } catch (error) {
-            return this._buildFailedResult(this._errorToMessage(error))
+            return this._complete(TaskStatus.FAILED, {
+                msg: this._errorToMessage(error)
+            });
         } finally {
             if (shouldClosePage) {
                 await page.close();

@@ -2,7 +2,7 @@ import { BrowserContext, Locator, Page } from "playwright";
 import { BaseTask } from "../../BaseTask.js";
 import { WXMP_HOME_URL, WXMP_USER_PAGE_PATH_REX } from "../../../constant/wx.js";
 import { expect } from "playwright/test";
-import { TaskExecResult, WXTaskN } from "@mp-assistant/common/dist/work/task/index.js";
+import { WXTaskN } from "@mp-assistant/common/dist/work/task/index.js";
 import { getVersionList } from "../../../api/index.js";
 import { VersionListItem } from "@mp-assistant/common/dist/types/wx.js";
 import { saveScreenshotBufferToFile } from "../../utils/index.js";
@@ -23,7 +23,7 @@ export class BaseWXTask extends BaseTask {
         };
     }
 
-    protected _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
+    protected _start(browserContent: BrowserContext) {
         throw new Error("Method not implemented.");
     }
 

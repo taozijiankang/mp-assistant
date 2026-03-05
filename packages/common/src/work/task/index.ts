@@ -29,8 +29,6 @@ export interface TaskRunningReport {
 }
 
 export interface TaskExecResult<T = any> {
-    status: TaskStatus.COMPLETED | TaskStatus.FAILED;
-    endTimestamp: number;
     data?: T;
     msg?: string;
 }

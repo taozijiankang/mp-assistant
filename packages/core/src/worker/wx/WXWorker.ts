@@ -67,7 +67,7 @@ export class WXWorker extends BaseWorker {
         if (
             currentRunningTask.status === TaskStatus.NOT_STARTED
         ) {
-            currentRunningTask.run(this.browserContent);
+            currentRunningTask.start(this.browserContent);
         }
 
         /**

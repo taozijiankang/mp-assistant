@@ -46,7 +46,11 @@
                         </div>
                         <span>
                             {{ taskInfo.key }}
-                            {{ dayjs(taskInfo.result?.endTimestamp || 0).format('YYYY-MM-DD HH: mm: ss') }}
+                            <span
+                                v-if="taskInfo.status === TaskStatus.COMPLETED || taskInfo.status === TaskStatus.FAILED">
+
+                                {{ dayjs(taskInfo.endTime).format('YYYY-MM-DD HH: mm: ss') }}
+                            </span>
                         </span>
                     </div>
                     <VersionList v-if="wxa.inspectTaskVersionInfo" :wxmp-item="wxa.wxaItem"
