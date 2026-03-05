@@ -8,10 +8,11 @@
       </div>
       <el-button type="primary" @click="handleEditConfig" plain :icon="Setting"></el-button>
     </div>
-    <div class="worker-list">
-      <WorkList :currentWorkerKey="currentWorkerKey" @currentWorkerKeyChange="handleCurrentWorkerKeyChange" />
+    <div class="content">
+      <WorkList class="worker-list" :currentWorkerKey="currentWorkerKey"
+        @currentWorkerKeyChange="handleCurrentWorkerKeyChange" />
+      <WorkerDetail class="worker-detail" :workerKey="currentWorkerKey" />
     </div>
-    <WorkerDetail class="worker-detail" :workerKey="currentWorkerKey" />
     <EditConfigDialog ref="editConfigDialogRef" />
   </div>
 </template>

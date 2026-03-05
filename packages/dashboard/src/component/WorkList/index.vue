@@ -1,34 +1,44 @@
 <template>
     <div class="worker-list">
-        <el-tabs :model-value="currentWorkerKey" type="card" editable class="content-scroll-container"
-            @edit="handleTabsEdit" @tab-add="handleAddWorker" @tab-click="handleWorkerItemClick"
-            @tab-remove="handleTabRemove">
-            <el-tab-pane v-for="worker in workerList" :key="worker.key" :label="worker.name" :name="worker.key">
-                <template #label>
-                    <div class="custom-tabs-label">
+        <el-scrollbar class="worker-list-content-scrollbar">
+            <div class="worker-list-content">
+                <div class="worker-item" v-for="worker in workerList" :key="worker.key"
+                    :class="{ 'selected': worker.key === currentWorkerKey }" @click="handleWorkerItemClick(worker)">
+                    <div class="info">
                         <template v-if="worker.type === WorkerType.WX">
-                            <img v-if="worker.key === currentWorkerKey" src="@/assets/wx.png" alt="worker" />
-                            <img v-else src="@/assets/wx_.png" alt="worker" />
+                            <img v-if="worker.key === currentWorkerKey" src="@/assets/wx.png" alt="worker"
+                                class="icon" />
+                            <img v-else src="@/assets/wx_.png" alt="worker" class="icon" />
                         </template>
-                        <span>{{ worker.name }}</span>
+                        <span class="name">{{ worker.name }}</span>
                     </div>
-                </template>
-            </el-tab-pane>
-        </el-tabs>
-
+                    <template v-if="WXWorkerN.isWXWorkerInfo(worker)">
+                        <div v-if="worker.loginQRCodeFilePath" class="rq">
+                            <img :src="getFileUrl(worker.loginQRCodeFilePath)" alt="rq" class="icon" />
+                        </div>
+                        <template v-if="worker.isLogin">
+                            <div class="wa-info">
+                                <span class="span">共{{ worker.wxaList.length }}个小程序</span>
+                            </div>
+                        </template>
+                    </template>
+                </div>
+            </div>
+        </el-scrollbar>
+        <div class="controller">
+            <div class="add-worker-button" @click="handleAddWorker">添加Worker</div>
+        </div>
         <AddWorkerDialog ref="addWorkerDialogRef" />
     </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
-import { requestGetWorkerList, requestRemoveWorker } from '@/api';
+import { getFileUrl, requestGetWorkerList } from '@/api';
 import AddWorkerDialog from '@/component/AddWorkerDialog/index.vue';
 import { WSMessage } from "@mp-assistant/common/dist/ws/message.js"
 import { WSMessageEvent } from '@/event/WSMessageEvent';
-import type { BaseWorkInfo } from '@mp-assistant/common/dist/work';
-import type { TabPaneName, TabsPaneContext } from 'element-plus';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { WXWorkerN, type BaseWorkInfo } from '@mp-assistant/common/dist/work';
 import { WorkerType } from '@mp-assistant/common/dist/work';
 
 const props = defineProps<{
@@ -58,12 +68,8 @@ const getWorkerList = async () => {
     }
 }
 
-const handleTabsEdit = (targetName: TabPaneName | undefined, action: 'remove' | 'add') => {
-
-}
-
-const handleWorkerItemClick = (e: TabsPaneContext) => {
-    emit('currentWorkerKeyChange', workerList.value[Number(e.index) ?? 0]?.key);
+const handleWorkerItemClick = (item: BaseWorkInfo) => {
+    emit('currentWorkerKeyChange', item.key);
 }
 
 const handleAddWorker = () => {
@@ -74,34 +80,16 @@ const handleWorkerListChange = () => {
     getWorkerList();
 }
 
-const handleTabRemove = async (key: TabPaneName) => {
-    const { data } = await requestGetWorkerList();
-    const targetWorker = data.find(item => item.key === key);
-
-    ElMessageBox.confirm(`确定删除Worker：${targetWorker?.name}吗？`, '提示', {
-        type: 'warning',
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-    }).then(async () => {
-        if (!targetWorker) {
-            ElMessage.error('Worker不存在')
-            return
-        }
-
-        await requestRemoveWorker(targetWorker.key);
-        ElMessage.success('Worker删除成功');
-    })
-
-}
-
 onMounted(() => {
     getWorkerList();
 
     WSMessageEvent.instance.on(WSMessage.Worker.ListChange.type, handleWorkerListChange);
+    WSMessageEvent.instance.on(WSMessage.Worker.DetailChange.type, handleWorkerListChange);
 });
 
 onUnmounted(() => {
     WSMessageEvent.instance.off(WSMessage.Worker.ListChange.type, handleWorkerListChange);
+    WSMessageEvent.instance.off(WSMessage.Worker.DetailChange.type, handleWorkerListChange);
 });
 </script>
 
