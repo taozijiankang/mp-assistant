@@ -1,8 +1,8 @@
 <template>
-    <el-dialog v-model="visible" title="添加 Worker" width="500px">
+    <el-dialog v-model="visible" :title="isEditMode ? '修改 Worker' : '添加 Worker'" width="500px">
         <el-form ref="elFormRef" :model="form" label-width="120px" :rules="rules">
             <el-form-item label="类型" prop="type">
-                <el-select v-model="form.type">
+                <el-select v-model="form.type" :disabled="isEditMode">
                     <el-option v-for="item in WorkerTypeOptions" :key="item.value" :label="item.label"
                         :value="item.value" />
                 </el-select>
@@ -11,7 +11,8 @@
                 <el-input v-model="form.name" clearable />
             </el-form-item>
             <el-form-item>
-                <el-button type="primary" @click="handleAddWorker">添加</el-button>
+                <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
+                    {{ isEditMode ? '修改' : '添加' }}</el-button>
                 <el-button @click="visible = false">取消</el-button>
             </el-form-item>
         </el-form>
@@ -20,18 +21,21 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { WorkerTypeOptions } from '@mp-assistant/common/dist/work/index.js';
-import { requestAddWorker } from '@/api';
+import { requestAddWorker, requestUpdateWorker } from '@/api';
 import { WorkerType } from '@mp-assistant/common/dist/work/index.js';
 import type { Api } from '@mp-assistant/common/dist/api/index.js';
 import { ElMessage } from 'element-plus';
 import type { FormRules } from 'element-plus';
 import type { ElForm } from 'element-plus';
+import { useApiCall } from '@/hooks/useApiCall';
+import { getSuccessApiResponse } from '@mp-assistant/common/dist/api/utils';
 
 const elFormRef = ref<InstanceType<typeof ElForm>>();
 
 const visible = ref(false);
 
-const loading = ref(false);
+const isEditMode = ref(false);
+const workerKey = ref('');
 
 const form = ref<Api.Worker.AddWorker.RequestBody>({
     type: WorkerType.WX,
@@ -47,25 +51,29 @@ const rules = ref<FormRules>({
     ],
 });
 
-const handleAddWorker = async () => {
+const { loading: submitLoading, call: handleSubmit } = useApiCall(async () => {
     if (!(await elFormRef.value?.validate().catch(() => false))) {
-        return;
+        return getSuccessApiResponse(null);
     }
 
-    loading.value = true;
-    try {
+    if (isEditMode.value) {
+        await requestUpdateWorker(workerKey.value, { name: form.value.name });
+        ElMessage.success('修改 Worker 成功');
+    } else {
         await requestAddWorker(form.value);
-        visible.value = false;
-        ElMessage.success('Add worker success');
-    } catch (error) {
-        console.error(error);
-        ElMessage.error('Add worker failed');
-    } finally {
-        loading.value = false;
+        ElMessage.success('添加 Worker 成功');
     }
-};
+    visible.value = false;
+    return getSuccessApiResponse(null);
+});
 
-const open = () => {
+const open = (editMode = false, key = '', name = '', type = WorkerType.WX) => {
+    isEditMode.value = editMode;
+    workerKey.value = key;
+    form.value = {
+        type,
+        name,
+    };
     visible.value = true;
 };
 

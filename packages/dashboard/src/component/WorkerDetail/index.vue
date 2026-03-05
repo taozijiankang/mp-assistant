@@ -3,7 +3,8 @@
         <div v-if="WXWorkerN.isWXWorkerInfo(workerDetail)" class="wx content-container">
             <!-- 操作栏 -->
             <div class="controller">
-                <el-button v-if="workerDetail?.isLogin" type="primary" :loading="handleWorkerLogoutLoading ||
+                <el-button @click="handleEditWorker">修改</el-button>
+                <el-button style="margin: 0;" v-if="workerDetail?.isLogin" type="primary" :loading="handleWorkerLogoutLoading ||
                     workerDetail.loadings.includes(WXWorkerN.LoadingType.logout)"
                     @click="handleWorkerLogout">退出登录</el-button>
                 <el-button style="margin: 0;" plain type="danger"
@@ -30,6 +31,7 @@
             </div>
         </div>
         <AddTaskDialog ref="addTaskDialogRef" />
+        <AddWorkerDialog ref="addWorkerDialogRef" @onSuccess="getWorkerDetail" />
     </div>
 </template>
 
@@ -46,12 +48,14 @@ import AddTaskDialog from './component/AddTaskDialog/index.vue';
 import type { AddTaskFormData } from './component/AddTaskDialog/index';
 import { getSuccessApiResponse } from '@mp-assistant/common/dist/api/utils';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import AddWorkerDialog from '@/component/AddWorkerDialog/index.vue';
 
 const props = defineProps<{
     workerKey: string;
 }>();
 
 const addTaskDialogRef = ref<InstanceType<typeof AddTaskDialog>>();
+const addWorkerDialogRef = ref<InstanceType<typeof AddWorkerDialog>>();
 
 const { data: workerDetail, call: getWorkerDetail } = useApiCall(async () => {
     const { data: workList } = await requestGetWorkerList();
@@ -87,6 +91,12 @@ const handleWorkerListChange = async (data: WSMessage.Worker.DetailChange.Data) 
 
 const handleAddTask = (formData?: AddTaskFormData) => {
     addTaskDialogRef.value?.open(props.workerKey, formData);
+}
+
+const handleEditWorker = () => {
+    if (workerDetail.value) {
+        addWorkerDialogRef.value?.open(true, workerDetail.value.key, workerDetail.value.name, workerDetail.value.type);
+    }
 }
 
 const handleTabRemove = async (item: BaseWorkInfo) => {
