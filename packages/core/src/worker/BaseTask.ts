@@ -2,7 +2,6 @@ import { BrowserContext } from "playwright";
 import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
 import { BaseTaskInfo, TaskExecResult, TaskRunningReport, TaskStatus, TaskType } from "@mp-assistant/common/dist/work/task/index.js";
 import type { BaseWorker } from "./BaseWorker.js";
-import { WSMessage } from "@mp-assistant/common/dist/ws/message.js";
 
 export abstract class BaseTask {
     readonly type?: TaskType;
@@ -54,6 +53,13 @@ export abstract class BaseTask {
         this.emitDetailChangeEvent();
     }
 
+    protected _complete(status: TaskStatus.COMPLETED | TaskStatus.FAILED, result: TaskExecResult) {
+        this.__endTime = Date.now();
+        this.result = result;
+        this._setStatus(status);
+        this.emitDetailChangeEvent();
+    }
+
     protected _addRunningReport(report: TaskRunningReport) {
         this.__runningReportList.push(report);
 
@@ -75,32 +81,24 @@ export abstract class BaseTask {
         };
     }
 
-    async run(browserContent: BrowserContext): Promise<TaskExecResult> {
+    async start(browserContent: BrowserContext) {
         if (this.status !== TaskStatus.NOT_STARTED) {
-            throw new Error('Task already started');
+            return;
         }
         this.__startTime = Date.now();
         this._setStatus(TaskStatus.RUNNING);
         try {
             // 清空运行报告
             this.__runningReportList = [];
-            // 执行任务
-            const result = await this._executor(browserContent);
-            this._setStatus(result.status);
-            this.result = result;
+
+            await this._start(browserContent);
         } catch (error) {
-            this._setStatus(TaskStatus.FAILED);
-            this.result = {
-                status: TaskStatus.FAILED,
-                endTimestamp: Date.now(),
-                msg: error instanceof Error ? error.message : '未知错误',
-            };
             console.error('任务执行失败', error);
-        } finally {
-            this.__endTime = Date.now();
-            this.emitDetailChangeEvent();
+
+            this._complete(TaskStatus.FAILED, {
+                msg: error instanceof Error ? error.message : '未知错误',
+            });
         }
-        return this.result;
     }
 
     async destroy() {
@@ -120,5 +118,5 @@ export abstract class BaseTask {
         }, 0);
     }
 
-    protected abstract _executor(browserContent: BrowserContext): Promise<TaskExecResult>;
+    protected abstract _start(browserContent: BrowserContext): Promise<void> | void;
 }

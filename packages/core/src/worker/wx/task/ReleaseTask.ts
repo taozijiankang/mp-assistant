@@ -1,7 +1,7 @@
-import { BrowserContext, Locator, Page } from "playwright";
+import { BrowserContext, Page } from "playwright";
 import { BaseWXTask } from "./BaseWXTask.js";
-import { TaskExecResult, TaskStatus, TaskType, WXTaskN } from "@mp-assistant/common/dist/work/task/index.js";
-import { VersionListItem, WXReviewStatus } from "@mp-assistant/common/dist/types/wx.js";
+import { TaskStatus, TaskType, WXTaskN } from "@mp-assistant/common/dist/work/task/index.js";
+import { WXReviewStatus } from "@mp-assistant/common/dist/types/wx.js";
 import { WXMP_VERSION_MANAGEMENT_URL } from "../../../constant/wx.js";
 import { saveScreenshotBufferToFile } from "../../utils/index.js";
 import { versionSatisfy } from "@mp-assistant/common/dist/utils/wx.js";
@@ -20,7 +20,6 @@ export class ReleaseTask extends BaseWXTask {
 
     readonly options: WXTaskN.ReleaseTaskOptions;
 
-
     constructor(options: WXTaskN.ReleaseTaskOptions) {
         super(options);
         this.options = options;
@@ -35,7 +34,7 @@ export class ReleaseTask extends BaseWXTask {
         };
     }
 
-    protected async _waitForQrcodeScan(page: Page, timeout: number = 180000): Promise<void> {
+    protected async _waitForQrcodeScan(page: Page, timeout: number = 180000) {
         const startDate = Date.now();
 
         while ((Date.now() - startDate) < timeout) {
@@ -118,7 +117,7 @@ export class ReleaseTask extends BaseWXTask {
         }
     }
 
-    protected async _executor(browserContent: BrowserContext): Promise<TaskExecResult> {
+    protected async _start(browserContent: BrowserContext) {
         const page = await this._switchMP(browserContent);
         await page.goto(`${WXMP_VERSION_MANAGEMENT_URL}${new URL(page.url()).search}`);
 
@@ -138,22 +137,16 @@ export class ReleaseTask extends BaseWXTask {
             });
 
             if (!positioner || !positioner?.length) {
-                return {
-                    status: TaskStatus.FAILED,
-                    data: null,
+                return this._complete(TaskStatus.FAILED, {
                     msg: "缺少相关参数",
-                    endTimestamp: Date.now(),
-                }
+                });
             }
 
             // 判断线上版本是否与即将发布的版本一致
             if (onlineVersion && versionSatisfy(onlineVersion, positioner)) {
-                return {
-                    status: TaskStatus.FAILED,
-                    data: null,
+                return this._complete(TaskStatus.FAILED, {
                     msg: "当前预发布版本和线上版本一致，无需发布",
-                    endTimestamp: Date.now(),
-                }
+                });
             }
 
             // 判断是否有可发布的版本
@@ -176,24 +169,18 @@ export class ReleaseTask extends BaseWXTask {
                     images: [screenshotFilePath],
                 });
 
-                return {
-                    status: TaskStatus.FAILED,
-                    data: null,
+                return this._complete(TaskStatus.FAILED, {
                     msg: "暂无可发布的版本",
-                    endTimestamp: Date.now(),
-                }
+                });
             }
 
             // 判断可发布的版本是否为目标版本
             const isCurrentAuditTarget = versionSatisfy(testVersionData, positioner)
 
             if (!isCurrentAuditTarget) {
-                return {
-                    status: TaskStatus.FAILED,
-                    data: null,
+                return this._complete(TaskStatus.FAILED, {
                     msg: "未找到可发布版本",
-                    endTimestamp: Date.now(),
-                }
+                });
             }
 
             this._addRunningReport({
@@ -217,12 +204,9 @@ export class ReleaseTask extends BaseWXTask {
             // 检查图片资源加载情况
             const qrCodeLoadingStatus = await this.getQrcodePath();
             if (!qrCodeLoadingStatus) {
-                return {
-                    status: TaskStatus.FAILED,
-                    data: null,
+                return this._complete(TaskStatus.FAILED, {
                     msg: "二维码加载失败",
-                    endTimestamp: Date.now(),
-                }
+                });
             }
 
             this._addRunningReport({
@@ -239,18 +223,14 @@ export class ReleaseTask extends BaseWXTask {
                 timestamp: Date.now(),
             });
 
-            return {
-                status: TaskStatus.COMPLETED,
-                endTimestamp: Date.now(),
-            }
+            return this._complete(TaskStatus.COMPLETED, {
+                msg: "发布成功",
+            });
 
         } catch (error) {
-            return {
-                status: TaskStatus.FAILED,
-                data: null,
+            return this._complete(TaskStatus.FAILED, {
                 msg: JSON.stringify(error),
-                endTimestamp: Date.now(),
-            }
+            });
         } finally {
             page.close();
         }

@@ -10,18 +10,20 @@ import { WXMP_VERSION_MANAGEMENT_URL } from "../../../constant/wx.js";
 export class InspectVersionTask extends BaseWXTask {
     readonly type = TaskType.WX_INSPECT_VERSION;
 
-    protected async _executor(browserContent: BrowserContext): Promise<TaskExecResult<WXTaskN.GetVersionListResult>> {
+    protected _complete(status: TaskStatus.COMPLETED | TaskStatus.FAILED, result: TaskExecResult<WXTaskN.GetVersionListResult>) {
+        super._complete(status, result);
+    }
+
+    protected async _start(browserContent: BrowserContext) {
         const page = await this._switchMP(browserContent);
         try {
             await page.goto(`${WXMP_VERSION_MANAGEMENT_URL}${new URL(page.url()).search}`);
 
             const currentVersionData = await this._getVersionList(page);
 
-            return {
-                status: TaskStatus.COMPLETED,
+            this._complete(TaskStatus.COMPLETED, {
                 data: currentVersionData,
-                endTimestamp: Date.now(),
-            }
+            });
         } catch (error) {
             throw new Error('版本管理页面加载失败');
         } finally {

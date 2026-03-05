@@ -46,6 +46,8 @@
                                 <span class="task-type">{{ TaskTypeDict[taskItem.type] }} 任务</span>
                             </div>
                             <div class="task-status">
+                                <img v-if="taskItem.status === TaskStatus.NOT_STARTED" src="@/assets/noStarted.png"
+                                    alt="task-status-icon" class="task-status-icon">
                                 <img v-if="taskItem.status === TaskStatus.RUNNING" src="@/assets/running.png"
                                     alt="task-status-icon" class="task-status-icon">
                                 <img v-if="taskItem.status === TaskStatus.COMPLETED" src="@/assets/completed.png"
@@ -57,7 +59,7 @@
                         <div class="task-key">
                             <span>{{ taskItem.key }}</span>
                         </div>
-                        <div v-if="taskItem.result?.status === TaskStatus.FAILED && taskItem.result?.msg"
+                        <div v-if="taskItem.status === TaskStatus.FAILED && taskItem.result?.msg"
                             class="result-fill-message">
                             <span>{{ taskItem.result?.msg }}</span>
                         </div>
@@ -109,14 +111,14 @@
                     </div>
                     <div class="task-result-content">
                         <div class="task-result" :class="{
-                            'completed': onSelectedTask.result?.status === TaskStatus.COMPLETED,
-                            'failed': onSelectedTask.result?.status === TaskStatus.FAILED,
+                            'completed': onSelectedTask.status === TaskStatus.COMPLETED,
+                            'failed': onSelectedTask.status === TaskStatus.FAILED,
                         }">
-                            <span>{{ TaskStatusDict[onSelectedTask.result?.status || TaskStatus.NOT_STARTED] }}</span>
+                            <span>{{ TaskStatusDict[onSelectedTask.status || TaskStatus.NOT_STARTED] }}</span>
                         </div>
                         <div class="task-result-time">
                             <span>
-                                结束时间：{{ dayjs(onSelectedTask.result?.endTimestamp || 0).format('YYYY-MM-DD HH:mm:ss') }}
+                                结束时间：{{ dayjs(onSelectedTask.endTime).format('YYYY-MM-DD HH:mm:ss') }}
                             </span>
                         </div>
                         <div v-if="onSelectedTask.result?.msg" class="result-msg">
