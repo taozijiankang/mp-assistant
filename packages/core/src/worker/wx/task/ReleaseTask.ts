@@ -228,6 +228,16 @@ export class ReleaseTask extends BaseWXTask {
             });
 
         } catch (error) {
+            const errorShot = await page.screenshot()
+            const errorShotPath = await saveScreenshotBufferToFile(errorShot);
+
+            this._addRunningReport({
+                title: "执行失败",
+                timestamp: Date.now(),
+                description: String(error),
+                images: [errorShotPath],
+            });
+
             return this._complete(TaskStatus.FAILED, {
                 msg: JSON.stringify(error),
             });
