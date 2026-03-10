@@ -39,15 +39,23 @@ export class WorkerStore {
 
     addWorker(worker: BaseWorker) {
         this.__workerList.push(worker);
-        setWorkerLocalStoreList([...getWorkerLocalStoreList(), {
-            key: worker.key,
-            type: worker.type!,
-            name: worker.name,
-        }]);
+
+        this.saveData();
     }
 
     removeWorker(worker: BaseWorker) {
         this.__workerList = this.__workerList.filter(w => w.key !== worker.key);
-        setWorkerLocalStoreList(getWorkerLocalStoreList().filter(item => item.key !== worker.key));
+
+        this.saveData();
+    }
+
+    saveData() {
+        setWorkerLocalStoreList(this.__workerList.map(item => {
+            return {
+                key: item.key,
+                type: item.type!,
+                name: item.name,
+            };
+        }));
     }
 }

@@ -97,6 +97,8 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         }
         worker.name = name || worker.name;
 
+        WorkerStore.instance.saveData();
+
         WSStore.instance.broadcast(WSMessage.Worker.DetailChange.createMessage({ key }));
 
         return getSuccessApiResponse(worker.info());
