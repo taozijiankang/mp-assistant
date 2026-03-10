@@ -14,13 +14,13 @@
             <!-- 未登录 -->
             <div v-if="!workerDetail?.isLogin" class="no-login">
                 <div v-if="workerDetail.loginQRCodeFilePath" class="qrcode-container">
-                    <div>请使用微信扫码登录</div>
+                    <div class="text">请使用微信扫码登录微信公众平台</div>
                     <img class="qrcode" :src="getFileUrl(workerDetail.loginQRCodeFilePath)" />
                 </div>
                 <el-button type="primary" :loading="handleWorkerLoginLoading ||
                     workerDetail.loadings.includes(WXWorkerN.LoadingType.login)" @click="handleWorkerLogin">
                     {{
-                        workerDetail.loginQRCodeFilePath ? '重新登录' : '登录'
+                        workerDetail.loginQRCodeFilePath ? '重新获取登录二维码' : '获取登录二维码'
                     }}
                 </el-button>
             </div>
