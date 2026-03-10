@@ -4,7 +4,7 @@
             <!-- 操作栏 -->
             <div class="controller">
                 <el-button @click="handleEditWorker">修改</el-button>
-                <el-button style="margin: 0;" v-if="workerDetail?.isLogin" type="primary" :loading="handleWorkerLogoutLoading ||
+                <el-button style="margin: 0;" v-if="workerDetail?.isLogin" type="primary" :loading="workerLogoutLoading ||
                     workerDetail.loadings.includes(WXWorkerN.LoadingType.logout)"
                     @click="handleWorkerLogout">退出登录</el-button>
                 <el-button style="margin: 0;" plain type="danger"
@@ -72,7 +72,7 @@ const { loading: handleWorkerLoginLoading, call: handleWorkerLogin } = useApiCal
     return res;
 });
 
-const { loading: handleWorkerLogoutLoading, call: handleWorkerLogout } = useApiCall(async () => {
+const { loading: workerLogoutLoading, call: workerLogout } = useApiCall(async () => {
     const res = await requestLogoutWorker(props.workerKey);
     // 重写获取worker状态
     await getWorkerDetail();
@@ -97,6 +97,16 @@ const handleEditWorker = () => {
     if (workerDetail.value) {
         addWorkerDialogRef.value?.open(true, workerDetail.value.key, workerDetail.value.name, workerDetail.value.type);
     }
+}
+
+const handleWorkerLogout = () => {
+    ElMessageBox.confirm(`确定退出登录吗？`, '提示', {
+        type: 'warning',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+    }).then(async () => {
+        await workerLogout();
+    })
 }
 
 const handleTabRemove = async (item: BaseWorkInfo) => {
