@@ -8,7 +8,6 @@ import { getSuccessApiResponse, getErrorApiResponse } from "@mp-assistant/common
 import { WSStore } from "../../../store/WSStore.js";
 import { WSMessage } from "@mp-assistant/common/dist/ws/message.js";
 import { WSMessageEvent } from "../../../event/WSMessageEvent.js";
-import fs from 'fs';
 import { WorkerStatus } from "@mp-assistant/common/dist/work/index.js";
 import { TaskStatus } from "@mp-assistant/common/dist/work/task/const.js";
 
@@ -33,22 +32,11 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
     fastify.post(Api.Worker.AddWorker.url, async (request, reply): Promise<Api.Worker.AddWorker.Response> => {
         const { type, name } = request.body as Api.Worker.AddWorker.RequestBody;
 
-        const executablePath = ConfigStore.instance.config.executablePath;
-
-        if (!executablePath) {
-            return getErrorApiResponse('Executable path not set', 400);
-        }
-
-        if (fs.statSync(executablePath, { throwIfNoEntry: false })?.isFile() === false) {
-            return getErrorApiResponse('Executable path not found', 400);
-        }
-
         const worker = createWorker(type, {
             name,
             wsMessageEventHandler: WSMessageEvent.instance,
         });
         await worker.init({
-            executablePath: ConfigStore.instance.config.executablePath,
             headless: ConfigStore.instance.config.headless,
         });
 

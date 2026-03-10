@@ -6,9 +6,6 @@
                 修改配置后需要重启小程序助手才能生效
             </el-alert>
             <el-form ref="elFormRef" :model="configForm" label-width="200px" :rules="rules">
-                <el-form-item label="浏览器可执行文件路径" prop="executablePath">
-                    <el-input v-model="configForm.executablePath" clearable />
-                </el-form-item>
                 <el-form-item label="是否无头模式">
                     <el-switch v-model="configForm.headless" />
                 </el-form-item>
@@ -40,15 +37,12 @@ const loading = ref(false);
 const focusOpen = ref(false);
 
 const configForm = ref<Api.Config.GetConfig.ResponseData>({
-    executablePath: '',
     headless: false,
     port: 0
 });
 
 const rules = ref<FormRules>({
-    executablePath: [
-        { required: true, message: 'Please input executable path', trigger: 'blur' },
-    ]
+    //
 });
 
 const getConfig = async () => {

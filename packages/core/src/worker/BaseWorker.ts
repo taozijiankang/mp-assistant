@@ -90,7 +90,7 @@ export abstract class BaseWorker {
     }
   }
 
-  async init(options: Pick<LaunchOptions, 'executablePath' | 'headless'>) {
+  async init(options: Pick<LaunchOptions, 'headless'>) {
     this.__browserContent = await chromium.launchPersistentContext(
       path.join(getChromeUserDataDir(), this.key),
       {
