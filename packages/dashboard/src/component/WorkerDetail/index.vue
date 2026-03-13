@@ -3,7 +3,8 @@
         <div v-if="WXWorkerN.isWXWorkerInfo(workerDetail)" class="wx content-container">
             <!-- 操作栏 -->
             <div class="controller">
-                <el-button v-if="workerDetail?.isLogin" type="primary" :loading="handleWorkerLogoutLoading ||
+                <el-button @click="handleEditWorker">修改</el-button>
+                <el-button style="margin: 0;" v-if="workerDetail?.isLogin" type="primary" :loading="workerLogoutLoading ||
                     workerDetail.loadings.includes(WXWorkerN.LoadingType.logout)"
                     @click="handleWorkerLogout">退出登录</el-button>
                 <el-button style="margin: 0;" plain type="danger"
@@ -13,13 +14,13 @@
             <!-- 未登录 -->
             <div v-if="!workerDetail?.isLogin" class="no-login">
                 <div v-if="workerDetail.loginQRCodeFilePath" class="qrcode-container">
-                    <div>请使用微信扫码登录</div>
+                    <div class="text">请使用微信扫码登录微信公众平台</div>
                     <img class="qrcode" :src="getFileUrl(workerDetail.loginQRCodeFilePath)" />
                 </div>
                 <el-button type="primary" :loading="handleWorkerLoginLoading ||
                     workerDetail.loadings.includes(WXWorkerN.LoadingType.login)" @click="handleWorkerLogin">
                     {{
-                        workerDetail.loginQRCodeFilePath ? '重新登录' : '登录'
+                        workerDetail.loginQRCodeFilePath ? '重新获取登录二维码' : '获取登录二维码'
                     }}
                 </el-button>
             </div>
@@ -30,6 +31,7 @@
             </div>
         </div>
         <AddTaskDialog ref="addTaskDialogRef" />
+        <AddWorkerDialog ref="addWorkerDialogRef" @onSuccess="getWorkerDetail" />
     </div>
 </template>
 
@@ -46,12 +48,14 @@ import AddTaskDialog from './component/AddTaskDialog/index.vue';
 import type { AddTaskFormData } from './component/AddTaskDialog/index';
 import { getSuccessApiResponse } from '@mp-assistant/common/dist/api/utils';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import AddWorkerDialog from '@/component/AddWorkerDialog/index.vue';
 
 const props = defineProps<{
     workerKey: string;
 }>();
 
 const addTaskDialogRef = ref<InstanceType<typeof AddTaskDialog>>();
+const addWorkerDialogRef = ref<InstanceType<typeof AddWorkerDialog>>();
 
 const { data: workerDetail, call: getWorkerDetail } = useApiCall(async () => {
     const { data: workList } = await requestGetWorkerList();
@@ -68,7 +72,7 @@ const { loading: handleWorkerLoginLoading, call: handleWorkerLogin } = useApiCal
     return res;
 });
 
-const { loading: handleWorkerLogoutLoading, call: handleWorkerLogout } = useApiCall(async () => {
+const { loading: workerLogoutLoading, call: workerLogout } = useApiCall(async () => {
     const res = await requestLogoutWorker(props.workerKey);
     // 重写获取worker状态
     await getWorkerDetail();
@@ -87,6 +91,22 @@ const handleWorkerListChange = async (data: WSMessage.Worker.DetailChange.Data) 
 
 const handleAddTask = (formData?: AddTaskFormData) => {
     addTaskDialogRef.value?.open(props.workerKey, formData);
+}
+
+const handleEditWorker = () => {
+    if (workerDetail.value) {
+        addWorkerDialogRef.value?.open(true, workerDetail.value.key, workerDetail.value.name, workerDetail.value.type);
+    }
+}
+
+const handleWorkerLogout = () => {
+    ElMessageBox.confirm(`确定退出登录吗？`, '提示', {
+        type: 'warning',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+    }).then(async () => {
+        await workerLogout();
+    })
 }
 
 const handleTabRemove = async (item: BaseWorkInfo) => {

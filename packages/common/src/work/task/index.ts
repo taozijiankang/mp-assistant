@@ -70,7 +70,20 @@ export namespace WXTaskN {
         result: TaskExecResult<GetVersionListResult[]>
     }
 
+    export const isInspectVersionInfo = (info: BaseTaskInfo): info is InspectVersionInfo => {
+        return info.type === TaskType.WX_INSPECT_VERSION;
+    }
+
+    export interface AuditInfo extends TaskInfo {
+        options: AuditTaskOptions;
+    }
+
+    export const isAuditInfo = (info: BaseTaskInfo): info is AuditInfo => {
+        return info.type === TaskType.WX_AUDIT;
+    }
+
     export interface PublishInfo extends TaskInfo {
+        options: ReleaseTaskOptions;
         publishQRCodeFilePath: string;
         countdown: number;
         refreshLoading: boolean;

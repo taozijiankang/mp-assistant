@@ -34,6 +34,11 @@
             color: #fff;
           }
         }
+        .rq {
+          .text {
+            color: #fff;
+          }
+        }
       }
 
       .info {
@@ -51,11 +56,14 @@
       }
       .rq {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         gap: 10px;
+        .text {
+          font-size: 12px;
+          color: #86909c;
+        }
         .icon {
-          width: 100px;
-          height: 100px;
+          width: 100%;
         }
       }
       .wa-info {

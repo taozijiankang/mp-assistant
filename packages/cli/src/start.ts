@@ -1,4 +1,3 @@
-
 import path from 'path';
 import { createRequire } from 'module';
 import Fastify from 'fastify'
@@ -12,27 +11,34 @@ import { getErrorApiResponse } from '@mp-assistant/common/dist/api/utils.js';
 import { WorkerStore } from './store/WorkerStore.js';
 import fastifyCors from '@fastify/cors';
 import multipart from '@fastify/multipart';
+import chalk from "chalk"
+import os from 'os';
+import { getRootDir } from './pathManage.js';
+import fs from 'fs';
+import { init } from '@mp-assistant/core/dist/init.js';
 
 const require = createRequire(import.meta.url);
+
+const rootPackageJson = JSON.parse(fs.readFileSync(path.join(getRootDir(), 'package.json')).toString());
 
 /**
  * Run the server!
  */
-export const start = async () => {
-    startServer();
+export async function start() {
+    await init();
+    await startServer();
 
     /**
      * 初始化worker
      */
     for (const worker of WorkerStore.instance.workerList) {
         await worker.init({
-            executablePath: ConfigStore.instance.config.executablePath,
             headless: ConfigStore.instance.config.headless,
         });
     }
 }
 
-const startServer = async () => {
+async function startServer() {
     const fastify = Fastify({
         // logger: true
     });
@@ -86,9 +92,27 @@ const startServer = async () => {
 
     try {
         await fastify.listen({ host: '0.0.0.0', port: ConfigStore.instance.config.port })
-        console.log(`Server is running on http://localhost:${ConfigStore.instance.config.port}`);
+        console.log(chalk.green(`${rootPackageJson.name} 服务已启动🚀`));
+        console.log(chalk.gray(`局域网访问地址:`), chalk.blue(`http://${getLocalIP()}:${ConfigStore.instance.config.port}`));
+        console.log(chalk.gray(`本地访问地址:`), chalk.blue(`http://localhost:${ConfigStore.instance.config.port}`));
     } catch (err) {
         fastify.log.error(err)
         process.exit(1)
     }
+}
+
+function getLocalIP() {
+    const interfaces = os.networkInterfaces();
+    for (const devName in interfaces) {
+        const iface = interfaces[devName] || [];
+
+        for (let i = 0; i < iface.length; i++) {
+            const alias = iface[i];
+            // 筛选条件：IPv4、非回环地址 (loopback)、并且是运行状态
+            if (alias && alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+                return alias.address;
+            }
+        }
+    }
+    return '0.0.0.0';
 }

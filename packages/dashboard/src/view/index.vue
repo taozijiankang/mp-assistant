@@ -17,14 +17,13 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 import WorkList from '@/component/WorkList/index.vue';
 import EditConfigDialog from '@/component/EditConfigDialog/index.vue';
 import WorkerDetail from '@/component/WorkerDetail/index.vue';
 import { useOperationRecordStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import { Setting } from '@element-plus/icons-vue';
-import { requestGetConfig } from '@/api/modules/config';
 
 const packageInfo = __PACKAGE_INFO__;
 
@@ -40,13 +39,6 @@ const handleEditConfig = () => {
 const handleCurrentWorkerKeyChange = (key: string) => {
   operationRecordStore.setCurrentWorkerKey(key);
 };
-
-onMounted(async () => {
-  const { data: config } = await requestGetConfig();
-  if (!config.executablePath) {
-    editConfigDialogRef.value?.open(true);
-  }
-});
 </script>
 
 <style scoped lang="scss">

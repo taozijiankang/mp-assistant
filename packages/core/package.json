@@ -21,9 +21,10 @@
     "url": "https://github.com/taozijiankang/mp-assistant.git"
   },
   "dependencies": {
-    "@playwright/test": "^1.58.2",
-    "dayjs": "^1.11.13",
     "@mp-assistant/common": "workspace:*",
+    "@playwright/test": "^1.58.2",
+    "chalk": "^5.6.2",
+    "dayjs": "^1.11.13",
     "playwright": "^1.58.2"
   }
 }

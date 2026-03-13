@@ -13,12 +13,15 @@
                         <span class="name">{{ worker.name }}</span>
                     </div>
                     <template v-if="WXWorkerN.isWXWorkerInfo(worker)">
-                        <div v-if="worker.loginQRCodeFilePath" class="rq">
-                            <img :src="getFileUrl(worker.loginQRCodeFilePath)" alt="rq" class="icon" />
-                        </div>
                         <template v-if="worker.isLogin">
                             <div class="wa-info">
                                 <span class="span">共{{ worker.wxaList.length }}个小程序</span>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div v-if="worker.loginQRCodeFilePath" class="rq">
+                                <span class="text">微信扫码登录微信公众平台</span>
+                                <img :src="getFileUrl(worker.loginQRCodeFilePath)" alt="rq" class="icon" />
                             </div>
                         </template>
                     </template>

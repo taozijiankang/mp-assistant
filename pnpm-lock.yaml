@@ -69,6 +69,9 @@ importers:
       '@mp-assistant/dashboard':
         specifier: workspace:*
         version: link:../dashboard
+      chalk:
+        specifier: ^5.6.2
+        version: 5.6.2
       commander:
         specifier: ^14.0.3
         version: 14.0.3
@@ -124,6 +127,9 @@ importers:
       '@playwright/test':
         specifier: ^1.58.2
         version: 1.58.2
+      chalk:
+        specifier: ^5.6.2
+        version: 5.6.2
       dayjs:
         specifier: ^1.11.13
         version: 1.11.19

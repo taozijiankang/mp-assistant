@@ -28,7 +28,7 @@ export enum VersionPositioningCriteria {
 }
 
 export const VersionPositioningCriteriaDict = {
-    [VersionPositioningCriteria.Equal]: '相等',
+    [VersionPositioningCriteria.Equal]: '等于',
     [VersionPositioningCriteria.Inclusion]: '包含'
 }
 
