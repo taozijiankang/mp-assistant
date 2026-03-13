@@ -43,6 +43,13 @@ export function requestUpdateWorker(key: string, body: Api.Worker.UpdateWorker.R
     );
 }
 
+export function requestMarkWXAppId(key: string, body: Api.Worker.MarkWXAppId.RequestBody) {
+    return request<Api.Worker.MarkWXAppId.ResponseData>(
+        Api.Worker.MarkWXAppId.url,
+        { method: Api.Worker.MarkWXAppId.method, query: { key }, body }
+    );
+}
+
 export function requestLoginWorker(key: string) {
     return request<Api.Worker.WorkerLogin.ResponseData>(
         Api.Worker.WorkerLogin.url,
