@@ -19,6 +19,8 @@ export class WXWorker extends BaseWorker {
     loginQRCodeFilePath: string = '';
     wxaList: WXMPItem[] = [];
 
+    markWXAppIds: string[] = [];
+
     get isLogin() {
         return this.__isLogin;
     }
@@ -29,7 +31,23 @@ export class WXWorker extends BaseWorker {
             loginQRCodeFilePath: this.loginQRCodeFilePath,
             wxaList: this.wxaList,
             isLogin: this.isLogin,
+            markWXAppIds: this.markWXAppIds,
         }
+    }
+
+    markWXAppId(appId: string) {
+        if (this.markWXAppIds.includes(appId)) {
+            return;
+        }
+        this.markWXAppIds.push(appId);
+
+        this.emitDetailChangeEvent();
+    }
+
+    unmarkWXAppId(appId: string) {
+        this.markWXAppIds = this.markWXAppIds.filter(id => id !== appId);
+
+        this.emitDetailChangeEvent();
     }
 
     protected _setLoginStatus(s: boolean) {
