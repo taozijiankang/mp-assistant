@@ -38,6 +38,7 @@ export namespace WXWorkerN {
         isLogin: boolean;
         loginQRCodeFilePath: string;
         wxaList: WXMPItem[];
+        markWXAppIds: string[];
     }
 
     export enum LoadingType {

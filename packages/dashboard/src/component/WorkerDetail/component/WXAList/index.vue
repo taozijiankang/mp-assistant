@@ -1,6 +1,7 @@
 <template>
     <div class="wxa-list">
         <div class="controller">
+            <span class="total-count">{{ filteredWxaList.length }}</span>
             <el-input v-model="searchValue" placeholder="请输入过滤关键词 多个关键词用空格分隔" clearable />
             <el-button type="primary"
                 :loading="refreshWxaListLoading || workerDetail.loadings.includes(WXWorkerN.LoadingType.updateWxaListWxaList)"
@@ -8,8 +9,13 @@
         </div>
         <el-scrollbar v-if="filteredWxaList.length > 0" class="wxa-item-container-scrollbar">
             <div class="wxa-item-container">
-                <div class="wxa-item" v-for="wxa in filteredWxaList" :key="wxa.wxaItem.appid">
+                <div class="wxa-item" :class="{ 'marked': workerDetail.markWXAppIds.includes(wxa.wxaItem.appid) }"
+                    v-for="wxa in filteredWxaList" :key="wxa.wxaItem.appid">
                     <div class="wxa-info-container">
+                        <img v-if="workerDetail.markWXAppIds.includes(wxa.wxaItem.appid)" src="@/assets/mark.png"
+                            alt="star" class="star-icon" @click="handleMarkWXAppId(wxa.wxaItem.appid, false)" />
+                        <img v-else src="@/assets/no-mark.png" alt="star" class="star-icon"
+                            @click="handleMarkWXAppId(wxa.wxaItem.appid, true)" />
                         <img class="wxa-icon" :src="wxa.wxaItem.app_headimg" />
                         <div class="wxa-info">
                             <div class="wxa-name">
@@ -65,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { requestAddTask, requestWorkerUpdateWxaList } from '@/api';
+import { requestAddTask, requestMarkWXAppId, requestWorkerUpdateWxaList } from '@/api';
 import { useApiCall } from '@/hooks/useApiCall';
 import type { WXMPItem, WXReviewStatus } from '@mp-assistant/common/dist/types/wx';
 import { WXWorkerN } from '@mp-assistant/common/dist/work';
@@ -125,6 +131,10 @@ const filteredWxaList = computed(() => {
         weight: number;
     }[] = [
             {
+                key: item => props.workerDetail.markWXAppIds.includes(item.wxaItem.appid) ? '已标记' : '未标记',
+                weight: 4,
+            },
+            {
                 // 小程序名称
                 key: item => item.wxaItem.app_name,
                 weight: 3,
@@ -183,6 +193,13 @@ const handleRestartTask = async (wxa: WXMPItem) => {
     } finally {
         restartTaskLoadings.value = restartTaskLoadings.value.filter(key => key !== wxa.appid);
     }
+};
+
+const handleMarkWXAppId = async (appId: string, mark: boolean) => {
+    await requestMarkWXAppId(props.workerDetail.key, {
+        appId,
+        mark,
+    });
 };
 </script>
 

@@ -100,6 +100,27 @@ export namespace WorkerApi {
     }
 
     /**
+     * 标记小程序
+     */
+    export namespace MarkWXAppId {
+        export const url = '/worker-markWXAppId';
+        export const method = 'POST';
+
+        export type RequestQuery = {
+            key: string;
+        }
+
+        export type RequestBody = {
+            appId: string;
+            mark: boolean;
+        };
+
+        export type ResponseData = void;
+        export type SuccessResponse = APISuccessRes<ResponseData>;
+        export type Response = SuccessResponse | APIErrorRes;
+    }
+
+    /**
      * 登录 Worker
      */
     export namespace WorkerLogin {

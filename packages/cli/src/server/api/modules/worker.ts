@@ -104,6 +104,28 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         return getSuccessApiResponse(worker.info());
     });
 
+    fastify.post(Api.Worker.MarkWXAppId.url, async (request, reply): Promise<Api.Worker.MarkWXAppId.Response> => {
+        const { key } = request.query as Api.Worker.MarkWXAppId.RequestQuery;
+        const { appId, mark } = request.body as Api.Worker.MarkWXAppId.RequestBody;
+
+        const worker = WorkerStore.instance.workerList.find(item => item.key === key);
+        if (!worker) {
+            return getErrorApiResponse('Worker not found', 404);
+        }
+        if (isWXWorker(worker)) {
+            if (mark) {
+                worker.markWXAppId(appId);
+            }
+            else {
+                worker.unmarkWXAppId(appId);
+            }
+            return getSuccessApiResponse(undefined);
+        }
+        else {
+            return getErrorApiResponse('Worker type not supported', 400);
+        }
+    });
+
     fastify.post(Api.Worker.WorkerLogin.url, async (request, reply): Promise<Api.Worker.WorkerLogin.Response> => {
         const { key } = request.query as Api.Worker.WorkerLogin.RequestQuery;
 
