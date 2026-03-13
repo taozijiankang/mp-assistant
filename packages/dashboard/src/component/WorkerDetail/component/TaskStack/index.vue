@@ -76,7 +76,7 @@
                             <div class="publish-qrcode-header">
                                 <span class="publish-qrcode-description">需要扫描二维码进行发布 剩余时间: {{
                                     Math.round(taskItem.countdown)
-                                }}秒</span>
+                                    }}秒</span>
 
                             </div>
                             <img :src="getFileUrl(taskItem.publishQRCodeFilePath)" alt="publish-qrcode"
@@ -104,6 +104,51 @@
                     <div class="dot"></div>
                     <span>任务执行中...</span>
                 </div>
+                <template v-if="WXTaskN.isAuditInfo(onSelectedTask) || WXTaskN.isPublishInfo(onSelectedTask)">
+                    <div class="title">
+                        <span>任务参数</span>
+                    </div>
+                    <!-- 版本定位条件 -->
+                    <div class="task-options-container">
+                        <div v-for="item in onSelectedTask.options.positioner || []" class="task-options-item">
+                            <span>
+                                <span>{{ VersionPositioningTypeDict[item.type] }}</span>
+                                <span>{{ VersionPositioningCriteriaDict[item.criteria] }}</span>
+                                <span>{{ item.value }}</span>
+                            </span>
+                        </div>
+                    </div>
+                    <template v-if="WXTaskN.isAuditInfo(onSelectedTask)">
+                        <div class="title">
+                            <span>版本描述</span>
+                        </div>
+                        <div class="task-options-container">
+                            <div class="task-options-item">
+                                <span>{{ onSelectedTask.options.populateData?.versionDescription }}</span>
+                            </div>
+                        </div>
+                        <div class="title">
+                            <span>图片预览</span>
+                        </div>
+                        <div class="task-options-container">
+                            <div class="task-options-item">
+                                <el-image
+                                    v-for="(image, index) in onSelectedTask.options.populateData?.imagePreview?.split(',')?.filter(Boolean) || []"
+                                    :key="image" :src="getFileUrl(image)" fit="contain" />
+                            </div>
+                        </div>
+                        <div class="title">
+                            <span>视频预览</span>
+                        </div>
+                        <div class="task-options-container">
+                            <div class="task-options-item">
+                                <video
+                                    v-for="(video, index) in onSelectedTask.options.populateData?.videoPreview?.split(',')?.filter(Boolean) || []"
+                                    :key="video" :src="getFileUrl(video)" controls />
+                            </div>
+                        </div>
+                    </template>
+                </template>
                 <template
                     v-if="onSelectedTask.status === TaskStatus.COMPLETED || onSelectedTask.status === TaskStatus.FAILED">
                     <div class="title">
@@ -160,10 +205,11 @@ import { dayjs, ElMessage, ElMessageBox } from 'element-plus';
 import { WorkerStatus, WXWorkerN } from '@mp-assistant/common/dist/work';
 import { useOperationRecordStore } from '@/stores';
 import { storeToRefs } from 'pinia';
-import { Delete, VideoPause, VideoPlay } from '@element-plus/icons-vue';
+import { Delete } from '@element-plus/icons-vue';
 import { getFileUrl, requestPauseAndRecoverWorker, requestRemoveTask } from '@/api';
 import type { AddTaskFormData } from '../AddTaskDialog/index';
 import fuzzysort from 'fuzzysort';
+import { VersionPositioningCriteriaDict, VersionPositioningTypeDict } from '@mp-assistant/common/dist/utils/wx';
 
 const props = defineProps<{
     workerDetail: WXWorkerN.WXWorkInfo;

@@ -337,6 +337,51 @@
       gap: 6px;
     }
 
+    .task-options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      .task-options-item {
+        display: flex;
+        flex-direction: row;
+        span {
+          font-family: "Source Han Sans SC";
+          font-size: 14px;
+          font-weight: 400;
+          line-height: normal;
+
+          span:first-child {
+            font-family: "Source Han Sans SC";
+            font-size: 14px;
+            font-weight: 700;
+            line-height: normal;
+            color: #917cd6;
+          }
+          &:not(:first-child) {
+            margin-left: 4px;
+            color: #86909c;
+            font-family: "Source Han Sans SC";
+            font-size: 14px;
+            font-weight: 400;
+            line-height: normal;
+          }
+          &:last-child {
+            color: #1d2129;
+            font-family: "Source Han Sans SC";
+            font-size: 14px;
+            font-weight: 400;
+            line-height: normal;
+          }
+        }
+        .el-image {
+          width: 100%;
+        }
+        video {
+          width: 100%;
+        }
+      }
+    }
+
     .task-running {
       display: flex;
       flex-direction: row;
