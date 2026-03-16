@@ -224,6 +224,12 @@ importers:
         specifier: ^22.14.0
         version: 22.14.1
 
+  packages/skill:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.14.0
+        version: 22.14.1
+
 packages:
 
   '@antfu/utils@0.7.10':

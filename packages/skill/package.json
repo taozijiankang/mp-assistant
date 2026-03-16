@@ -1,0 +1,12 @@
+{
+  "name": "@mp-assistant/skill",
+  "version": "0.0.1",
+  "description": "",
+  "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.14.0"
+  }
+}
