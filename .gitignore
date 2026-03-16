@@ -29,3 +29,5 @@ yarn-error.log*
 
 # Turbo
 .turbo
+
+/.claude/*.local.json
