@@ -8,5 +8,9 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^22.14.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taozijiankang/mp-assistant.git"
   }
 }
