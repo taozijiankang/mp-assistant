@@ -18,8 +18,8 @@
                     </el-radio-group>
                 </el-form-item>
                 <el-form-item label="小程序" prop="appIds">
-                    <SelectMp :wxa-list="workerDetail?.wxaList || []" :selectedValue="addTaskForm.appIds"
-                        @update:selectedValue="(values) => {
+                    <SelectMp :wxa-list="workerDetail?.wxaList || []" :marked-appid-list="workerDetail?.markWXAppIds"
+                        :selectedValue="addTaskForm.appIds" @update:selectedValue="(values) => {
                             addTaskForm.appIds = values;
                         }" />
                 </el-form-item>

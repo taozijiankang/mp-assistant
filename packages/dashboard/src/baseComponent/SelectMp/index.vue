@@ -34,6 +34,9 @@
                             <span class="wxa-appid">appid: {{ item.appid }}</span>
                             <span class="wxa-username">username: {{ item.username }}</span>
                         </div>
+                        <div v-if="markedAppidList?.includes(item.appid)" class="marked-indicator">
+                            <img src="@/assets/mark.png" alt="star" class="star-icon" />
+                        </div>
                     </div>
                 </div>
                 <el-empty v-else description="暂无数据" />
@@ -50,6 +53,7 @@ import Empty from '../Empty/index.vue';
 
 const props = defineProps<{
     wxaList: WXMPItem[];
+    markedAppidList?: string[];
     selectedValue: string[];
 }>();
 
