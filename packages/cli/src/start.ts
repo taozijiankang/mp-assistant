@@ -47,7 +47,9 @@ async function startServer() {
     await fastify.register(fastifyWebsocket);
 
     fastify.register(multipart, {
-        //
+        limits: {
+            fileSize: 1024 * 1024 * 100, // 100MB
+        },
     });
 
     // 设置跨域
