@@ -53,47 +53,10 @@
         border: 2px solid #00b24080;
       }
 
-      .wxa-info-container {
-        display: flex;
-        flex-direction: row;
-        gap: 10px;
-        position: relative;
-        .star-icon {
-          position: absolute;
-          top: 0;
-          right: 0;
-          width: 20px;
-          height: 20px;
-          cursor: pointer;
-        }
-        .wxa-icon {
-          width: 40px;
-          height: 40px;
-          border-radius: 4px;
-        }
-
-        .wxa-info {
-          display: flex;
-          flex-direction: column;
-          .wxa-name {
-            color: #1d2129;
-            font-family: "Source Han Sans SC";
-            font-size: 14px;
-            font-weight: 400;
-            line-height: normal;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-          }
-          .wxa-appid,
-          .wxa-username {
-            color: #86909c;
-            font-family: "Source Han Sans SC";
-            font-size: 10px;
-            font-weight: 400;
-            line-height: normal;
-          }
-        }
+      .star-icon {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
       }
       .task-info {
         display: flex;

@@ -4,8 +4,9 @@ import { WXMP_HOME_URL, WXMP_USER_PAGE_PATH_REX } from "../../../constant/wx.js"
 import { expect } from "playwright/test";
 import { WXTaskN } from "@mp-assistant/common/dist/work/task/index.js";
 import { getVersionList } from "../../../api/index.js";
-import { VersionListItem } from "@mp-assistant/common/dist/types/wx.js";
+import { VersionListItem, WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
 import { saveScreenshotBufferToFile } from "../../utils/index.js";
+import type { WXWorker } from "../WXWorker.js";
 
 export class BaseWXTask extends BaseTask {
     readonly options: WXTaskN.TaskOptions;
@@ -27,7 +28,21 @@ export class BaseWXTask extends BaseTask {
         throw new Error("Method not implemented.");
     }
 
+    /**
+     * 根据 options.appid 从所属 worker 的小程序列表中获取完整信息
+     */
+    protected _getWXMPItem(): WXMPItem {
+        const worker = this._worker as WXWorker | undefined;
+        const wxaItem = worker?.wxaList?.find(item => item.appid === this.options.appid);
+        if (!wxaItem) {
+            throw new Error(`未找到 appid 为 ${this.options.appid} 的小程序信息`);
+        }
+        return wxaItem;
+    }
+
     protected async _switchMP(browserContent: BrowserContext) {
+        const wxaItem = this._getWXMPItem();
+
         return await (new Promise<Page>(async (resolve, reject) => {
             let page: Page | null = null;
             try {
@@ -78,10 +93,10 @@ export class BaseWXTask extends BaseTask {
                 // 定位到小程序账号项
                 const mpItemLocator = switchAccountPanelLocator.locator(
                     page.locator('.account_item.account_item_gap', {
-                        has: page.getByText(this.options.app_name)
+                        has: page.getByText(wxaItem.app_name)
                     }).and(
                         page.locator('.account_item.account_item_gap', {
-                            has: page.getByText(this.options.username)
+                            has: page.getByText(wxaItem.username)
                         })
                     )
                 );
@@ -94,7 +109,7 @@ export class BaseWXTask extends BaseTask {
 
                 this._addRunningReport({
                     title: '切换小程序成功',
-                    description: `切换小程序: ${this.options.app_name} - ${this.options.username}`,
+                    description: `切换小程序: ${wxaItem.app_name} - ${wxaItem.username}`,
                     timestamp: Date.now(),
                     images: [imageUrl],
                 });

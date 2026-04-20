@@ -1,14 +1,8 @@
 <template>
     <div class="select-mp-container">
         <div v-if="selectedValue.length > 0" class="selected-value-container">
-            <div class="selected-value-item" v-for="item in selectedValue" :key="item">
-                <img :src="getWxaInfo(item)?.app_headimg" alt="小程序头像" class="wxa-icon">
-                <div class="wxa-info">
-                    <span class="selected-value-item-name">{{ getWxaInfo(item)?.app_name }}</span>
-                    <span class="selected-value-item-appid">appid: {{ item }}</span>
-                    <span class="selected-value-item-username">username: {{ getWxaInfo(item)?.username }}</span>
-                </div>
-            </div>
+            <WXAItem class="selected-value-item" v-for="item in selectedValue" :key="item"
+                :wxa-item="getWxaInfo(item)" />
         </div>
         <Empty v-else description="请选择小程序" />
         <el-button @click="showSelectMpDialog = true">选择小程序</el-button>
@@ -29,23 +23,19 @@
                     <span class="total-count">共 {{ filteredWxaList.length }} 条</span>
                 </div>
                 <div v-if="filteredWxaList.length > 0" class="wxa-item-container-scrollbar">
-                    <div class="wxa-item-container" :class="{
+                    <WXAItem class="wxa-item-container" :class="{
                         'selected': selectedValue.includes(item.appid)
-                    }" v-for="item in filteredWxaList" :key="item.appid"
+                    }" v-for="item in filteredWxaList" :key="item.appid" :wxa-item="item"
                         @click="handleUpdateSelectedValue(item.appid)">
-                        <img v-if="selectedValue.includes(item.appid)" src="@/assets/check.png" alt="选中"
-                            class="wxa-icon-selected">
-                        <img v-else src="@/assets/no-check.png" alt="选中" class="wxa-icon-selected">
-                        <img :src="item.app_headimg" alt="小程序头像" class="wxa-icon">
-                        <div class="wxa-info">
-                            <span class="wxa-name">{{ item.app_name }}</span>
-                            <span class="wxa-appid">appid: {{ item.appid }}</span>
-                            <span class="wxa-username">username: {{ item.username }}</span>
-                        </div>
-                        <div v-if="markedAppidList?.includes(item.appid)" class="marked-indicator">
+                        <template #prefix>
+                            <img v-if="selectedValue.includes(item.appid)" src="@/assets/check.png" alt="选中"
+                                class="wxa-icon-selected">
+                            <img v-else src="@/assets/no-check.png" alt="选中" class="wxa-icon-selected">
+                        </template>
+                        <template v-if="markedAppidList?.includes(item.appid)" #extra>
                             <img src="@/assets/mark.png" alt="star" class="star-icon" />
-                        </div>
-                    </div>
+                        </template>
+                    </WXAItem>
                 </div>
                 <el-empty v-else description="暂无数据" />
             </div>
@@ -58,6 +48,7 @@ import type { WXMPItem } from '@mp-assistant/common/dist/types/wx';
 import fuzzysort from 'fuzzysort';
 import { ref, computed } from 'vue';
 import Empty from '../Empty/index.vue';
+import WXAItem from '../WXAItem/index.vue';
 
 const props = defineProps<{
     wxaList: WXMPItem[];
@@ -122,8 +113,15 @@ const filteredWxaList = computed(() => {
     }).map(item => item.obj);
 });
 
-const getWxaInfo = (appid: string) => {
-    return props.wxaList.find(item => item.appid === appid);
+const getWxaInfo = (appid: string): WXMPItem => {
+    return props.wxaList.find(item => item.appid === appid) || {
+        appid,
+        app_name: '',
+        username: '',
+        app_headimg: '',
+        email: '',
+        type: '',
+    };
 };
 
 const handleUpdateSelectedValue = (appid: string) => {

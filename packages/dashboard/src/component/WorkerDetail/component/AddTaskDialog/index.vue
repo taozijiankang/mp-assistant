@@ -265,11 +265,8 @@ const handleAddTask = async () => {
     loading.value = true;
     try {
         for (const appId of addTaskForm.value.appIds) {
-            const appDetail = workerDetail.value?.wxaList.find(app => app.appid === appId);
-
             const wxTaskOptions: WXTaskN.TaskOptions = {
-                app_name: appDetail?.app_name || '',
-                username: appDetail?.username || '',
+                appid: appId,
             }
 
             let options: WXTaskN.TaskOptions = {

@@ -1,0 +1,57 @@
+.wxa-item-card {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  position: relative;
+  min-width: 0;
+
+  .wxa-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .wxa-info {
+    display: flex;
+    flex-direction: column;
+    line-height: normal;
+    min-width: 0;
+    flex: 1;
+
+    .wxa-name {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #1d2129;
+      font-family: "Source Han Sans SC";
+      font-size: 14px;
+      font-weight: 400;
+      line-height: normal;
+      .wxa-name-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    .wxa-appid,
+    .wxa-username {
+      color: #86909c;
+      font-family: "Source Han Sans SC";
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 18px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .wxa-extra {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+}

@@ -63,14 +63,8 @@
                             class="result-fill-message">
                             <span>{{ taskItem.result?.msg }}</span>
                         </div>
-                        <div v-if="getWxaInfo(taskItem.options)" class="wxa-info-container">
-                            <img class="wxa-icon" :src="getWxaInfo(taskItem.options)?.app_headimg" />
-                            <div class="wxa-info">
-                                <div class="wxa-name">{{ getWxaInfo(taskItem.options)?.app_name }}</div>
-                                <div class="wxa-appid">appid: {{ getWxaInfo(taskItem.options)?.appid }}</div>
-                                <div class="wxa-username">username: {{ getWxaInfo(taskItem.options)?.username }}</div>
-                            </div>
-                        </div>
+                        <WXAItem v-if="getWxaInfo(taskItem.options)" class="task-wxa-item"
+                            :wxa-item="getWxaInfo(taskItem.options)!" />
                         <div v-if="WXTaskN.isPublishInfo(taskItem) && taskItem.publishQRCodeFilePath && taskItem.status === TaskStatus.RUNNING"
                             class="publish-qrcode-container">
                             <div class="publish-qrcode-header">
@@ -210,6 +204,7 @@ import { getFileUrl, requestPauseAndRecoverWorker, requestRemoveTask } from '@/a
 import type { AddTaskFormData } from '../AddTaskDialog/index';
 import fuzzysort from 'fuzzysort';
 import { VersionPositioningCriteriaDict, VersionPositioningTypeDict } from '@mp-assistant/common/dist/utils/wx';
+import WXAItem from '@/baseComponent/WXAItem/index.vue';
 
 const props = defineProps<{
     workerDetail: WXWorkerN.WXWorkInfo;
@@ -319,7 +314,7 @@ const handleTaskClick = (taskItem: BaseTaskInfo) => {
 }
 
 const getWxaInfo = (options: WXTaskN.TaskOptions) => {
-    return props.workerDetail.wxaList.find(wxa => wxa.username === options.username && wxa.app_name === options.app_name);
+    return props.workerDetail.wxaList.find(wxa => wxa.appid === options.appid);
 }
 
 const handleDestroyTask = (taskItem: BaseTaskInfo) => {

@@ -35,8 +35,7 @@ interface TaskRunningReport {
 
 ```ts
 interface TaskOptions {
-  app_name: string;   // 小程序名称
-  username: string;   // 小程序原始 id（如 gh_xxxxxxxx）
+  appid: string;      // 小程序 appid，运行时根据所属 worker 的 wxaList 取 app_name / username
 }
 ```
 

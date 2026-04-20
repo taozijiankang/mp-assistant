@@ -18,25 +18,20 @@
             <div class="wxa-item-container">
                 <div class="wxa-item" :class="{ 'marked': workerDetail.markWXAppIds.includes(wxa.wxaItem.appid) }"
                     v-for="wxa in filteredWxaList" :key="wxa.wxaItem.appid">
-                    <div class="wxa-info-container">
-                        <img v-if="workerDetail.markWXAppIds.includes(wxa.wxaItem.appid)" src="@/assets/mark.png"
-                            alt="star" class="star-icon" @click="handleMarkWXAppId(wxa.wxaItem.appid, false)" />
-                        <img v-else src="@/assets/no-mark.png" alt="star" class="star-icon"
-                            @click="handleMarkWXAppId(wxa.wxaItem.appid, true)" />
-                        <img class="wxa-icon" :src="wxa.wxaItem.app_headimg" />
-                        <div class="wxa-info">
-                            <div class="wxa-name">
-                                <span>
-                                    {{ wxa.wxaItem.app_name }}
-                                </span>
-                                <el-button size="small" plain
-                                    :loading="restartTaskLoadings.includes(wxa.wxaItem.appid) || wxa.inspectTaskVersionInfo?.status === TaskStatus.RUNNING"
-                                    @click="handleRestartTask(wxa.wxaItem)">检测版本信息</el-button>
-                            </div>
-                            <div class="wxa-appid">appid: {{ wxa.wxaItem.appid }}</div>
-                            <div class="wxa-username">username: {{ wxa.wxaItem.username }}</div>
-                        </div>
-                    </div>
+                    <WXAItem :wxa-item="wxa.wxaItem">
+                        <template #name-suffix>
+                            <el-button size="small" plain
+                                :loading="restartTaskLoadings.includes(wxa.wxaItem.appid) || wxa.inspectTaskVersionInfo?.status === TaskStatus.RUNNING"
+                                @click="handleRestartTask(wxa.wxaItem)">检测版本信息</el-button>
+                        </template>
+                        <template #extra>
+                            <img v-if="workerDetail.markWXAppIds.includes(wxa.wxaItem.appid)" src="@/assets/mark.png"
+                                alt="star" class="star-icon"
+                                @click="handleMarkWXAppId(wxa.wxaItem.appid, false)" />
+                            <img v-else src="@/assets/no-mark.png" alt="star" class="star-icon"
+                                @click="handleMarkWXAppId(wxa.wxaItem.appid, true)" />
+                        </template>
+                    </WXAItem>
                     <div v-for="taskInfo in wxa.relatedTask" class="task-info">
                         <div class="top">
                             <img v-if="taskInfo.type === TaskType.WX_INSPECT_VERSION"
@@ -85,6 +80,7 @@ import { WXWorkerN } from '@mp-assistant/common/dist/work';
 import { TaskStatus, TaskStatusDict, TaskType, TaskTypeDict, WXTaskN, type BaseTaskInfo } from '@mp-assistant/common/dist/work/task';
 import { ref, computed } from 'vue';
 import VersionList from "./component/VersionList/index.vue"
+import WXAItem from '@/baseComponent/WXAItem/index.vue';
 import { dayjs } from 'element-plus';
 import fuzzysort from 'fuzzysort';
 import { WXReviewStatusDict } from '@mp-assistant/common/dist/constant';
@@ -113,7 +109,7 @@ const wxaList = computed(() => {
         // 获取相关任务
         const relatedTask_ = props.workerDetail.taskList.filter(taskItem => {
             const options: WXTaskN.TaskOptions = taskItem.options;
-            return options.app_name === item.app_name && options.username === item.username;
+            return options.appid === item.appid;
         });
 
         // 同一种类型的任务只能存在一个
@@ -200,8 +196,7 @@ const handleRestartTask = async (wxa: WXMPItem) => {
     }
     restartTaskLoadings.value.push(wxa.appid);
     const options: WXTaskN.TaskOptions = {
-        app_name: wxa.app_name,
-        username: wxa.username,
+        appid: wxa.appid,
     };
     try {
         await requestAddTask(props.workerDetail.key, {
