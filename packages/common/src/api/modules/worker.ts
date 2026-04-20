@@ -91,7 +91,8 @@ export namespace WorkerApi {
             key: string;
         };
         export type RequestBody = {
-            name: string;
+            name?: string;
+            weight?: number;
         };
 
         export type ResponseData = BaseWorkInfo;

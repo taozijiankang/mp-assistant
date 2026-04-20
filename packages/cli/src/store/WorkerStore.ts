@@ -9,6 +9,8 @@ interface WorkerStoreItem {
     key: string;
     type: WorkerType;
     name: string;
+    /** 排序权重，数值越大越靠前 */
+    weight?: number;
     /** 微信 worker 已标记的小程序 appid 列表 */
     markWXAppIds?: string[];
 }
@@ -34,6 +36,7 @@ export class WorkerStore {
             const worker = createWorker(item.type, {
                 key: item.key,
                 name: item.name,
+                weight: item.weight,
                 wsMessageEventHandler: WSMessageEvent.instance,
             });
             if (isWXWorker(worker) && Array.isArray(item.markWXAppIds)) {
@@ -61,6 +64,7 @@ export class WorkerStore {
                 key: item.key,
                 type: item.type!,
                 name: item.name,
+                weight: item.weight,
             };
             if (isWXWorker(item)) {
                 base.markWXAppIds = [...item.markWXAppIds];

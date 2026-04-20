@@ -95,7 +95,13 @@ const handleAddTask = (formData?: AddTaskFormData) => {
 
 const handleEditWorker = () => {
     if (workerDetail.value) {
-        addWorkerDialogRef.value?.open(true, workerDetail.value.key, workerDetail.value.name, workerDetail.value.type);
+        addWorkerDialogRef.value?.open(
+            true,
+            workerDetail.value.key,
+            workerDetail.value.name,
+            workerDetail.value.type,
+            workerDetail.value.weight ?? 0,
+        );
     }
 }
 

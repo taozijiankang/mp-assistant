@@ -16,6 +16,8 @@ export abstract class BaseWorker {
 
   private __name: string = '';
 
+  private __weight: number = 0;
+
   private __browserContent: BrowserContext | null = null;
 
   private __taskList: BaseTask[] = [];
@@ -39,6 +41,14 @@ export abstract class BaseWorker {
 
   set name(name: string) {
     this.__name = name;
+  }
+
+  get weight() {
+    return this.__weight;
+  }
+
+  set weight(weight: number) {
+    this.__weight = Number.isFinite(weight) ? weight : 0;
   }
 
   get browserContent() {
@@ -72,9 +82,10 @@ export abstract class BaseWorker {
   }
 
   constructor(options: BaseWorkerOptions) {
-    const { key, name, wsMessageEventHandler } = options;
+    const { key, name, weight, wsMessageEventHandler } = options;
     this.__key = key ?? getUUID();
     this.__name = name ?? '';
+    this.__weight = Number.isFinite(weight as number) ? (weight as number) : 0;
 
     this.__wsMessageEventHandler = wsMessageEventHandler;
   }
@@ -83,6 +94,7 @@ export abstract class BaseWorker {
     return {
       key: this.key,
       name: this.name,
+      weight: this.weight,
       type: this.type!,
       taskList: this.taskList.map(task => task.info()),
       loadings: [...this.__loadings],

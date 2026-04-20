@@ -113,7 +113,11 @@ const loadData = async () => {
     );
 };
 
-const activeWorkers = computed(() => workers.value.filter(w => w.isLogin));
+const activeWorkers = computed(() =>
+    workers.value
+        .filter(w => w.isLogin)
+        .sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0))
+);
 
 const allMps = computed<WXMPItem[]>(() => {
     const map = new Map<string, WXMPItem>();

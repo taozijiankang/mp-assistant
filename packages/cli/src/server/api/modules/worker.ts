@@ -32,8 +32,10 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
     fastify.post(Api.Worker.AddWorker.url, async (request, reply): Promise<Api.Worker.AddWorker.Response> => {
         const { type, name } = request.body as Api.Worker.AddWorker.RequestBody;
 
+        // 新增 worker 默认权重为 0，靠后展示；如需置顶可在编辑中调高权重
         const worker = createWorker(type, {
             name,
+            weight: 0,
             wsMessageEventHandler: WSMessageEvent.instance,
         });
         await worker.init({
@@ -89,16 +91,27 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
 
     fastify.put(Api.Worker.UpdateWorker.url, async (request, reply): Promise<Api.Worker.UpdateWorker.Response> => {
         const { key } = request.query as Api.Worker.UpdateWorker.RequestQuery;
-        const { name } = request.body as Api.Worker.UpdateWorker.RequestBody;
+        const { name, weight } = request.body as Api.Worker.UpdateWorker.RequestBody;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {
             return getErrorApiResponse('Worker not found', 404);
         }
-        worker.name = name || worker.name;
+        if (typeof name === 'string' && name) {
+            worker.name = name;
+        }
+        let weightChanged = false;
+        if (typeof weight === 'number' && Number.isFinite(weight) && weight !== worker.weight) {
+            worker.weight = weight;
+            weightChanged = true;
+        }
 
         WorkerStore.instance.saveData();
 
+        // 权重变化会影响 worker 列表展示顺序，需要广播列表变化
+        if (weightChanged) {
+            WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
+        }
         WSStore.instance.broadcast(WSMessage.Worker.DetailChange.createMessage({ key }));
 
         return getSuccessApiResponse(worker.info());
