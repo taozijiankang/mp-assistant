@@ -104,25 +104,21 @@
 
     .card-meta {
       display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
+      flex-direction: column;
+      gap: 4px;
       color: #86909c;
       line-height: 18px;
 
-      .meta-sep {
-        color: #c0c4cc;
-      }
-
-      .commit-item {
-        display: inline-flex;
+      .meta-item {
+        display: flex;
         align-items: center;
         gap: 4px;
+        min-width: 0;
       }
 
-      .commit-hash {
+      .meta-value {
         color: #917cd6;
-        font-family: "JetBrains Mono", Consolas, Menlo, monospace;
+        word-break: break-all;
       }
 
       .copy-icon {
@@ -130,6 +126,7 @@
         font-size: 12px;
         color: #c0c4cc;
         transition: color 0.15s;
+        flex-shrink: 0;
 
         &:hover {
           color: #409eff;

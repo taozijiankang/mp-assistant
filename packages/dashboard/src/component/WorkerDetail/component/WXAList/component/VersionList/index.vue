@@ -38,22 +38,26 @@
                     <!-- 时间单独一行 -->
                     <div v-if="item.time" class="card-time">{{ formatTime(item.time) }}</div>
 
-                    <!-- meta 行：发布者 · 提交 · 环境 -->
+                    <!-- meta：发布者 / 提交 / 环境（每行一个） -->
                     <div class="card-meta">
-                        <span v-if="item.nick_name" class="meta-item">发布者 {{ item.nick_name }}</span>
-                        <template v-if="commitHash(item.describe)">
-                            <span class="meta-sep">·</span>
-                            <span class="meta-item commit-item">
-                                提交 <span class="commit-hash">{{ commitHash(item.describe) }}</span>
-                                <el-icon class="copy-icon" @click="handleCopy(commitHash(item.describe)!)">
-                                    <CopyDocument />
-                                </el-icon>
-                            </span>
-                        </template>
-                        <template v-if="environment(item.describe)">
-                            <span class="meta-sep">·</span>
-                            <span class="meta-item">环境 {{ environment(item.describe) }}</span>
-                        </template>
+                        <div v-if="item.nick_name" class="meta-item">
+                            发布者 <span class="meta-value">{{ item.nick_name }}</span>
+                            <el-icon class="copy-icon" @click="handleCopy(item.nick_name)">
+                                <CopyDocument />
+                            </el-icon>
+                        </div>
+                        <div v-if="commitInfo(item.describe)" class="meta-item">
+                            <span class="meta-value">{{ commitInfo(item.describe) }}</span>
+                            <el-icon class="copy-icon" @click="handleCopy(commitInfo(item.describe)!)">
+                                <CopyDocument />
+                            </el-icon>
+                        </div>
+                        <div v-if="environment(item.describe)" class="meta-item">
+                            <span class="meta-value">{{ environment(item.describe) }}</span>
+                            <el-icon class="copy-icon" @click="handleCopy(environment(item.describe)!)">
+                                <CopyDocument />
+                            </el-icon>
+                        </div>
                     </div>
 
                     <!-- 审核失败原因 -->
@@ -172,12 +176,12 @@ const auditTagType = (status: number | undefined) => {
     return 'info';
 };
 
-const commitHash = (describe?: string) => {
-    return describe?.match(/提交信息[:：]?\s*([a-f0-9]{7,40})/)?.[1];
+const commitInfo = (describe?: string): string | undefined => {
+    return describe?.match(/\[\s*提交信息[:：]\s*[^\]]+?\s*\]/)?.[0];
 };
 
-const environment = (describe?: string) => {
-    return describe?.match(/\[\s*环境[:：]\s*([^\]]+?)\s*\]/)?.[1];
+const environment = (describe?: string): string | undefined => {
+    return describe?.match(/\[\s*环境[:：]\s*[^\]]+?\s*\]/)?.[0];
 };
 
 const expandedDescribes = ref<Record<string, boolean>>({});
