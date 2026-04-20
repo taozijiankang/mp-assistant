@@ -20,6 +20,14 @@
                     <el-button @click="handleAllSelected">全部选中</el-button>
                     <el-button @click="handleCancelSelected">取消选中</el-button>
                 </div>
+                <div v-if="markedAppidList" class="filter-bar">
+                    <el-radio-group v-model="markFilter" size="small">
+                        <el-radio-button :value="MarkFilter.All">全部</el-radio-button>
+                        <el-radio-button :value="MarkFilter.Marked">已标记</el-radio-button>
+                        <el-radio-button :value="MarkFilter.Unmarked">未标记</el-radio-button>
+                    </el-radio-group>
+                    <span class="total-count">共 {{ filteredWxaList.length }} 条</span>
+                </div>
                 <div v-if="filteredWxaList.length > 0" class="wxa-item-container-scrollbar">
                     <div class="wxa-item-container" :class="{
                         'selected': selectedValue.includes(item.appid)
@@ -65,9 +73,24 @@ const showSelectMpDialog = ref(false);
 
 const searchValue = ref('');
 
+enum MarkFilter {
+    All = 'all',
+    Marked = 'marked',
+    Unmarked = 'unmarked',
+}
+const markFilter = ref<MarkFilter>(MarkFilter.All);
+
 const filteredWxaList = computed(() => {
+    const markFilteredList = props.wxaList.filter(item => {
+        if (markFilter.value === MarkFilter.All || !props.markedAppidList) {
+            return true;
+        }
+        const isMarked = props.markedAppidList.includes(item.appid);
+        return markFilter.value === MarkFilter.Marked ? isMarked : !isMarked;
+    });
+
     if (!searchValue.value) {
-        return props.wxaList;
+        return markFilteredList;
     }
     const fuzzysortKeys: {
         key: (item: WXMPItem) => string;
@@ -89,7 +112,7 @@ const filteredWxaList = computed(() => {
                 weight: 1,
             }
         ];
-    return fuzzysort.go(searchValue.value, props.wxaList, {
+    return fuzzysort.go(searchValue.value, markFilteredList, {
         keys: fuzzysortKeys.map(item => item.key),
         scoreFn: item => {
             return fuzzysortKeys.reduce((a, b, i) => {

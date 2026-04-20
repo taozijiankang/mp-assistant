@@ -63,6 +63,21 @@
     }
   }
 
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    .total-count {
+      color: rgba(29, 33, 41, 0.55);
+      font-family: "Source Han Sans SC";
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 22px;
+    }
+  }
+
   .wxa-item-container-scrollbar {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
