@@ -1,8 +1,19 @@
+@use "sass:color";
+
+$status-colors: (
+  "all": #409eff,
+  "not-started": #909399,
+  "running": #e6a23c,
+  "completed": #67c23a,
+  "failed": #f56c6c,
+);
+
 .task-stack {
   display: flex;
   gap: 10px;
   height: 100%;
   width: 800px;
+
   .task-list {
     width: 400px;
     display: flex;
@@ -12,282 +23,308 @@
     border-radius: 20px;
     border: 1.5px solid #eeecf9;
     background: linear-gradient(177deg, #f5f5ff 0.77%, #f5f8fd 97.87%), #fff;
+
     .controller {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
       padding: 0 12px;
+
       .worker-status-icon-container {
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
+
         .worker-status-icon {
           width: 20px;
           height: 20px;
         }
       }
     }
+
     .filter {
       display: flex;
       align-items: center;
-      gap: 10px;
+      flex-wrap: wrap;
+      gap: 6px;
       padding: 0 12px;
-      .filter-item {
-        display: flex;
+
+      .filter-chip {
+        display: inline-flex;
         align-items: center;
+        gap: 5px;
         cursor: pointer;
-        padding: 2px 4px;
-        border-radius: 4px;
+        padding: 3px 10px;
+        border-radius: 12px;
+        background: transparent;
+        border: 1px solid transparent;
+        transition: background-color 0.15s, border-color 0.15s;
+        user-select: none;
 
-        &.total {
-          span {
-            color: #917cd6;
-          }
-          &.selected {
-            background-color: #917cd6;
-            span {
-              color: #fff;
-            }
-          }
-        }
-        &.running {
-          span {
-            color: #e6a23c;
-          }
-          &.selected {
-            background-color: #e6a23c;
-            span {
-              color: #fff;
-            }
-          }
-        }
-        &.completed {
-          span {
-            color: #67c23a;
-          }
-          &.selected {
-            background-color: #67c23a;
-            span {
-              color: #fff;
-            }
-          }
-        }
-        &.failed {
-          span {
-            color: #f56c6c;
-          }
-          &.selected {
-            background-color: #f56c6c;
-            span {
-              color: #fff;
-            }
-          }
-        }
-        &.not-started {
-          span {
-            color: #909399;
-          }
-          &.selected {
-            background-color: #909399;
-            span {
-              color: #fff;
-            }
-          }
+        .dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #c0c4cc;
         }
 
-        span {
-          font-family: "Source Han Sans SC";
-          font-size: 14px;
-          font-weight: 400;
-          line-height: normal;
-          font-weight: bold;
+        .label {
+          color: #606266;
+          font-size: 12px;
+          font-weight: 500;
+          line-height: 18px;
+        }
+
+        .count {
+          color: #909399;
+          font-size: 12px;
+          font-weight: 500;
+          line-height: 18px;
+        }
+
+        &:hover {
+          background: rgba(144, 147, 153, 0.08);
+        }
+
+        @each $name, $color in $status-colors {
+          &.chip-#{$name} {
+            .dot {
+              background: $color;
+            }
+
+            &.selected {
+              background: color.change($color, $alpha: 0.12);
+              border-color: color.change($color, $alpha: 0.35);
+
+              .label {
+                color: $color;
+                font-weight: 600;
+              }
+
+              .count {
+                color: $color;
+                font-weight: 600;
+              }
+            }
+          }
         }
       }
     }
+
     .task-list-content-scrollbar {
       flex: 1;
       min-height: 0;
       border-radius: 10px;
       padding: 0 12px;
     }
+
     .task-list-content {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      min-height: 0;
+      gap: 8px;
       box-sizing: border-box;
+
       .task-item {
+        position: relative;
         display: flex;
-        padding: 8px 12px;
         flex-direction: column;
-        align-items: flex-start;
+        padding: 10px 12px;
         border-radius: 8px;
         background: #fff;
-        border: 1px solid transparent;
-        gap: 5px;
+        gap: 8px;
+        cursor: pointer;
+        transition: background-color 0.15s, box-shadow 0.15s;
+        box-shadow: 0 0 0 1px #ebeef5;
+
+        &:hover:not(.selected) {
+          box-shadow: 0 0 0 1px #dcdfe6;
+        }
 
         &.selected {
-          border: 1px solid #409eff;
-          box-shadow: 0 0 8px rgba(64, 158, 255, 0.3), 0 0 16px rgba(64, 158, 255, 0.2);
-        }
+          background: #ecf5ff;
+          box-shadow: 0 0 0 1px #a0cfff;
 
-        &.not-started {
-          .main {
-            .task-status {
-              span {
-                color: #909399;
-              }
-            }
-          }
-        }
-        &.running {
-          .main {
-            .task-status {
-              color: #e6a23c;
-              span {
-                color: #e6a23c;
-              }
-            }
-          }
-        }
-        &.completed {
-          .main {
-            .task-status {
-              color: #67c23a;
-              span {
-                color: #67c23a;
-              }
-            }
-          }
-        }
-        &.failed {
-          .main {
-            .task-status {
-              color: #f56c6c;
-              span {
-                color: #f56c6c;
-              }
-            }
+          .task-item-header .task-type .task-type-name {
+            color: #409eff;
           }
         }
 
-        .main {
+        .task-item-header {
           display: flex;
           align-items: center;
-          gap: 10px;
-          width: 100%;
           justify-content: space-between;
-          .task-type-container {
+          gap: 10px;
+
+          .task-type {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            min-width: 0;
+
             .task-type-icon {
-              width: 20px;
-              height: 20px;
+              width: 18px;
+              height: 18px;
+              flex-shrink: 0;
             }
-            .task-type {
+
+            .task-type-name {
               color: #1d2129;
-              font-family: "Source Han Sans SC";
               font-size: 14px;
-              font-weight: 700;
+              font-weight: 600;
               line-height: 20px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
             }
           }
-          .task-status {
-            display: flex;
+
+          .task-status-chip {
+            display: inline-flex;
             align-items: center;
             gap: 4px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            flex-shrink: 0;
 
-            .task-status-icon {
-              width: 20px;
-              height: 20px;
+            .dot {
+              width: 6px;
+              height: 6px;
+              border-radius: 50%;
             }
 
             span {
-              color: #1d2129;
-              font-family: "Source Han Sans SC";
-              font-size: 14px;
-              font-weight: 400;
-              line-height: normal;
-              font-weight: 700;
+              font-size: 12px;
+              font-weight: 500;
+              line-height: 16px;
             }
           }
         }
 
-        .task-key {
-          display: flex;
-          span {
-            color: #86909c;
-            font-family: "Source Han Sans SC";
-            font-size: 10px;
-            font-weight: 400;
-            line-height: normal;
-          }
-        }
+        @each $name, $color in $status-colors {
+          @if $name != "all" {
+            &.#{$name} {
+              .task-status-chip {
+                background: color.change($color, $alpha: 0.12);
 
-        .result-fill-message {
-          color: #f56c6c;
-          font-family: "Source Han Sans SC";
-          font-size: 14px;
-          font-weight: 400;
-          line-height: normal;
+                .dot {
+                  background: $color;
+                }
+
+                span {
+                  color: $color;
+                }
+              }
+            }
+          }
         }
 
         .task-wxa-item {
           width: 100%;
         }
 
-        .publish-qrcode-container {
+        .fail-msg {
           display: flex;
-          flex-direction: column;
-          gap: 5px;
-          align-items: center;
-          width: 100%;
-          .publish-qrcode-header {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-          }
-          .publish-qrcode-image {
-            width: 100%;
-            height: 100%;
-          }
-          .publish-qrcode-description {
-            color: #e6a23c;
-            font-family: "Source Han Sans SC";
+          align-items: flex-start;
+          gap: 6px;
+          padding: 6px 10px;
+          background: #fef0f0;
+          border-radius: 6px;
+          border-left: 3px solid #f56c6c;
+
+          .fail-icon {
+            color: #f56c6c;
             font-size: 14px;
+            flex-shrink: 0;
+            margin-top: 2px;
+          }
+
+          span {
+            color: #f56c6c;
+            font-size: 12px;
             font-weight: 400;
-            line-height: normal;
+            line-height: 18px;
+            word-break: break-all;
           }
         }
 
-        .item-controller {
+        .publish-qrcode-container {
           display: flex;
-          flex-direction: row;
-          gap: 10px;
+          flex-direction: column;
+          gap: 6px;
+          align-items: center;
+          width: 100%;
+          padding: 10px;
+          background: #fdf6ec;
+          border-radius: 6px;
+
+          .publish-qrcode-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            .loading-icon {
+              color: #e6a23c;
+              font-size: 14px;
+              animation: rotate 1s linear infinite;
+            }
+
+            .publish-qrcode-description {
+              color: #e6a23c;
+              font-size: 12px;
+              font-weight: 500;
+              line-height: 18px;
+            }
+          }
+
+          .publish-qrcode-image {
+            width: 180px;
+            height: 180px;
+            background: #fff;
+            border-radius: 4px;
+          }
+        }
+
+        .task-item-footer {
+          display: flex;
           justify-content: flex-end;
           width: 100%;
-          box-sizing: border-box;
+
+          .delete-btn {
+            color: #c0c4cc;
+            padding: 2px 6px;
+            height: auto;
+            font-size: 12px;
+
+            &:hover {
+              color: #f56c6c;
+            }
+          }
         }
       }
     }
+
+    .no-data {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   }
+
   .task-detail-scrollbar {
     flex: 1;
     min-width: 0;
     min-height: 0;
     overflow: hidden;
-    padding: 12px;
-    box-sizing: border-box;
-    background-color: white;
+    background-color: #f4f6fa;
     border-radius: 20px;
+
+    :deep(.el-scrollbar__view) {
+      padding: 12px;
+      box-sizing: border-box;
+    }
   }
 
   .no-task-data {
@@ -295,156 +332,262 @@
   }
 
   .task-detail {
-    gap: 10px;
     display: flex;
     flex-direction: column;
+    gap: 10px;
 
-    .title {
-      color: #917cd6;
-      font-family: "Source Han Sans SC";
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 22px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    .detail-section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 12px 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+      .section-title {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        background: #f0f2f5;
+        border-radius: 4px;
+        color: #4e5969;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 18px;
+        margin-bottom: 10px;
+      }
+
+      .section-body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
     }
 
-    .task-options-container {
+    .status-section {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      .task-options-item {
+      gap: 8px;
+
+      .status-main {
         display: flex;
-        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 12px;
+
+        .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+        }
+
         span {
-          font-family: "Source Han Sans SC";
-          font-size: 14px;
-          font-weight: 400;
-          line-height: normal;
-
-          span:first-child {
-            font-family: "Source Han Sans SC";
-            font-size: 14px;
-            font-weight: 700;
-            line-height: normal;
-            color: #917cd6;
-          }
-          &:not(:first-child) {
-            margin-left: 4px;
-            color: #86909c;
-            font-family: "Source Han Sans SC";
-            font-size: 14px;
-            font-weight: 400;
-            line-height: normal;
-          }
-          &:last-child {
-            color: #1d2129;
-            font-family: "Source Han Sans SC";
-            font-size: 14px;
-            font-weight: 400;
-            line-height: normal;
-          }
-        }
-        .el-image {
-          width: 100%;
-        }
-        video {
-          width: 100%;
+          font-size: 13px;
+          font-weight: 600;
+          line-height: 18px;
         }
       }
-    }
 
-    .task-running {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: 4px;
-      .dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background-color: #e6a23c;
-      }
-      span {
-        color: #e6a23c;
-        font-family: "Source Han Sans SC";
-        font-size: 14px;
+      .status-time {
+        color: #86909c;
+        font-size: 12px;
         font-weight: 400;
       }
+
+      .status-msg {
+        color: #4e5969;
+        font-size: 13px;
+        font-weight: 400;
+        line-height: 20px;
+        padding: 8px 10px;
+        background: #f7f8fa;
+        border-radius: 6px;
+        word-break: break-all;
+      }
+
+      @each $name, $color in $status-colors {
+        @if $name != "all" {
+          &.#{$name} {
+            .status-badge {
+              background: color.change($color, $alpha: 0.12);
+
+              .dot {
+                background: $color;
+
+                @if $name == "running" {
+                  box-shadow: 0 0 0 3px color.change($color, $alpha: 0.25);
+                  animation: pulse 1.2s ease-in-out infinite;
+                }
+              }
+
+              span {
+                color: $color;
+              }
+            }
+          }
+
+          &.failed .status-msg {
+            color: #f56c6c;
+            background: #fef0f0;
+          }
+        }
+      }
     }
 
-    .task-result-content {
+    .param-row {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      .task-result {
+      gap: 6px;
+
+      .param-label {
+        color: #86909c;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 18px;
+      }
+
+      .param-text {
+        color: #1d2129;
+        font-size: 13px;
+        font-weight: 400;
+        line-height: 20px;
+        padding: 8px 10px;
+        background: #f7f8fa;
+        border-radius: 6px;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+
+      .positioner-chips {
         display: flex;
-        flex-direction: row;
-        &.completed {
-          color: #67c23a;
-        }
-        &.failed {
-          color: #f56c6c;
-        }
-        span {
-          font-family: "Source Han Sans SC";
-          font-size: 14px;
-          font-weight: 700;
-          line-height: 20px;
+        flex-wrap: wrap;
+        gap: 6px;
+
+        .positioner-chip {
+          display: inline-flex;
+          align-items: center;
+          padding: 3px 10px;
+          background: #f0f6ff;
+          border: 1px solid #d4e8ff;
+          border-radius: 12px;
+          font-size: 12px;
+          line-height: 18px;
+
+          .chip-type {
+            color: #409eff;
+            font-weight: 600;
+          }
+
+          .chip-criteria {
+            color: #86909c;
+            margin: 0 6px;
+          }
+
+          .chip-value {
+            color: #1d2129;
+            font-weight: 500;
+          }
         }
       }
-      .task-result-time {
-        display: flex;
-        flex-direction: row;
-        span {
-          font-family: "Source Han Sans SC";
-          font-size: 14px;
-          font-weight: 400;
-          color: #86909c;
+
+      .media-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+
+        .el-image {
+          width: 100%;
+          aspect-ratio: 1;
+          border-radius: 6px;
+          overflow: hidden;
+          background: #f0f2f5;
         }
       }
-      .result-msg {
-        display: flex;
-        flex-direction: row;
-        span {
-          font-family: "Source Han Sans SC";
-          font-size: 14px;
-          font-weight: 400;
+
+      .media-grid-video {
+        grid-template-columns: repeat(2, 1fr);
+
+        video {
+          width: 100%;
+          border-radius: 6px;
+          background: #000;
         }
       }
     }
 
     .report-timeline {
       padding: 0;
+      margin: 0;
+
+      :deep(.el-timeline-item__timestamp) {
+        color: #86909c;
+        font-size: 12px;
+      }
 
       .report-item {
         display: flex;
         flex-direction: column;
         gap: 4px;
+
         .report-item-title {
           color: #1d2129;
-          font-family: "Source Han Sans SC";
           font-size: 14px;
-          font-weight: 700;
+          font-weight: 600;
           line-height: 20px;
         }
+
         .report-item-description {
           color: #606266;
-          font-family: "Source Han Sans SC";
           font-size: 12px;
           font-weight: 400;
           line-height: 18px;
+          white-space: pre-wrap;
+          word-break: break-all;
         }
+
         .report-item-images {
-          display: flex;
-          flex-direction: row;
-          gap: 4px;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 6px;
+          margin-top: 4px;
+
           .el-image {
             width: 100%;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #f0f2f5;
           }
         }
       }
     }
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
   }
 }

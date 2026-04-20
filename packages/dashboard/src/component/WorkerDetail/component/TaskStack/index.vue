@@ -12,16 +12,12 @@
                 </div>
             </div>
             <div class="filter">
-                <div v-for="item in filterStatusOptions" :key="item.value" class="filter-item" :class="{
-                    'total': item.value === 'all',
-                    'running': item.value === TaskStatus.RUNNING,
-                    'completed': item.value === TaskStatus.COMPLETED,
-                    'failed': item.value === TaskStatus.FAILED,
-                    'not-started': item.value === TaskStatus.NOT_STARTED,
-                    'selected': item.value === filterStatus,
-                }" @click="filterStatus = item.value">
-                    <span>{{ item.label }}</span>
-                    <span>{{taskList.filter(task => item.value === 'all' || task.status ===
+                <div v-for="item in filterStatusOptions" :key="item.value" class="filter-chip"
+                    :class="[`chip-${item.colorKey}`, { 'selected': item.value === filterStatus }]"
+                    @click="filterStatus = item.value">
+                    <div class="dot"></div>
+                    <span class="label">{{ item.label }}</span>
+                    <span class="count">{{taskList.filter(task => item.value === 'all' || task.status ===
                         item.value).length}}</span>
                 </div>
             </div>
@@ -35,54 +31,49 @@
                             completed: taskItem.status === TaskStatus.COMPLETED,
                             failed: taskItem.status === TaskStatus.FAILED,
                         }" @click="handleTaskClick(taskItem)">
-                        <div class="main">
-                            <div class="task-type-container">
+                        <div class="task-item-header">
+                            <div class="task-type">
                                 <img v-if="taskItem.type === TaskType.WX_INSPECT_VERSION"
                                     src="@/assets/check-the-version.png" alt="task-type-icon" class="task-type-icon">
                                 <img v-if="taskItem.type === TaskType.WX_AUDIT" src="@/assets/review.png"
                                     alt="task-type-icon" class="task-type-icon">
                                 <img v-if="taskItem.type === TaskType.WX_PUBLISH" src="@/assets/release.png"
                                     alt="task-type-icon" class="task-type-icon">
-                                <span class="task-type">{{ TaskTypeDict[taskItem.type] }} 任务</span>
+                                <span class="task-type-name">{{ TaskTypeDict[taskItem.type] }}</span>
                             </div>
-                            <div class="task-status">
-                                <img v-if="taskItem.status === TaskStatus.NOT_STARTED" src="@/assets/noStarted.png"
-                                    alt="task-status-icon" class="task-status-icon">
-                                <img v-if="taskItem.status === TaskStatus.RUNNING" src="@/assets/running.png"
-                                    alt="task-status-icon" class="task-status-icon">
-                                <img v-if="taskItem.status === TaskStatus.COMPLETED" src="@/assets/completed.png"
-                                    alt="task-status-icon" class="task-status-icon">
-                                <img v-if="taskItem.status === TaskStatus.FAILED" src="@/assets/failed.png"
-                                    alt="task-status-icon" class="task-status-icon">
+                            <div class="task-status-chip">
+                                <div class="dot"></div>
+                                <span>{{ TaskStatusDict[taskItem.status] }}</span>
                             </div>
-                        </div>
-                        <div class="task-key">
-                            <span>{{ taskItem.key }}</span>
-                        </div>
-                        <div v-if="taskItem.status === TaskStatus.FAILED && taskItem.result?.msg"
-                            class="result-fill-message">
-                            <span>{{ taskItem.result?.msg }}</span>
                         </div>
                         <WXAItem v-if="getWxaInfo(taskItem.options)" class="task-wxa-item"
                             :wxa-item="getWxaInfo(taskItem.options)!" />
+                        <div v-if="taskItem.status === TaskStatus.FAILED && taskItem.result?.msg" class="fail-msg">
+                            <el-icon class="fail-icon">
+                                <WarningFilled />
+                            </el-icon>
+                            <span>{{ taskItem.result?.msg }}</span>
+                        </div>
                         <div v-if="WXTaskN.isPublishInfo(taskItem) && taskItem.publishQRCodeFilePath && taskItem.status === TaskStatus.RUNNING"
                             class="publish-qrcode-container">
                             <div class="publish-qrcode-header">
-                                <span class="publish-qrcode-description">需要扫描二维码进行发布 剩余时间: {{
-                                    Math.round(taskItem.countdown)
-                                    }}秒</span>
-
+                                <el-icon class="loading-icon">
+                                    <Loading />
+                                </el-icon>
+                                <span class="publish-qrcode-description">需要扫描二维码进行发布 剩余 {{
+                                    Math.round(taskItem.countdown) }}s</span>
                             </div>
                             <img :src="getFileUrl(taskItem.publishQRCodeFilePath)" alt="publish-qrcode"
                                 class="publish-qrcode-image" />
                         </div>
-                        <div v-if="taskItem.status !== TaskStatus.RUNNING" class="item-controller">
-                            <el-button class="file-remove-button" size="small" type="danger" plain
+                        <div v-if="taskItem.status !== TaskStatus.RUNNING" class="task-item-footer">
+                            <el-button class="delete-btn" text size="small"
                                 :loading="removeTaskLoadings.includes(taskItem.key)"
-                                @click="handleDestroyTask(taskItem)" circle>
+                                @click.stop="handleDestroyTask(taskItem)">
                                 <el-icon>
                                     <Delete />
                                 </el-icon>
+                                <span>删除</span>
                             </el-button>
                         </div>
                     </div>
@@ -93,99 +84,96 @@
             </div>
         </div>
         <el-scrollbar v-if="onSelectedTask" class="task-detail-scrollbar">
-            <div v-if="onSelectedTask" class="task-detail">
-                <div v-if="onSelectedTask.status === TaskStatus.RUNNING" class="task-running">
-                    <div class="dot"></div>
-                    <span>任务执行中...</span>
+            <div class="task-detail">
+                <div class="detail-section status-section" :class="{
+                    running: onSelectedTask.status === TaskStatus.RUNNING,
+                    completed: onSelectedTask.status === TaskStatus.COMPLETED,
+                    failed: onSelectedTask.status === TaskStatus.FAILED,
+                    'not-started': onSelectedTask.status === TaskStatus.NOT_STARTED,
+                }">
+                    <div class="status-main">
+                        <div class="status-badge">
+                            <div class="dot"></div>
+                            <span>{{ TaskStatusDict[onSelectedTask.status] }}</span>
+                        </div>
+                        <span v-if="onSelectedTask.status === TaskStatus.COMPLETED
+                            || onSelectedTask.status === TaskStatus.FAILED" class="status-time">
+                            结束时间：{{ dayjs(onSelectedTask.endTime).format('YYYY-MM-DD HH:mm:ss') }}
+                        </span>
+                    </div>
+                    <div v-if="onSelectedTask.result?.msg" class="status-msg">
+                        {{ onSelectedTask.result.msg }}
+                    </div>
                 </div>
-                <template v-if="WXTaskN.isAuditInfo(onSelectedTask) || WXTaskN.isPublishInfo(onSelectedTask)">
-                    <div class="title">
-                        <span>任务参数</span>
-                    </div>
-                    <!-- 版本定位条件 -->
-                    <div class="task-options-container">
-                        <div v-for="item in onSelectedTask.options.positioner || []" class="task-options-item">
-                            <span>
-                                <span>{{ VersionPositioningTypeDict[item.type] }}</span>
-                                <span>{{ VersionPositioningCriteriaDict[item.criteria] }}</span>
-                                <span>{{ item.value }}</span>
-                            </span>
-                        </div>
-                    </div>
-                    <template v-if="WXTaskN.isAuditInfo(onSelectedTask)">
-                        <div class="title">
-                            <span>版本描述</span>
-                        </div>
-                        <div class="task-options-container">
-                            <div class="task-options-item">
-                                <span>{{ onSelectedTask.options.populateData?.versionDescription }}</span>
+
+                <div v-if="WXTaskN.isAuditInfo(onSelectedTask) || WXTaskN.isPublishInfo(onSelectedTask)"
+                    class="detail-section">
+                    <div class="section-title">任务参数</div>
+                    <div class="section-body">
+                        <div v-if="(onSelectedTask.options.positioner || []).length > 0" class="param-row">
+                            <div class="param-label">版本定位</div>
+                            <div class="positioner-chips">
+                                <div v-for="(item, index) in onSelectedTask.options.positioner" :key="index"
+                                    class="positioner-chip">
+                                    <span class="chip-type">{{ VersionPositioningTypeDict[item.type] }}</span>
+                                    <span class="chip-criteria">{{ VersionPositioningCriteriaDict[item.criteria]
+                                        }}</span>
+                                    <span class="chip-value">{{ item.value }}</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="title">
-                            <span>图片预览</span>
-                        </div>
-                        <div class="task-options-container">
-                            <div class="task-options-item">
-                                <el-image
-                                    v-for="(image, index) in onSelectedTask.options.populateData?.imagePreview?.split(',')?.filter(Boolean) || []"
-                                    :key="image" :src="getFileUrl(image)" fit="contain" />
+                        <template v-if="WXTaskN.isAuditInfo(onSelectedTask)">
+                            <div v-if="onSelectedTask.options.populateData?.versionDescription" class="param-row">
+                                <div class="param-label">版本描述</div>
+                                <div class="param-text">{{ onSelectedTask.options.populateData.versionDescription }}
+                                </div>
                             </div>
-                        </div>
-                        <div class="title">
-                            <span>视频预览</span>
-                        </div>
-                        <div class="task-options-container">
-                            <div class="task-options-item">
-                                <video
-                                    v-for="(video, index) in onSelectedTask.options.populateData?.videoPreview?.split(',')?.filter(Boolean) || []"
-                                    :key="video" :src="getFileUrl(video)" controls />
+                            <div v-if="previewImages.length > 0" class="param-row">
+                                <div class="param-label">图片预览</div>
+                                <div class="media-grid">
+                                    <el-image v-for="(image, index) in previewImages" :key="image"
+                                        :src="getFileUrl(image)" fit="cover"
+                                        :preview-src-list="previewImages.map(i => getFileUrl(i))" preview-teleported
+                                        :initial-index="index" />
+                                </div>
                             </div>
-                        </div>
-                    </template>
-                </template>
-                <template
-                    v-if="onSelectedTask.status === TaskStatus.COMPLETED || onSelectedTask.status === TaskStatus.FAILED">
-                    <div class="title">
-                        <span>任务结果</span>
+                            <div v-if="previewVideos.length > 0" class="param-row">
+                                <div class="param-label">视频预览</div>
+                                <div class="media-grid media-grid-video">
+                                    <video v-for="video in previewVideos" :key="video" :src="getFileUrl(video)"
+                                        controls />
+                                </div>
+                            </div>
+                        </template>
                     </div>
-                    <div class="task-result-content">
-                        <div class="task-result" :class="{
-                            'completed': onSelectedTask.status === TaskStatus.COMPLETED,
-                            'failed': onSelectedTask.status === TaskStatus.FAILED,
-                        }">
-                            <span>{{ TaskStatusDict[onSelectedTask.status || TaskStatus.NOT_STARTED] }}</span>
-                        </div>
-                        <div class="task-result-time">
-                            <span>
-                                结束时间：{{ dayjs(onSelectedTask.endTime).format('YYYY-MM-DD HH:mm:ss') }}
-                            </span>
-                        </div>
-                        <div v-if="onSelectedTask.result?.msg" class="result-msg">
-                            <span>{{ onSelectedTask.result?.msg }}</span>
-                        </div>
-                    </div>
-                </template>
-                <div class="title">
-                    <span>任务运行报告</span>
                 </div>
-                <el-timeline v-if="onSelectedTask.runningReportList.length > 0" class="report-timeline">
-                    <el-timeline-item v-for="(taskReport, index) in onSelectedTask.runningReportList" :key="index"
-                        :timestamp="dayjs(taskReport.timestamp).format('YYYY-MM-DD HH:mm:ss')" placement="top">
-                        <div class="report-item">
-                            <span class="report-item-title">{{ taskReport.title }}</span>
-                            <span v-if="taskReport.description" class="report-item-description">
-                                {{ taskReport.description }}
-                            </span>
-                            <div v-if="taskReport.images && taskReport.images.length > 0" class="report-item-images">
-                                <el-image v-for="(image, index) in taskReport.images.map(image => getFileUrl(image))"
-                                    :key="image" :src="image" fit="contain"
-                                    :preview-src-list="taskReport.images.map(image => getFileUrl(image))"
-                                    preview-teleported :initial-index="index" />
-                            </div>
-                        </div>
-                    </el-timeline-item>
-                </el-timeline>
-                <el-empty v-else description="暂无任务运行报告" />
+
+                <div class="detail-section">
+                    <div class="section-title">运行报告</div>
+                    <div class="section-body">
+                        <el-timeline v-if="onSelectedTask.runningReportList.length > 0" class="report-timeline">
+                            <el-timeline-item v-for="(taskReport, index) in onSelectedTask.runningReportList"
+                                :key="index" :timestamp="dayjs(taskReport.timestamp).format('YYYY-MM-DD HH:mm:ss')"
+                                placement="top">
+                                <div class="report-item">
+                                    <span class="report-item-title">{{ taskReport.title }}</span>
+                                    <span v-if="taskReport.description" class="report-item-description">
+                                        {{ taskReport.description }}
+                                    </span>
+                                    <div v-if="taskReport.images && taskReport.images.length > 0"
+                                        class="report-item-images">
+                                        <el-image
+                                            v-for="(image, index) in taskReport.images.map(image => getFileUrl(image))"
+                                            :key="image" :src="image" fit="contain"
+                                            :preview-src-list="taskReport.images.map(image => getFileUrl(image))"
+                                            preview-teleported :initial-index="index" />
+                                    </div>
+                                </div>
+                            </el-timeline-item>
+                        </el-timeline>
+                        <el-empty v-else description="暂无任务运行报告" :image-size="60" />
+                    </div>
+                </div>
             </div>
         </el-scrollbar>
         <el-empty v-else class="no-task-data" description="暂无任务数据" />
@@ -199,7 +187,7 @@ import { dayjs, ElMessage, ElMessageBox } from 'element-plus';
 import { WorkerStatus, WXWorkerN } from '@mp-assistant/common/dist/work';
 import { useOperationRecordStore } from '@/stores';
 import { storeToRefs } from 'pinia';
-import { Delete } from '@element-plus/icons-vue';
+import { Delete, WarningFilled, Loading } from '@element-plus/icons-vue';
 import { getFileUrl, requestPauseAndRecoverWorker, requestRemoveTask } from '@/api';
 import type { AddTaskFormData } from '../AddTaskDialog/index';
 import fuzzysort from 'fuzzysort';
@@ -223,28 +211,14 @@ const filterStatus = ref<TaskStatus | 'all'>('all');
 const filterStatusOptions = computed<{
     label: string;
     value: TaskStatus | 'all';
+    colorKey: string;
 }[]>(() => {
     return [
-        {
-            label: '全部',
-            value: 'all',
-        },
-        {
-            label: '未开始',
-            value: TaskStatus.NOT_STARTED,
-        },
-        {
-            label: '执行中',
-            value: TaskStatus.RUNNING,
-        },
-        {
-            label: '完成',
-            value: TaskStatus.COMPLETED,
-        },
-        {
-            label: '失败',
-            value: TaskStatus.FAILED,
-        },
+        { label: '全部', value: 'all', colorKey: 'all' },
+        { label: '未开始', value: TaskStatus.NOT_STARTED, colorKey: 'not-started' },
+        { label: '执行中', value: TaskStatus.RUNNING, colorKey: 'running' },
+        { label: '完成', value: TaskStatus.COMPLETED, colorKey: 'completed' },
+        { label: '失败', value: TaskStatus.FAILED, colorKey: 'failed' },
     ];
 });
 
@@ -254,6 +228,20 @@ const onSelectedTask = computed(() => {
 
 const taskList = computed(() => {
     return [...props.workerDetail.taskList].sort((a, b) => a.createTime - b.createTime);
+});
+
+const previewImages = computed(() => {
+    if (onSelectedTask.value && WXTaskN.isAuditInfo(onSelectedTask.value)) {
+        return onSelectedTask.value.options.populateData?.imagePreview?.split(',')?.filter(Boolean) || [];
+    }
+    return [];
+});
+
+const previewVideos = computed(() => {
+    if (onSelectedTask.value && WXTaskN.isAuditInfo(onSelectedTask.value)) {
+        return onSelectedTask.value.options.populateData?.videoPreview?.split(',')?.filter(Boolean) || [];
+    }
+    return [];
 });
 
 const filteredTaskList = computed(() => {
