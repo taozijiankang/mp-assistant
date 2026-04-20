@@ -77,6 +77,16 @@
             height: 15px;
           }
 
+          .view-task-button {
+            height: auto;
+            padding: 0;
+            font-size: 12px;
+          }
+
+          .task-time {
+            margin-left: auto;
+          }
+
           .task-status {
             display: flex;
             align-items: center;
