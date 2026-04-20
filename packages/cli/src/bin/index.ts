@@ -9,8 +9,13 @@ import { start } from '../start.js';
 const rootPackageJson = JSON.parse(fs.readFileSync(path.join(getRootDir(), 'package.json')).toString());
 
 interface StartCommandOptions {
-    headless: boolean;
-    port: number;
+    headless?: HeadlessOption;
+    port?: string;
+}
+
+enum HeadlessOption {
+    True = 'true',
+    False = 'false',
 }
 
 program
@@ -18,14 +23,14 @@ program
     .description('小程序助手')
     // 
     .command('start')
-    .option('-h, --headless <headless>', '是否无头模式')
-    .option('-p, --port <port>', '端口号 (默认: 3001)')
+    .option('-h, --headless <headless>', `是否无头模式 (true/false) (当前配置: ${ConfigStore.instance.config.headless})`)
+    .option('-p, --port <port>', `端口号 (当前配置: ${ConfigStore.instance.config.port})`)
     .action(async (options: StartCommandOptions) => {
         const { headless, port } = options;
 
         ConfigStore.instance.setConfig({
-            headless: headless || ConfigStore.instance.config.headless,
-            port: port || ConfigStore.instance.config.port,
+            headless: headless === HeadlessOption.True,
+            port: port ? Number(port) : ConfigStore.instance.config.port,
         });
 
         await start();
