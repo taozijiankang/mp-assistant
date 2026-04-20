@@ -35,7 +35,10 @@
                         </div>
                     </div>
 
-                    <!-- meta 行：发布者 · 提交 · 时间 -->
+                    <!-- 时间单独一行 -->
+                    <div v-if="item.time" class="card-time">{{ formatTime(item.time) }}</div>
+
+                    <!-- meta 行：发布者 · 提交 · 环境 -->
                     <div class="card-meta">
                         <span v-if="item.nick_name" class="meta-item">发布者 {{ item.nick_name }}</span>
                         <template v-if="commitHash(item.describe)">
@@ -47,9 +50,9 @@
                                 </el-icon>
                             </span>
                         </template>
-                        <template v-if="item.time">
+                        <template v-if="environment(item.describe)">
                             <span class="meta-sep">·</span>
-                            <span class="meta-item">{{ formatTime(item.time) }}</span>
+                            <span class="meta-item">环境 {{ environment(item.describe) }}</span>
                         </template>
                     </div>
 
@@ -67,10 +70,20 @@
                         </div>
                     </div>
 
-                    <!-- 备注 -->
-                    <div v-if="item.describe" class="card-describe">
-                        {{ item.describe }}
-                    </div>
+                    <!-- 备注（默认折叠） -->
+                    <template v-if="item.describe">
+                        <div class="describe-toggle"
+                            @click="toggleDescribe(`${versionListInfo.type}-${idx}`)">
+                            <span>{{ isDescribeExpanded(`${versionListInfo.type}-${idx}`) ? '收起备注' : '查看备注' }}</span>
+                            <el-icon class="toggle-icon"
+                                :class="{ expanded: isDescribeExpanded(`${versionListInfo.type}-${idx}`) }">
+                                <ArrowDown />
+                            </el-icon>
+                        </div>
+                        <div v-if="isDescribeExpanded(`${versionListInfo.type}-${idx}`)" class="card-describe">
+                            {{ item.describe }}
+                        </div>
+                    </template>
                 </div>
             </div>
         </template>
@@ -81,12 +94,12 @@
 import { WXReviewStatusDict } from '@mp-assistant/common/dist/constant';
 import { WXReviewStatus, type VersionListItem } from '@mp-assistant/common/dist/types/wx';
 import { TaskType, WXTaskN, type BaseTaskInfo } from '@mp-assistant/common/dist/work/task';
-import { computed, inject } from 'vue';
+import { computed, inject, ref } from 'vue';
 import type { AddTaskFormData } from '../../../AddTaskDialog/index';
 import type { WXMPItem } from '@mp-assistant/common/dist/types/wx';
 import { VersionPositioningCriteria, VersionPositioningType } from '@mp-assistant/common/dist/utils/wx';
 import { dayjs, ElMessage } from 'element-plus';
-import { CopyDocument } from '@element-plus/icons-vue';
+import { CopyDocument, ArrowDown } from '@element-plus/icons-vue';
 
 const props = defineProps<{
     wxmpItem: WXMPItem;
@@ -161,6 +174,18 @@ const auditTagType = (status: number | undefined) => {
 
 const commitHash = (describe?: string) => {
     return describe?.match(/提交信息[:：]?\s*([a-f0-9]{7,40})/)?.[1];
+};
+
+const environment = (describe?: string) => {
+    return describe?.match(/\[\s*环境[:：]\s*([^\]]+?)\s*\]/)?.[1];
+};
+
+const expandedDescribes = ref<Record<string, boolean>>({});
+
+const isDescribeExpanded = (key: string) => !!expandedDescribes.value[key];
+
+const toggleDescribe = (key: string) => {
+    expandedDescribes.value[key] = !expandedDescribes.value[key];
 };
 
 const normalizeReason = (html?: string) => {
