@@ -49,11 +49,20 @@
     .header-menu {
       border-bottom: none;
       height: 100%;
+      background: transparent;
+      --el-menu-bg-color: transparent;
+      --el-menu-hover-bg-color: transparent;
 
       :deep(.el-menu-item) {
         font-size: 14px;
         height: 100%;
         line-height: 48px;
+        background: transparent;
+
+        &:hover,
+        &:focus {
+          background: transparent;
+        }
       }
     }
   }
