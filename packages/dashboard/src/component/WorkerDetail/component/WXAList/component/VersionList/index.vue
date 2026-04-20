@@ -38,7 +38,7 @@
                     <!-- 时间单独一行 -->
                     <div v-if="item.time" class="card-time">{{ formatTime(item.time) }}</div>
 
-                    <!-- meta：发布者 / 提交 / 环境（每行一个） -->
+                    <!-- meta：发布者 + 备注信息（每行一个） -->
                     <div class="card-meta">
                         <div v-if="item.nick_name" class="meta-item">
                             发布者 <span class="meta-value">{{ item.nick_name }}</span>
@@ -46,17 +46,17 @@
                                 <CopyDocument />
                             </el-icon>
                         </div>
-                        <div v-if="commitInfo(item.describe)" class="meta-item">
-                            <span class="meta-value">{{ commitInfo(item.describe) }}</span>
-                            <el-icon class="copy-icon" @click="handleCopy(commitInfo(item.describe)!)">
-                                <CopyDocument />
-                            </el-icon>
-                        </div>
-                        <div v-if="environment(item.describe)" class="meta-item">
-                            <span class="meta-value">{{ environment(item.describe) }}</span>
-                            <el-icon class="copy-icon" @click="handleCopy(environment(item.describe)!)">
-                                <CopyDocument />
-                            </el-icon>
+                        <template v-if="metaSegments(item.describe)">
+                            <div v-for="(seg, i) in metaSegments(item.describe)" :key="i" class="meta-item">
+                                <span class="meta-value">{{ seg }}</span>
+                                <el-icon class="copy-icon" @click="handleCopy(seg)">
+                                    <CopyDocument />
+                                </el-icon>
+                            </div>
+                        </template>
+                        <div v-else-if="item.describe" class="meta-item">
+                            <span class="meta-label">备注</span>
+                            <span>{{ item.describe }}</span>
                         </div>
                     </div>
 
@@ -74,20 +74,6 @@
                         </div>
                     </div>
 
-                    <!-- 备注（默认折叠） -->
-                    <template v-if="item.describe">
-                        <div class="describe-toggle"
-                            @click="toggleDescribe(`${versionListInfo.type}-${idx}`)">
-                            <span>{{ isDescribeExpanded(`${versionListInfo.type}-${idx}`) ? '收起备注' : '查看备注' }}</span>
-                            <el-icon class="toggle-icon"
-                                :class="{ expanded: isDescribeExpanded(`${versionListInfo.type}-${idx}`) }">
-                                <ArrowDown />
-                            </el-icon>
-                        </div>
-                        <div v-if="isDescribeExpanded(`${versionListInfo.type}-${idx}`)" class="card-describe">
-                            {{ item.describe }}
-                        </div>
-                    </template>
                 </div>
             </div>
         </template>
@@ -98,12 +84,12 @@
 import { WXReviewStatusDict } from '@mp-assistant/common/dist/constant';
 import { WXReviewStatus, type VersionListItem } from '@mp-assistant/common/dist/types/wx';
 import { TaskType, WXTaskN, type BaseTaskInfo } from '@mp-assistant/common/dist/work/task';
-import { computed, inject, ref } from 'vue';
+import { computed, inject } from 'vue';
 import type { AddTaskFormData } from '../../../AddTaskDialog/index';
 import type { WXMPItem } from '@mp-assistant/common/dist/types/wx';
 import { VersionPositioningCriteria, VersionPositioningType } from '@mp-assistant/common/dist/utils/wx';
 import { dayjs, ElMessage } from 'element-plus';
-import { CopyDocument, ArrowDown } from '@element-plus/icons-vue';
+import { CopyDocument } from '@element-plus/icons-vue';
 
 const props = defineProps<{
     wxmpItem: WXMPItem;
@@ -176,20 +162,11 @@ const auditTagType = (status: number | undefined) => {
     return 'info';
 };
 
-const commitInfo = (describe?: string): string | undefined => {
-    return describe?.match(/\[\s*提交信息[:：]\s*[^\]]+?\s*\]/)?.[0];
-};
-
-const environment = (describe?: string): string | undefined => {
-    return describe?.match(/\[\s*环境[:：]\s*[^\]]+?\s*\]/)?.[0];
-};
-
-const expandedDescribes = ref<Record<string, boolean>>({});
-
-const isDescribeExpanded = (key: string) => !!expandedDescribes.value[key];
-
-const toggleDescribe = (key: string) => {
-    expandedDescribes.value[key] = !expandedDescribes.value[key];
+const metaSegments = (describe?: string): string[] | undefined => {
+    if (!describe) return undefined;
+    const trimmed = describe.trim();
+    if (!/^(\s*\[[^\]]+\]\s*)+$/.test(trimmed)) return undefined;
+    return trimmed.match(/\[[^\]]+\]/g) ?? undefined;
 };
 
 const normalizeReason = (html?: string) => {

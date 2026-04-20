@@ -116,6 +116,10 @@
         min-width: 0;
       }
 
+      .meta-label {
+        flex-shrink: 0;
+      }
+
       .meta-value {
         color: #917cd6;
         word-break: break-all;
@@ -164,40 +168,5 @@
       }
     }
 
-    .describe-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 2px;
-      align-self: flex-start;
-      color: #909399;
-      font-size: 12px;
-      line-height: 18px;
-      cursor: pointer;
-      user-select: none;
-      transition: color 0.15s;
-
-      &:hover {
-        color: #409eff;
-      }
-
-      .toggle-icon {
-        font-size: 12px;
-        transition: transform 0.2s;
-
-        &.expanded {
-          transform: rotate(180deg);
-        }
-      }
-    }
-
-    .card-describe {
-      color: #606266;
-      white-space: pre-wrap;
-      word-break: break-word;
-      line-height: 18px;
-      padding: 6px 8px;
-      background: #f5f7fa;
-      border-radius: 4px;
-    }
   }
 }
