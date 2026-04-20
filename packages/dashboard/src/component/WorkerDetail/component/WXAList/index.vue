@@ -18,52 +18,60 @@
             <div class="wxa-item-container">
                 <div class="wxa-item" :class="{ 'marked': workerDetail.markWXAppIds.includes(wxa.wxaItem.appid) }"
                     v-for="wxa in filteredWxaList" :key="wxa.wxaItem.appid">
-                    <WXAItem :wxa-item="wxa.wxaItem">
-                        <template #name-suffix>
-                            <el-button size="small" plain
-                                :loading="restartTaskLoadings.includes(wxa.wxaItem.appid) || wxa.inspectTaskVersionInfo?.status === TaskStatus.RUNNING"
-                                @click="handleRestartTask(wxa.wxaItem)">获取版本信息</el-button>
-                        </template>
-                        <template #extra>
-                            <el-icon v-if="workerDetail.markWXAppIds.includes(wxa.wxaItem.appid)"
-                                class="star-icon marked" @click="handleMarkWXAppId(wxa.wxaItem.appid, false)">
-                                <StarFilled />
-                            </el-icon>
-                            <el-icon v-else class="star-icon"
-                                @click="handleMarkWXAppId(wxa.wxaItem.appid, true)">
-                                <Star />
-                            </el-icon>
-                        </template>
-                    </WXAItem>
-                    <div v-for="taskInfo in wxa.relatedTask" :key="taskInfo.key" class="task-info">
-                        <div class="top">
-                            <img v-if="taskInfo.type === TaskType.WX_INSPECT_VERSION"
-                                src="@/assets/check-the-version.png" alt="task-type-icon" class="task-type-icon">
-                            <img v-if="taskInfo.type === TaskType.WX_AUDIT" src="@/assets/review.png"
-                                alt="task-type-icon" class="task-type-icon">
-                            <img v-if="taskInfo.type === TaskType.WX_PUBLISH" src="@/assets/release.png"
-                                alt="task-type-icon" class="task-type-icon">
-                            <span>{{ TaskTypeDict[taskInfo.type] }}</span>
-                            <el-button class="view-task-button" link @click="handleViewTask(taskInfo)">查看</el-button>
-                            <div class="task-status" :class="{
-                                'success': taskInfo.status === TaskStatus.COMPLETED,
-                                'running': taskInfo.status === TaskStatus.RUNNING,
-                                'fail': taskInfo.status === TaskStatus.FAILED,
-                            }">
-                                <div class="dot"></div>
-                                <span>
-                                    {{ TaskStatusDict[taskInfo.status] }}
+                    <div class="wxa-item-header">
+                        <WXAItem :wxa-item="wxa.wxaItem">
+                            <template #name-suffix>
+                                <el-button size="small" plain
+                                    :loading="restartTaskLoadings.includes(wxa.wxaItem.appid) || wxa.inspectTaskVersionInfo?.status === TaskStatus.RUNNING"
+                                    @click="handleRestartTask(wxa.wxaItem)">获取版本信息</el-button>
+                            </template>
+                            <template #extra>
+                                <el-icon v-if="workerDetail.markWXAppIds.includes(wxa.wxaItem.appid)"
+                                    class="star-icon marked"
+                                    @click="handleMarkWXAppId(wxa.wxaItem.appid, false)">
+                                    <StarFilled />
+                                </el-icon>
+                                <el-icon v-else class="star-icon"
+                                    @click="handleMarkWXAppId(wxa.wxaItem.appid, true)">
+                                    <Star />
+                                </el-icon>
+                            </template>
+                        </WXAItem>
+                    </div>
+                    <div v-if="wxa.relatedTask.length > 0 || wxa.inspectTaskVersionInfo" class="wxa-item-body">
+                        <div v-for="taskInfo in wxa.relatedTask" :key="taskInfo.key" class="task-info">
+                            <div class="top">
+                                <img v-if="taskInfo.type === TaskType.WX_INSPECT_VERSION"
+                                    src="@/assets/check-the-version.png" alt="task-type-icon"
+                                    class="task-type-icon">
+                                <img v-if="taskInfo.type === TaskType.WX_AUDIT" src="@/assets/review.png"
+                                    alt="task-type-icon" class="task-type-icon">
+                                <img v-if="taskInfo.type === TaskType.WX_PUBLISH" src="@/assets/release.png"
+                                    alt="task-type-icon" class="task-type-icon">
+                                <span>{{ TaskTypeDict[taskInfo.type] }}</span>
+                                <el-button class="view-task-button" link
+                                    @click="handleViewTask(taskInfo)">查看</el-button>
+                                <div class="task-status" :class="{
+                                    'success': taskInfo.status === TaskStatus.COMPLETED,
+                                    'running': taskInfo.status === TaskStatus.RUNNING,
+                                    'fail': taskInfo.status === TaskStatus.FAILED,
+                                }">
+                                    <div class="dot"></div>
+                                    <span>
+                                        {{ TaskStatusDict[taskInfo.status] }}
+                                    </span>
+                                </div>
+                                <span
+                                    v-if="taskInfo.status === TaskStatus.COMPLETED || taskInfo.status === TaskStatus.FAILED"
+                                    class="task-time">
+                                    {{ dayjs(taskInfo.endTime).format('YYYY-MM-DD HH:mm:ss') }}
                                 </span>
                             </div>
-                            <span
-                                v-if="taskInfo.status === TaskStatus.COMPLETED || taskInfo.status === TaskStatus.FAILED"
-                                class="task-time">
-                                {{ dayjs(taskInfo.endTime).format('YYYY-MM-DD HH:mm:ss') }}
-                            </span>
                         </div>
+                        <VersionList v-if="wxa.inspectTaskVersionInfo" :wxmp-item="wxa.wxaItem"
+                            :related-task="wxa.relatedTask"
+                            :inspect-version-task-info="wxa.inspectTaskVersionInfo" />
                     </div>
-                    <VersionList v-if="wxa.inspectTaskVersionInfo" :wxmp-item="wxa.wxaItem"
-                        :related-task="wxa.relatedTask" :inspect-version-task-info="wxa.inspectTaskVersionInfo" />
                 </div>
             </div>
         </el-scrollbar>
