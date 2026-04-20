@@ -155,8 +155,8 @@
     > div {
       padding: 10px 12px;
       box-sizing: border-box;
-      border-right: 1px solid #ebeef5;
-      border-bottom: 1px solid #ebeef5;
+      border-right: 1px solid #dcdfe6;
+      border-bottom: 1px solid #dcdfe6;
     }
 
     .grid-index-header {
@@ -228,14 +228,14 @@
       align-items: center;
 
       &.is-empty {
-        background: #fafbfc;
+        background: #f0f2f5;
       }
 
       &.is-highlighted {
         background: #e6f1ff;
 
         &.is-empty {
-          background: #f0f7ff;
+          background: #dbe6f5;
         }
       }
 
