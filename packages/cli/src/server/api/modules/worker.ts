@@ -119,6 +119,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
             else {
                 worker.unmarkWXAppId(appId);
             }
+            WorkerStore.instance.saveData();
             return getSuccessApiResponse(undefined);
         }
         else {
