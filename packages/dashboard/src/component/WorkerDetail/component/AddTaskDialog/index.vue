@@ -17,11 +17,28 @@
                         </el-radio-button>
                     </el-radio-group>
                 </el-form-item>
-                <el-form-item label="小程序" prop="appIds">
+                <el-form-item v-if="!batchMode" label="小程序" prop="appIds">
                     <SelectMp :wxa-list="workerDetail?.wxaList || []" :marked-appid-list="workerDetail?.markWXAppIds"
                         :selectedValue="addTaskForm.appIds" @update:selectedValue="(values) => {
                             addTaskForm.appIds = values;
                         }" />
+                </el-form-item>
+                <el-form-item v-else label="小程序">
+                    <div class="batch-summary">
+                        <div class="batch-summary-header">
+                            已选
+                            <b>{{ batchTotalAppCount }}</b>
+                            个小程序，跨
+                            <b>{{ batchTargets.length }}</b>
+                            个账号
+                        </div>
+                        <div class="batch-summary-list">
+                            <div v-for="target in batchTargets" :key="target.workerKey" class="batch-summary-item">
+                                <span class="batch-summary-worker">{{ target.workerName || target.workerKey }}</span>
+                                <span class="batch-summary-count">{{ target.appIds.length }} 个</span>
+                            </div>
+                        </div>
+                    </div>
                 </el-form-item>
             </el-form>
             <!-- 审核任务表单 -->
@@ -63,13 +80,13 @@
     </el-dialog>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { requestAddTask, requestGetWorkerDetail } from '@/api';
 import { ElMessage } from 'element-plus';
 import type { FormRules } from 'element-plus';
 import type { ElForm } from 'element-plus';
 import { TaskType, WXTaskN } from '@mp-assistant/common/dist/work/task';
-import type { AddTaskForm, AddTaskFormData } from './index';
+import type { AddTaskForm, AddTaskFormData, AddTaskBatchTarget } from './index';
 import { TaskTypeOptions } from '@mp-assistant/common/dist/work/task';
 import { WXWorkerN } from '@mp-assistant/common/dist/work';
 import type { VersionPositioner } from '@mp-assistant/common/dist/utils/wx';
@@ -89,6 +106,16 @@ const visible = ref(false);
 const loading = ref(false);
 
 const workerDetail = ref<WXWorkerN.WXWorkInfo>();
+
+/** 是否批量模式（跨多个 worker 批量添加） */
+const batchMode = ref(false);
+
+/** 批量模式下的目标列表 */
+const batchTargets = ref<AddTaskBatchTarget[]>([]);
+
+const batchTotalAppCount = computed(() =>
+    batchTargets.value.reduce((sum, t) => sum + t.appIds.length, 0)
+);
 
 const getWorkerDetail = async (workerKey: string) => {
     const { data } = await requestGetWorkerDetail(workerKey);
@@ -168,12 +195,57 @@ const publishFormRules = ref<FormRules>({
     ],
 });
 
-const handleAddTask = async () => {
-    if (!workerDetail.value) {
-        return;
+const buildTaskOptions = (appId: string): WXTaskN.TaskOptions => {
+    const wxTaskOptions: WXTaskN.TaskOptions = {
+        appid: appId,
+    };
+
+    if (addTaskForm.value.type === TaskType.WX_AUDIT) {
+        return {
+            ...wxTaskOptions,
+            positioner: auditForm.value.positioner,
+            populateData: {
+                versionDescription: auditForm.value.populateData.versionDescription,
+                imagePreview: auditForm.value.populateData.imagePreview.join(','),
+                videoPreview: auditForm.value.populateData.videoPreview.join(','),
+            },
+        } as WXTaskN.AuditTaskOptions;
     }
 
-    // 验证任务表单
+    if (addTaskForm.value.type === TaskType.WX_PUBLISH) {
+        return {
+            ...wxTaskOptions,
+            positioner: publishForm.value.positioner,
+        } as WXTaskN.ReleaseTaskOptions;
+    }
+
+    return wxTaskOptions;
+};
+
+const submitTasksForWorker = async (workerKey: string, appIds: string[]) => {
+    for (const appId of appIds) {
+        const options = buildTaskOptions(appId);
+
+        await requestAddTask(workerKey, {
+            type: addTaskForm.value.type,
+            options,
+        });
+
+        // 如果是发布或者审核任务则多添加一个版本检查任务
+        if (
+            addTaskForm.value.type === TaskType.WX_AUDIT ||
+            addTaskForm.value.type === TaskType.WX_PUBLISH
+        ) {
+            await requestAddTask(workerKey, {
+                type: TaskType.WX_INSPECT_VERSION,
+                options: { appid: appId },
+            });
+        }
+    }
+};
+
+const handleAddTask = async () => {
+    // 校验主表单（非批量模式需要校验 appIds）
     if (!(await elFormRef.value?.validate().catch(() => false))) {
         return;
     }
@@ -191,49 +263,23 @@ const handleAddTask = async () => {
         }
     }
 
+    if (batchMode.value) {
+        if (batchTotalAppCount.value === 0) {
+            ElMessage.warning('请先在总览中选择小程序');
+            return;
+        }
+    } else if (!workerDetail.value) {
+        return;
+    }
+
     loading.value = true;
     try {
-        for (const appId of addTaskForm.value.appIds) {
-            const wxTaskOptions: WXTaskN.TaskOptions = {
-                appid: appId,
+        if (batchMode.value) {
+            for (const target of batchTargets.value) {
+                await submitTasksForWorker(target.workerKey, target.appIds);
             }
-
-            let options: WXTaskN.TaskOptions = {
-                ...wxTaskOptions,
-            };
-
-            // 如果是审核任务，则添加审核任务选项
-            if (addTaskForm.value.type === TaskType.WX_AUDIT) {
-                options = {
-                    ...options,
-                    positioner: auditForm.value.positioner,
-                    populateData: {
-                        versionDescription: auditForm.value.populateData.versionDescription,
-                        imagePreview: auditForm.value.populateData.imagePreview.join(','),
-                        videoPreview: auditForm.value.populateData.videoPreview.join(','),
-                    },
-                } as WXTaskN.AuditTaskOptions;
-            }
-            // 如果是发布任务，则添加发布任务选项
-            else if (addTaskForm.value.type === TaskType.WX_PUBLISH) {
-                options = {
-                    ...options,
-                    positioner: publishForm.value.positioner,
-                } as WXTaskN.ReleaseTaskOptions;
-            }
-
-            await requestAddTask(workerDetail.value.key, {
-                type: addTaskForm.value.type,
-                options,
-            });
-
-            // 如果是发布或者审核任务则多添加一个版本检查任务
-            if (addTaskForm.value.type === TaskType.WX_AUDIT || addTaskForm.value.type === TaskType.WX_PUBLISH) {
-                await requestAddTask(workerDetail.value.key, {
-                    type: TaskType.WX_INSPECT_VERSION,
-                    options: wxTaskOptions
-                });
-            }
+        } else {
+            await submitTasksForWorker(workerDetail.value!.key, addTaskForm.value.appIds);
         }
         visible.value = false;
         ElMessage.success('Add task success');
@@ -245,8 +291,13 @@ const handleAddTask = async () => {
     }
 };
 
-const open = (workerKey: string, formData?: AddTaskFormData) => {
-    const { appIds = [], type = TaskType.WX_INSPECT_VERSION, positioner = [], populateData = { versionDescription: '', imagePreview: [], videoPreview: [] } } = formData || {};
+const applyFormData = (formData?: AddTaskFormData) => {
+    const {
+        appIds = [],
+        type = TaskType.WX_INSPECT_VERSION,
+        positioner = [],
+        populateData = { versionDescription: '', imagePreview: [], videoPreview: [] },
+    } = formData || {};
     addTaskForm.value.appIds = appIds;
     addTaskForm.value.type = type;
 
@@ -258,13 +309,34 @@ const open = (workerKey: string, formData?: AddTaskFormData) => {
 
     // 发布任务表单
     publishForm.value.positioner = positioner;
+};
+
+const open = (workerKey: string, formData?: AddTaskFormData) => {
+    batchMode.value = false;
+    batchTargets.value = [];
+    workerDetail.value = undefined;
+
+    applyFormData(formData);
 
     visible.value = true;
     getWorkerDetail(workerKey);
 };
 
+const openBatch = (targets: AddTaskBatchTarget[], formData?: AddTaskFormData) => {
+    batchMode.value = true;
+    batchTargets.value = targets.filter(t => t.appIds.length > 0);
+    workerDetail.value = undefined;
+
+    applyFormData(formData);
+    // 批量模式下 appIds 不参与校验，但仍需赋值以便扁平化展示
+    addTaskForm.value.appIds = batchTargets.value.flatMap(t => t.appIds);
+
+    visible.value = true;
+};
+
 defineExpose({
     open,
+    openBatch,
 });
 
 </script>

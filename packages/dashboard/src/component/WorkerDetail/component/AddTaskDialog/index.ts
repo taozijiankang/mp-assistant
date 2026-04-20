@@ -16,3 +16,12 @@ export interface AddTaskFormData {
         videoPreview?: string[];
     };
 }
+
+/**
+ * 批量添加任务的目标项：一个 worker + 该 worker 下选中的多个小程序
+ */
+export interface AddTaskBatchTarget {
+    workerKey: string;
+    workerName?: string;
+    appIds: string[];
+}

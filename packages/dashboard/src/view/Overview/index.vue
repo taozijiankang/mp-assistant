@@ -37,6 +37,26 @@
             </div>
         </aside>
         <div class="main-panel">
+            <div class="action-bar">
+                <div class="action-bar-left">
+                    <span class="action-summary">
+                        已选
+                        <b>{{ selectedCount }}</b>
+                        个小程序
+                        <template v-if="selectedWorkerCount > 0">
+                            · 跨 <b>{{ selectedWorkerCount }}</b> 个账号
+                        </template>
+                    </span>
+                    <el-button v-if="selectedCount > 0" size="small" text @click="handleClearSelection">
+                        清空
+                    </el-button>
+                </div>
+                <div class="action-bar-right">
+                    <el-button type="primary" :disabled="selectedCount === 0" @click="handleBatchAddTask">
+                        添加任务
+                    </el-button>
+                </div>
+            </div>
             <el-scrollbar v-if="activeWorkers.length > 0 && visibleRows.length > 0" class="grid-scrollbar">
                 <div class="overview-grid" :style="gridStyle">
                     <div class="grid-index-header">#</div>
@@ -48,16 +68,23 @@
                         <div class="grid-index" :class="{ 'is-highlighted': row.highlighted }">
                             {{ rowIndex + 1 }}
                         </div>
-                        <div v-for="worker in activeWorkers" :key="worker.key" class="grid-cell"
-                            :class="{ 'is-empty': !getWxa(worker, row.appid), 'is-highlighted': row.highlighted }">
+                        <div v-for="worker in activeWorkers" :key="worker.key" class="grid-cell" :class="{
+                            'is-empty': !getWxa(worker, row.appid),
+                            'is-highlighted': row.highlighted,
+                            'is-selectable': !!getWxa(worker, row.appid),
+                        }" @click="getWxa(worker, row.appid) && handleToggleSelect(worker.key, row.appid)">
                             <WXAItem v-if="getWxa(worker, row.appid)" :wxa-item="getWxa(worker, row.appid)!">
+                                <template #prefix>
+                                    <el-checkbox class="cell-checkbox" :model-value="isSelected(worker.key, row.appid)"
+                                        @click.stop @change="handleToggleSelect(worker.key, row.appid)" />
+                                </template>
                                 <template #extra>
                                     <el-icon v-if="worker.markWXAppIds.includes(row.appid)" class="star-icon marked"
-                                        @click="handleToggleMark(worker, row.appid, false)">
+                                        @click.stop="handleToggleMark(worker, row.appid, false)">
                                         <StarFilled />
                                     </el-icon>
                                     <el-icon v-else class="star-icon"
-                                        @click="handleToggleMark(worker, row.appid, true)">
+                                        @click.stop="handleToggleMark(worker, row.appid, true)">
                                         <Star />
                                     </el-icon>
                                 </template>
@@ -69,11 +96,12 @@
             <el-empty v-else class="empty-state"
                 :description="activeWorkers.length === 0 ? '暂无已登录的账号' : '没有匹配的小程序'" />
         </div>
+        <AddTaskDialog ref="addTaskDialogRef" />
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, reactive } from 'vue';
 import { Star, StarFilled } from '@element-plus/icons-vue';
 import WXAItem from '@/baseComponent/WXAItem/index.vue';
 import { requestGetWorkerList, requestGetWorkerDetail, requestMarkWXAppId } from '@/api';
@@ -81,6 +109,8 @@ import { WXWorkerN } from '@mp-assistant/common/dist/work';
 import type { WXMPItem } from '@mp-assistant/common/dist/types/wx';
 import { WSMessage } from '@mp-assistant/common/dist/ws/message.js';
 import { WSMessageEvent } from '@/event/WSMessageEvent';
+import AddTaskDialog from '@/component/WorkerDetail/component/AddTaskDialog/index.vue';
+import type { AddTaskBatchTarget } from '@/component/WorkerDetail/component/AddTaskDialog/index';
 
 type FilterField = 'appid' | 'app_name' | 'username';
 
@@ -185,6 +215,65 @@ const handleToggleMark = async (worker: WXWorkerN.WXWorkInfo, appid: string, mar
 const gridStyle = computed(() => ({
     gridTemplateColumns: `56px repeat(${activeWorkers.value.length}, minmax(280px, 1fr))`,
 }));
+
+/** 选中的格子集合，key 格式：`${workerKey}::${appid}` */
+const selectedMap = reactive<Record<string, boolean>>({});
+
+const makeSelectionKey = (workerKey: string, appid: string) => `${workerKey}::${appid}`;
+
+const isSelected = (workerKey: string, appid: string) =>
+    !!selectedMap[makeSelectionKey(workerKey, appid)];
+
+const handleToggleSelect = (workerKey: string, appid: string) => {
+    const key = makeSelectionKey(workerKey, appid);
+    if (selectedMap[key]) {
+        delete selectedMap[key];
+    } else {
+        selectedMap[key] = true;
+    }
+};
+
+const handleClearSelection = () => {
+    Object.keys(selectedMap).forEach(k => {
+        delete selectedMap[k];
+    });
+};
+
+const selectedTargets = computed<AddTaskBatchTarget[]>(() => {
+    const map = new Map<string, AddTaskBatchTarget>();
+    Object.keys(selectedMap).forEach(k => {
+        const [workerKey, appid] = k.split('::');
+        if (!workerKey || !appid) return;
+        const worker = activeWorkers.value.find(w => w.key === workerKey);
+        // 账号已被移除/退出登录时跳过
+        if (!worker) return;
+        // 该账号实际上已经不包含这个小程序时跳过（列表变化后容错）
+        if (!worker.wxaList.some(m => m.appid === appid)) return;
+
+        if (!map.has(workerKey)) {
+            map.set(workerKey, {
+                workerKey,
+                workerName: worker.name,
+                appIds: [],
+            });
+        }
+        map.get(workerKey)!.appIds.push(appid);
+    });
+    return Array.from(map.values());
+});
+
+const selectedCount = computed(() =>
+    selectedTargets.value.reduce((sum, t) => sum + t.appIds.length, 0)
+);
+
+const selectedWorkerCount = computed(() => selectedTargets.value.length);
+
+const addTaskDialogRef = ref<InstanceType<typeof AddTaskDialog>>();
+
+const handleBatchAddTask = () => {
+    if (selectedCount.value === 0) return;
+    addTaskDialogRef.value?.openBatch(selectedTargets.value);
+};
 
 const handleDataChange = () => loadData();
 
