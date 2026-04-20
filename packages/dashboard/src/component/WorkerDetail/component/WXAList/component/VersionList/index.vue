@@ -56,8 +56,15 @@
                     <!-- 审核失败原因 -->
                     <div v-if="versionListInfo.type === WXTaskN.VersionType.TEST
                         && item.audit_status === WXReviewStatus.FAIL
-                        && item.fail_reason" class="fail-reason">
-                        审核未通过：{{ item.fail_reason }}
+                        && (item.fail_reason || item.reject_reason)" class="fail-reason">
+                        <div v-if="item.fail_reason" class="reason-block">
+                            <span class="reason-label">失败原因</span>
+                            <div class="reason-content">{{ normalizeReason(item.fail_reason) }}</div>
+                        </div>
+                        <div v-if="item.reject_reason" class="reason-block">
+                            <span class="reason-label">驳回理由</span>
+                            <div class="reason-content">{{ normalizeReason(item.reject_reason) }}</div>
+                        </div>
                     </div>
 
                     <!-- 备注 -->
@@ -154,6 +161,11 @@ const auditTagType = (status: number | undefined) => {
 
 const commitHash = (describe?: string) => {
     return describe?.match(/提交信息[:：]?\s*([a-f0-9]{7,40})/)?.[1];
+};
+
+const normalizeReason = (html?: string) => {
+    if (!html) return '';
+    return html.replace(/<br\s*\/?>/gi, '\n');
 };
 
 const formatTime = (time: number) => {
