@@ -9,7 +9,7 @@
         <div class="filter-bar">
             <el-radio-group v-model="markFilter" size="small">
                 <el-radio-button :value="MarkFilter.All">全部</el-radio-button>
-                <el-radio-button :value="MarkFilter.Marked">已标记</el-radio-button>
+                <el-radio-button :value="MarkFilter.Marked">已标记 {{ markedCount }}</el-radio-button>
                 <el-radio-button :value="MarkFilter.Unmarked">未标记</el-radio-button>
             </el-radio-group>
             <span class="total-count">共 {{ filteredWxaList.length }} 条</span>
@@ -22,14 +22,17 @@
                         <template #name-suffix>
                             <el-button size="small" plain
                                 :loading="restartTaskLoadings.includes(wxa.wxaItem.appid) || wxa.inspectTaskVersionInfo?.status === TaskStatus.RUNNING"
-                                @click="handleRestartTask(wxa.wxaItem)">检测版本信息</el-button>
+                                @click="handleRestartTask(wxa.wxaItem)">获取版本信息</el-button>
                         </template>
                         <template #extra>
-                            <img v-if="workerDetail.markWXAppIds.includes(wxa.wxaItem.appid)" src="@/assets/mark.png"
-                                alt="star" class="star-icon"
-                                @click="handleMarkWXAppId(wxa.wxaItem.appid, false)" />
-                            <img v-else src="@/assets/no-mark.png" alt="star" class="star-icon"
-                                @click="handleMarkWXAppId(wxa.wxaItem.appid, true)" />
+                            <el-icon v-if="workerDetail.markWXAppIds.includes(wxa.wxaItem.appid)"
+                                class="star-icon marked" @click="handleMarkWXAppId(wxa.wxaItem.appid, false)">
+                                <StarFilled />
+                            </el-icon>
+                            <el-icon v-else class="star-icon"
+                                @click="handleMarkWXAppId(wxa.wxaItem.appid, true)">
+                                <Star />
+                            </el-icon>
                         </template>
                     </WXAItem>
                     <div v-for="taskInfo in wxa.relatedTask" :key="taskInfo.key" class="task-info">
@@ -41,8 +44,7 @@
                             <img v-if="taskInfo.type === TaskType.WX_PUBLISH" src="@/assets/release.png"
                                 alt="task-type-icon" class="task-type-icon">
                             <span>{{ TaskTypeDict[taskInfo.type] }}</span>
-                            <el-button class="view-task-button" link type="primary"
-                                @click="handleViewTask(taskInfo)">查看</el-button>
+                            <el-button class="view-task-button" link @click="handleViewTask(taskInfo)">查看</el-button>
                             <div class="task-status" :class="{
                                 'success': taskInfo.status === TaskStatus.COMPLETED,
                                 'running': taskInfo.status === TaskStatus.RUNNING,
@@ -84,6 +86,7 @@ import { dayjs } from 'element-plus';
 import fuzzysort from 'fuzzysort';
 import { WXReviewStatusDict } from '@mp-assistant/common/dist/constant';
 import { useOperationRecordStore } from '@/stores';
+import { Star, StarFilled } from '@element-plus/icons-vue';
 
 const props = defineProps<{
     workerDetail: WXWorkerN.WXWorkInfo;
@@ -103,6 +106,12 @@ enum MarkFilter {
 const markFilter = ref<MarkFilter>(MarkFilter.All);
 
 const restartTaskLoadings = ref<string[]>([]);
+
+const markedCount = computed(() => {
+    return props.workerDetail.wxaList.filter(item =>
+        props.workerDetail.markWXAppIds.includes(item.appid)
+    ).length;
+});
 
 const wxaList = computed(() => {
     return props.workerDetail.wxaList.map(item => {

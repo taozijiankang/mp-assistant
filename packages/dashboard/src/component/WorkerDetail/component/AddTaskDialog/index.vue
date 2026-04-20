@@ -28,31 +28,8 @@
             <el-form v-if="addTaskForm.type === TaskType.WX_AUDIT" ref="auditFormRef" :model="auditForm"
                 :rules="auditFormRules" label-width="200px">
                 <el-form-item label="版本定位条件" prop="positioner">
-                    <div class="positioner-container">
-                        <div class="positioner-item" v-for="(item, index) in auditForm.positioner" :key="item.type">
-                            <div class="positioner-item-content">
-                                <el-select class="select" v-model="item.type" placeholder="请选择版本定位条件">
-                                    <el-option v-for="item in VersionPositioningTypeOptions" :key="item.value"
-                                        :label="item.label" :value="item.value" />
-                                </el-select>
-                                <el-select class="select" v-model="item.criteria" placeholder="请选择匹配方式">
-                                    <el-option v-for="item in VersionPositioningCriteriaOptions" :key="item.value"
-                                        :label="item.label" :value="item.value" />
-                                </el-select>
-                                <el-input v-if="item.type === VersionPositioningType.Describe" autosize type="textarea"
-                                    class="value-input" v-model="item.value" placeholder="请输入版本定位值" clearable />
-                                <el-input v-else class="value-input" v-model="item.value" placeholder="请输入版本定位值"
-                                    clearable />
-                                <el-button type="danger"
-                                    @click="handleRemovePositioner(index, TaskType.WX_AUDIT)">删除</el-button>
-                            </div>
-                            <span v-if="index !== auditForm.positioner.length - 1">AND</span>
-                        </div>
-                        <Empty v-if="auditForm.positioner.length === 0" description="暂无版本定位条件" />
-                        <div class="positioner-add">
-                            <el-button plain @click="handleAddPositioner(TaskType.WX_AUDIT)">添加版本定位条件</el-button>
-                        </div>
-                    </div>
+                    <PositionerEditor v-model="auditForm.positioner"
+                        :default-type="VersionPositioningType.Describe" />
                 </el-form-item>
                 <el-form-item label="版本描述" prop="populateData.versionDescription">
                     <el-input type="textarea" :rows="5" v-model="auditForm.populateData.versionDescription"
@@ -72,32 +49,8 @@
             <el-form v-if="addTaskForm.type === TaskType.WX_PUBLISH" ref="publishFormRef" :model="publishForm"
                 :rules="publishFormRules" label-width="200px">
                 <el-form-item label="发布版本定位条件" prop="positioner">
-                    <div class="positioner-container">
-                        <div class="positioner-item" v-for="(item, index) in publishForm.positioner" :key="item.type">
-                            <div class="positioner-item-content">
-                                <el-select class="select" v-model="item.type" placeholder="请选择版本定位条件">
-                                    <el-option v-for="item in VersionPositioningTypeOptions" :key="item.value"
-                                        :label="item.label" :value="item.value" />
-                                </el-select>
-                                <el-select class="select" v-model="item.criteria" placeholder="请选择匹配方式">
-                                    <el-option v-for="item in VersionPositioningCriteriaOptions" :key="item.value"
-                                        :label="item.label" :value="item.value" />
-                                </el-select>
-                                <el-input v-if="item.type === VersionPositioningType.Describe" autosize type="textarea"
-                                    class="value-input" v-model="item.value" placeholder="请输入版本定位值" clearable />
-                                <el-input v-else class="value-input" v-model="item.value" placeholder="请输入版本定位值"
-                                    clearable />
-                                <el-button type="danger"
-                                    @click="handleRemovePositioner(index, TaskType.WX_PUBLISH)">删除</el-button>
-                            </div>
-                            <span v-if="index !== publishForm.positioner.length - 1">AND</span>
-                        </div>
-                        <el-empty v-if="publishForm.positioner.length === 0" style="padding: 0" :image-size="80"
-                            description="暂无版本定位条件" />
-                        <div class="positioner-add">
-                            <el-button plain @click="handleAddPositioner(TaskType.WX_PUBLISH)">添加版本定位条件</el-button>
-                        </div>
-                    </div>
+                    <PositionerEditor v-model="publishForm.positioner"
+                        :default-type="VersionPositioningType.NickName" />
                 </el-form-item>
             </el-form>
             <el-form label-width="200px">
@@ -120,10 +73,10 @@ import type { AddTaskForm, AddTaskFormData } from './index';
 import { TaskTypeOptions } from '@mp-assistant/common/dist/work/task';
 import { WXWorkerN } from '@mp-assistant/common/dist/work';
 import type { VersionPositioner } from '@mp-assistant/common/dist/utils/wx';
-import { VersionPositioningCriteria, VersionPositioningCriteriaOptions, VersionPositioningType, VersionPositioningTypeOptions } from '@mp-assistant/common/dist/utils/wx';
+import { VersionPositioningType } from '@mp-assistant/common/dist/utils/wx';
 import FilesUpload from '@/baseComponent/FilesUpload/index.vue';
-import Empty from '@/baseComponent/Empty/index.vue';
 import SelectMp from '@/baseComponent/SelectMp/index.vue';
+import PositionerEditor from './component/PositionerEditor/index.vue';
 
 const elFormRef = ref<InstanceType<typeof ElForm>>();
 
@@ -214,30 +167,6 @@ const publishFormRules = ref<FormRules>({
         },
     ],
 });
-
-const handleAddPositioner = (type: TaskType) => {
-    if (type === TaskType.WX_AUDIT) {
-        auditForm.value.positioner.push({
-            type: VersionPositioningType.Describe,
-            criteria: VersionPositioningCriteria.Equal,
-            value: '',
-        });
-    } else if (type === TaskType.WX_PUBLISH) {
-        publishForm.value.positioner.push({
-            type: VersionPositioningType.NickName,
-            criteria: VersionPositioningCriteria.Equal,
-            value: '',
-        });
-    }
-};
-
-const handleRemovePositioner = (index: number, type: TaskType) => {
-    if (type === TaskType.WX_AUDIT) {
-        auditForm.value.positioner.splice(index, 1);
-    } else if (type === TaskType.WX_PUBLISH) {
-        publishForm.value.positioner.splice(index, 1);
-    }
-};
 
 const handleAddTask = async () => {
     if (!workerDetail.value) {

@@ -1,97 +1,150 @@
 .version-list {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
   font-size: 12px;
+  font-family: "Source Han Sans SC";
 
-  .title {
+  .section-title {
     display: flex;
     align-items: center;
     gap: 6px;
-    &.online {
-      .dot {
-        background-color: #409eff;
-      }
-      span {
-        color: #409eff;
-      }
+
+    .bar {
+      width: 3px;
+      height: 14px;
+      border-radius: 2px;
+      background-color: #c0c4cc;
     }
-    &.test {
-      .dot {
-        background-color: #f56c6c;
-      }
-      span {
-        color: #f56c6c;
-      }
-    }
-    &.dev {
-      .dot {
-        background-color: #67c23a;
-      }
-      span {
-        color: #67c23a;
-      }
-    }
-    .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-    }
-    span {
-      font-size: 14px;
+    .text {
+      font-size: 13px;
       font-weight: 600;
       color: #1d2129;
-      font-family: "Source Han Sans SC";
-      color: #1d2129;
+    }
+    .count {
+      font-size: 11px;
+      color: #86909c;
+      background-color: #f4f4f5;
+      padding: 0 6px;
+      border-radius: 8px;
+      line-height: 16px;
+    }
+
+    &.online .bar {
+      background-color: #409eff;
+    }
+    &.test .bar {
+      background-color: #f56c6c;
+    }
+    &.dev .bar {
+      background-color: #67c23a;
     }
   }
 
-  .version-item-list {
+  .version-card-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
+  }
 
-    .version-item {
+  .version-card {
+    position: relative;
+    border: 1px solid #ebeef5;
+    border-left: 3px solid #c0c4cc;
+    border-radius: 6px;
+    padding: 8px 10px;
+    background-color: #fafbfc;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    &.accent-primary {
+      border-left-color: #409eff;
+    }
+    &.accent-success {
+      border-left-color: #67c23a;
+    }
+    &.accent-warning {
+      border-left-color: #e6a23c;
+    }
+    &.accent-danger {
+      border-left-color: #f56c6c;
+    }
+
+    .card-header {
       display: flex;
-      flex-direction: column;
-      gap: 2px;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
 
-      .col {
+      .version-no {
+        font-family: "JetBrains Mono", Consolas, Menlo, monospace;
+        font-size: 14px;
+        font-weight: 600;
+        color: #1d2129;
+      }
+
+      .header-actions {
+        margin-left: auto;
         display: flex;
         align-items: center;
-        .row {
-          display: flex;
-          align-items: center;
-          flex: 1;
-          gap: 5px;
+        gap: 6px;
+      }
 
-          .commit-hash {
-            color: #917cd6;
-            font-family: "Source Han Sans SC";
-            font-size: 12px;
-            font-weight: 400;
-            line-height: 20px;
-          }
+      .publish-button-wrap {
+        display: inline-flex;
+      }
+    }
 
-          .audit-status {
-            color: #1d2129;
-            font-family: "Source Han Sans SC";
-            font-size: 12px;
-            font-weight: 400;
-            line-height: 20px;
+    .card-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      color: #86909c;
+      line-height: 18px;
 
-            &.success {
-              color: #67c23a;
-            }
-            &.reviewing {
-              color: #ff9900;
-            }
-            &.fail {
-              color: #f56c6c;
-            }
-          }
+      .meta-sep {
+        color: #c0c4cc;
+      }
+
+      .commit-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .commit-hash {
+        color: #917cd6;
+        font-family: "JetBrains Mono", Consolas, Menlo, monospace;
+      }
+
+      .copy-icon {
+        cursor: pointer;
+        font-size: 12px;
+        color: #c0c4cc;
+        transition: color 0.15s;
+
+        &:hover {
+          color: #409eff;
         }
       }
+    }
+
+    .fail-reason {
+      color: #f56c6c;
+      background-color: #fef0f0;
+      border: 1px solid #fde2e2;
+      border-radius: 4px;
+      padding: 4px 8px;
+      line-height: 18px;
+    }
+
+    .card-describe {
+      color: #606266;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 18px;
     }
   }
 }

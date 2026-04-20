@@ -1,62 +1,68 @@
 <template>
     <div class="version-list">
-        <template v-for="versionListInfo in showVersionList">
-            <div class="title" :class="{
-                'online': versionListInfo.type === WXTaskN.VersionType.ONLINE,
-                'test': versionListInfo.type === WXTaskN.VersionType.TEST,
-                'dev': versionListInfo.type === WXTaskN.VersionType.DEVELOP,
-            }">
-                <div class="dot"></div>
-                <span>{{ versionListInfo.title }}</span>
+        <template v-for="versionListInfo in showVersionList" :key="versionListInfo.type">
+            <div class="section-title" :class="sectionColorClass(versionListInfo.type)">
+                <span class="bar"></span>
+                <span class="text">{{ versionListInfo.title }}</span>
+                <span class="count">{{ versionListInfo.versions.length }}</span>
             </div>
-            <div class="version-item-list">
-                <div v-for="item in versionListInfo.versions" class="version-item">
-                    <div class="col">
-                        <div class="row">
-                            <span>
-                                版本：{{ item?.version }} <span v-if="item.is_exper" style="color: #00ACFF">[体验版本]</span>
-                            </span>
-                        </div>
-                        <div class="row">
-                            <span>发布者: {{ item?.nick_name }}</span>
-                        </div>
-                        <div v-if="byDescribeGetCommitHash(item?.describe || '')" class="row">
-                            <span>
-                                GIT提交HASH:
-                                <span class="commit-hash">
-                                    {{ byDescribeGetCommitHash(item?.describe || '') }}
+            <div class="version-card-list">
+                <div v-for="(item, idx) in versionListInfo.versions" :key="`${versionListInfo.type}-${idx}`"
+                    class="version-card" :class="cardAccentClass(versionListInfo.type, item)">
+                    <!-- 卡片头：版本号 + 徽章 + 操作按钮 -->
+                    <div class="card-header">
+                        <span class="version-no">{{ item.version || '—' }}</span>
+                        <el-tag v-if="item.is_exper" size="small" type="info" effect="light">体验版</el-tag>
+                        <el-tag v-if="versionListInfo.type === WXTaskN.VersionType.TEST && item.audit_status"
+                            size="small" :type="auditTagType(item.audit_status)" effect="light">
+                            {{ WXReviewStatusDict[item.audit_status as WXReviewStatus] }}
+                        </el-tag>
+                        <el-tag
+                            v-if="versionListInfo.type === WXTaskN.VersionType.DEVELOP && isSameAsOnline(item)"
+                            size="small" type="primary" effect="dark">已上线</el-tag>
+                        <div class="header-actions">
+                            <el-button v-if="versionListInfo.type === WXTaskN.VersionType.DEVELOP" size="small" plain
+                                @click="handleSubmitAudit(item)">提审</el-button>
+                            <el-tooltip v-else-if="versionListInfo.type === WXTaskN.VersionType.TEST"
+                                :disabled="item.audit_status === WXReviewStatus.SUCCESS" content="审核通过后才能发布"
+                                placement="top">
+                                <span class="publish-button-wrap">
+                                    <el-button size="small" plain
+                                        :disabled="item.audit_status !== WXReviewStatus.SUCCESS"
+                                        @click="handleSubmitPublish(item)">发布</el-button>
                                 </span>
+                            </el-tooltip>
+                        </div>
+                    </div>
+
+                    <!-- meta 行：发布者 · 提交 · 时间 -->
+                    <div class="card-meta">
+                        <span v-if="item.nick_name" class="meta-item">发布者 {{ item.nick_name }}</span>
+                        <template v-if="commitHash(item.describe)">
+                            <span class="meta-sep">·</span>
+                            <span class="meta-item commit-item">
+                                提交 <span class="commit-hash">{{ commitHash(item.describe) }}</span>
+                                <el-icon class="copy-icon" @click="handleCopy(commitHash(item.describe)!)">
+                                    <CopyDocument />
+                                </el-icon>
                             </span>
-                        </div>
+                        </template>
+                        <template v-if="item.time">
+                            <span class="meta-sep">·</span>
+                            <span class="meta-item">{{ formatTime(item.time) }}</span>
+                        </template>
                     </div>
-                    <div v-if="versionListInfo.type === WXTaskN.VersionType.DEVELOP" class="col">
-                        <div class="row">
-                            <span>操作:</span>
-                            <el-button size="small" plain @click="handleSubmitAudit(item)">添加提审任务</el-button>
-                        </div>
+
+                    <!-- 审核失败原因 -->
+                    <div v-if="versionListInfo.type === WXTaskN.VersionType.TEST
+                        && item.audit_status === WXReviewStatus.FAIL
+                        && item.fail_reason" class="fail-reason">
+                        审核未通过：{{ item.fail_reason }}
                     </div>
-                    <div v-if="versionListInfo.type === WXTaskN.VersionType.TEST && item?.audit_status === WXReviewStatus.SUCCESS"
-                        class="col">
-                        <div class="row">
-                            <span>操作:</span>
-                            <el-button size="small" plain @click="handleSubmitPublish(item)">添加发布任务</el-button>
-                        </div>
-                    </div>
-                    <div v-if="versionListInfo.type === WXTaskN.VersionType.TEST" class="col">
-                        <div class="row">
-                            <span>审核状态:
-                                <span class="audit-status" :class="{
-                                    'success': item?.audit_status === WXReviewStatus.SUCCESS,
-                                    'reviewing': item?.audit_status === WXReviewStatus.REVIEWING,
-                                    'fail': item?.audit_status === WXReviewStatus.FAIL,
-                                }">{{ WXReviewStatusDict[item?.audit_status as WXReviewStatus] }}</span>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="row">
-                            <span>备注: {{ item?.describe }}</span>
-                        </div>
+
+                    <!-- 备注 -->
+                    <div v-if="item.describe" class="card-describe">
+                        {{ item.describe }}
                     </div>
                 </div>
             </div>
@@ -71,8 +77,9 @@ import { TaskType, WXTaskN, type BaseTaskInfo } from '@mp-assistant/common/dist/
 import { computed, inject } from 'vue';
 import type { AddTaskFormData } from '../../../AddTaskDialog/index';
 import type { WXMPItem } from '@mp-assistant/common/dist/types/wx';
-import { VersionPositioningCriteria } from '@mp-assistant/common/dist/utils/wx';
-import { VersionPositioningType } from '@mp-assistant/common/dist/utils/wx';
+import { VersionPositioningCriteria, VersionPositioningType } from '@mp-assistant/common/dist/utils/wx';
+import { dayjs, ElMessage } from 'element-plus';
+import { CopyDocument } from '@element-plus/icons-vue';
 
 const props = defineProps<{
     wxmpItem: WXMPItem;
@@ -86,15 +93,9 @@ const versionList = computed(() => {
     return props.inspectVersionTaskInfo.result?.data as WXTaskN.VersionListData | undefined
 });
 
-const onlineVersion = computed(() => {
-    return versionList.value?.[WXTaskN.VersionType.ONLINE]
-});
-const testVersion = computed(() => {
-    return versionList.value?.[WXTaskN.VersionType.TEST]
-});
-const devVersions = computed(() => {
-    return versionList.value?.[WXTaskN.VersionType.DEVELOP] || []
-});
+const onlineVersion = computed(() => versionList.value?.[WXTaskN.VersionType.ONLINE]);
+const testVersion = computed(() => versionList.value?.[WXTaskN.VersionType.TEST]);
+const devVersions = computed(() => versionList.value?.[WXTaskN.VersionType.DEVELOP] || []);
 
 const showVersionList = computed(() => {
     return [
@@ -116,70 +117,87 @@ const showVersionList = computed(() => {
     ].filter(item => item.versions.length > 0);
 });
 
+const sectionColorClass = (type: WXTaskN.VersionType) => ({
+    online: type === WXTaskN.VersionType.ONLINE,
+    test: type === WXTaskN.VersionType.TEST,
+    dev: type === WXTaskN.VersionType.DEVELOP,
+});
+
+const cardAccentClass = (type: WXTaskN.VersionType, item: VersionListItem) => {
+    if (type === WXTaskN.VersionType.TEST) {
+        return {
+            'accent-success': item.audit_status === WXReviewStatus.SUCCESS,
+            'accent-warning': item.audit_status === WXReviewStatus.REVIEWING,
+            'accent-danger': item.audit_status === WXReviewStatus.FAIL,
+        };
+    }
+    return {
+        'accent-primary': type === WXTaskN.VersionType.ONLINE,
+        'accent-success': type === WXTaskN.VersionType.DEVELOP,
+    };
+};
+
+const isSameAsOnline = (item: VersionListItem) => {
+    const online = onlineVersion.value;
+    if (!online) return false;
+    return item.version === online.version
+        && item.nick_name === online.nick_name
+        && item.describe === online.describe;
+};
+
+const auditTagType = (status: number | undefined) => {
+    if (status === WXReviewStatus.SUCCESS) return 'success';
+    if (status === WXReviewStatus.REVIEWING) return 'warning';
+    if (status === WXReviewStatus.FAIL) return 'danger';
+    return 'info';
+};
+
+const commitHash = (describe?: string) => {
+    return describe?.match(/提交信息[:：]?\s*([a-f0-9]{7,40})/)?.[1];
+};
+
+const formatTime = (time: number) => {
+    // 微信接口通常返回秒级时间戳，兼容毫秒
+    const ms = time > 1e12 ? time : time * 1000;
+    return dayjs(ms).format('YYYY-MM-DD HH:mm');
+};
+
+const handleCopy = async (text: string) => {
+    try {
+        await navigator.clipboard.writeText(text);
+        ElMessage.success('已复制');
+    } catch {
+        ElMessage.error('复制失败');
+    }
+};
+
+const buildPositioner = (item: VersionListItem) => [
+    { type: VersionPositioningType.Version, criteria: VersionPositioningCriteria.Equal, value: item.version || '' },
+    { type: VersionPositioningType.NickName, criteria: VersionPositioningCriteria.Equal, value: item.nick_name || '' },
+    { type: VersionPositioningType.Describe, criteria: VersionPositioningCriteria.Equal, value: item.describe || '' },
+];
+
 const handleSubmitAudit = (item: VersionListItem) => {
-    // 找到最近的审核任务 选项
     const nearestAuditTaskOptions = props.relatedTask.find(task => task.type === TaskType.WX_AUDIT)?.options as WXTaskN.AuditTaskOptions | undefined;
     handleAddTask?.({
         appIds: [props.wxmpItem.appid],
         type: TaskType.WX_AUDIT,
-        positioner: [
-            {
-                type: VersionPositioningType.Version,
-                criteria: VersionPositioningCriteria.Equal,
-                value: item.version || '',
-            },
-            {
-                type: VersionPositioningType.NickName,
-                criteria: VersionPositioningCriteria.Equal,
-                value: item.nick_name || '',
-            },
-            {
-                type: VersionPositioningType.Describe,
-                criteria: VersionPositioningCriteria.Equal,
-                value: item.describe || '',
-            }
-        ],
+        positioner: buildPositioner(item),
         populateData: {
             versionDescription: nearestAuditTaskOptions?.populateData?.versionDescription || '',
             imagePreview: (nearestAuditTaskOptions?.populateData?.imagePreview?.split(',') || []).filter(Boolean),
             videoPreview: (nearestAuditTaskOptions?.populateData?.videoPreview?.split(',') || []).filter(Boolean),
         }
     });
-}
+};
 
 const handleSubmitPublish = (item: VersionListItem) => {
     handleAddTask?.({
         appIds: [props.wxmpItem.appid],
         type: TaskType.WX_PUBLISH,
-        positioner: [
-            {
-                type: VersionPositioningType.Version,
-                criteria: VersionPositioningCriteria.Equal,
-                value: item.version || '',
-            },
-            {
-                type: VersionPositioningType.NickName,
-                criteria: VersionPositioningCriteria.Equal,
-                value: item.nick_name || '',
-            },
-            {
-                type: VersionPositioningType.Describe,
-                criteria: VersionPositioningCriteria.Equal,
-                value: item.describe || '',
-            }
-        ],
+        positioner: buildPositioner(item),
     });
-}
-
-/**
- * 根据描述获取commit hash
- * @param describe 描述
- * @returns commit hash
- */
-const byDescribeGetCommitHash = (describe: string) => {
-    const commitHash = describe.match(/提交信息[:：]?\s*([a-f0-9]{7,40})/)?.[1];
-    return commitHash
-}
+};
 </script>
 
 <style scoped lang="scss">

@@ -49,14 +49,19 @@
       border-radius: 10px;
       background: #fff;
 
-      &.marked {
-        border: 2px solid #00b24080;
-      }
-
       .star-icon {
-        width: 20px;
-        height: 20px;
+        font-size: 20px;
+        color: #c0c4cc;
         cursor: pointer;
+        transition: color 0.15s, transform 0.15s;
+
+        &.marked {
+          color: #f7ba2a;
+        }
+
+        &:hover {
+          transform: scale(1.1);
+        }
       }
       .task-info {
         display: flex;
@@ -81,6 +86,11 @@
             height: auto;
             padding: 0;
             font-size: 12px;
+            color: #86909c;
+
+            &:hover {
+              color: #409eff;
+            }
           }
 
           .task-time {
