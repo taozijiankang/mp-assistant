@@ -1,6 +1,6 @@
 <template>
-    <div v-if="workerDetail" class="worker-detail">
-        <div v-if="WXWorkerN.isWXWorkerInfo(workerDetail)" class="wx content-container">
+    <div class="worker-detail">
+        <div v-if="workerDetail && WXWorkerN.isWXWorkerInfo(workerDetail)" class="wx content-container">
             <!-- 操作栏 -->
             <div class="controller">
                 <el-button @click="handleEditWorker">修改</el-button>
@@ -29,6 +29,11 @@
                 <WXAList class="wxa-list" :workerDetail="workerDetail" @onRefreshWorkerDetail="getWorkerDetail" />
                 <TaskStack class="task-stack" :workerDetail="workerDetail" />
             </div>
+        </div>
+        <div v-else class="empty-state">
+            <el-empty description="暂无 Worker，先添加一个开始使用吧">
+                <el-button type="primary" @click="handleAddWorker">添加 Worker</el-button>
+            </el-empty>
         </div>
         <AddTaskDialog ref="addTaskDialogRef" />
         <AddWorkerDialog ref="addWorkerDialogRef" @onSuccess="getWorkerDetail" />
@@ -91,6 +96,10 @@ const handleWorkerListChange = async (data: WSMessage.Worker.DetailChange.Data) 
 
 const handleAddTask = (formData?: AddTaskFormData) => {
     addTaskDialogRef.value?.open(props.workerKey, formData);
+}
+
+const handleAddWorker = () => {
+    addWorkerDialogRef.value?.open();
 }
 
 const handleEditWorker = () => {
