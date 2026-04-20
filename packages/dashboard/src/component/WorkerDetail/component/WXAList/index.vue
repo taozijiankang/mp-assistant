@@ -1,11 +1,18 @@
 <template>
     <div class="wxa-list">
         <div class="controller">
-            <span class="total-count">{{ filteredWxaList.length }}</span>
             <el-input v-model="searchValue" placeholder="请输入过滤关键词 多个关键词用空格分隔" clearable />
             <el-button type="primary"
                 :loading="refreshWxaListLoading || workerDetail.loadings.includes(WXWorkerN.LoadingType.updateWxaListWxaList)"
                 @click="handleRefreshWxaList">刷新小程序列表</el-button>
+        </div>
+        <div class="filter-bar">
+            <el-radio-group v-model="markFilter" size="small">
+                <el-radio-button :value="MarkFilter.All">全部</el-radio-button>
+                <el-radio-button :value="MarkFilter.Marked">已标记</el-radio-button>
+                <el-radio-button :value="MarkFilter.Unmarked">未标记</el-radio-button>
+            </el-radio-group>
+            <span class="total-count">共 {{ filteredWxaList.length }} 条</span>
         </div>
         <el-scrollbar v-if="filteredWxaList.length > 0" class="wxa-item-container-scrollbar">
             <div class="wxa-item-container">
@@ -92,6 +99,13 @@ const emit = defineEmits<{
 
 const searchValue = ref('');
 
+enum MarkFilter {
+    All = 'all',
+    Marked = 'marked',
+    Unmarked = 'unmarked',
+}
+const markFilter = ref<MarkFilter>(MarkFilter.All);
+
 const restartTaskLoadings = ref<string[]>([]);
 
 const wxaList = computed(() => {
@@ -123,17 +137,21 @@ const wxaList = computed(() => {
 });
 
 const filteredWxaList = computed(() => {
+    const markFilteredList = wxaList.value.filter(item => {
+        if (markFilter.value === MarkFilter.All) {
+            return true;
+        }
+        const isMarked = props.workerDetail.markWXAppIds.includes(item.wxaItem.appid);
+        return markFilter.value === MarkFilter.Marked ? isMarked : !isMarked;
+    });
+
     if (!searchValue.value) {
-        return wxaList.value;
+        return markFilteredList;
     }
     const fuzzysortKeys: {
         key: (item: { wxaItem: WXMPItem, inspectTaskVersionInfo: WXTaskN.InspectVersionInfo | undefined }) => string;
         weight: number;
     }[] = [
-            {
-                key: item => props.workerDetail.markWXAppIds.includes(item.wxaItem.appid) ? '已标记' : '未标记',
-                weight: 4,
-            },
             {
                 // 小程序名称
                 key: item => item.wxaItem.app_name,
@@ -160,7 +178,7 @@ const filteredWxaList = computed(() => {
                 weight: 1,
             },
         ];
-    return fuzzysort.go(searchValue.value, wxaList.value, {
+    return fuzzysort.go(searchValue.value, markFilteredList, {
         keys: fuzzysortKeys.map(item => item.key),
         scoreFn: item => {
             return fuzzysortKeys.reduce((a, b, i) => {
