@@ -21,24 +21,35 @@
                         item.value).length}}</span>
                 </div>
             </div>
-            <el-scrollbar v-if="filteredTaskList.length > 0" class="task-list-content-scrollbar">
+            <el-scrollbar v-if="displayTaskList.length > 0" class="task-list-content-scrollbar">
+                <div class="task-scroll-panel">
                 <div class="task-list-content">
-                    <div v-for="taskItem in [...filteredTaskList].reverse()" :key="taskItem.key" class="task-item"
-                        :class="{
-                            selected: taskItem.key === onSelectedTaskKey,
-                            'not-started': taskItem.status === TaskStatus.NOT_STARTED,
-                            running: taskItem.status === TaskStatus.RUNNING,
-                            completed: taskItem.status === TaskStatus.COMPLETED,
-                            failed: taskItem.status === TaskStatus.FAILED,
-                        }" @click="handleTaskClick(taskItem)">
+                    <div v-for="section in taskDisplaySections" :key="section.key" class="task-section"
+                        :class="`task-section--${section.key}`">
+                        <div class="task-section-header">
+                            <span class="task-section-title">{{ section.title }}</span>
+                            <span class="task-section-count">{{ section.tasks.length }}</span>
+                        </div>
+                        <div class="task-section-body">
+                        <div v-for="taskItem in section.tasks" :key="taskItem.key" class="task-item"
+                        :class="[
+                            `task-item--type-${taskItemTypeClass(taskItem.type)}`,
+                            {
+                                selected: taskItem.key === onSelectedTaskKey,
+                                'not-started': taskItem.status === TaskStatus.NOT_STARTED,
+                                running: taskItem.status === TaskStatus.RUNNING,
+                                completed: taskItem.status === TaskStatus.COMPLETED,
+                                failed: taskItem.status === TaskStatus.FAILED,
+                            },
+                        ]" @click="handleTaskClick(taskItem)">
                         <div class="task-item-header">
-                            <div class="task-type">
+                            <div class="task-type" :class="`task-type--${taskItemTypeClass(taskItem.type)}`">
                                 <img v-if="taskItem.type === TaskType.WX_INSPECT_VERSION"
-                                    src="@/assets/check-the-version.png" alt="task-type-icon" class="task-type-icon">
+                                    src="@/assets/check-the-version.png" alt="" class="task-type-icon">
                                 <img v-if="taskItem.type === TaskType.WX_AUDIT" src="@/assets/review.png"
-                                    alt="task-type-icon" class="task-type-icon">
+                                    alt="" class="task-type-icon">
                                 <img v-if="taskItem.type === TaskType.WX_PUBLISH" src="@/assets/release.png"
-                                    alt="task-type-icon" class="task-type-icon">
+                                    alt="" class="task-type-icon">
                                 <span class="task-type-name">{{ TaskTypeDict[taskItem.type] }}</span>
                             </div>
                             <div class="task-status-chip">
@@ -76,7 +87,10 @@
                                 <span>删除</span>
                             </el-button>
                         </div>
+                        </div>
+                        </div>
                     </div>
+                </div>
                 </div>
             </el-scrollbar>
             <div v-else class="no-data">
@@ -294,8 +308,37 @@ const filteredTaskList = computed(() => {
             },
         }).map(item => item.obj);
     }
-    return list;
+    // 关键词匹配后仍按创建时间排序，与队列顺序一致
+    return [...list].sort((a, b) => a.createTime - b.createTime);
 });
+
+/** 与 worker 队列一致：先创建先执行 */
+const displayTaskList = computed(() => filteredTaskList.value);
+
+type TaskSectionKey = 'pending' | 'running' | 'done';
+
+const taskDisplaySections = computed(() => {
+    const list = displayTaskList.value;
+    const pending = list.filter(t => t.status === TaskStatus.NOT_STARTED);
+    const running = list.filter(t => t.status === TaskStatus.RUNNING);
+    const done = list.filter(
+        t => t.status === TaskStatus.COMPLETED || t.status === TaskStatus.FAILED,
+    );
+    const sections: { key: TaskSectionKey; title: string; tasks: BaseTaskInfo[] }[] = [
+        { key: 'pending', title: '待执行', tasks: pending },
+        { key: 'running', title: '执行中', tasks: running },
+        { key: 'done', title: '执行完', tasks: done },
+    ];
+    return sections.filter(s => s.tasks.length > 0);
+});
+
+/** 列表卡片样式用：检查版本 / 审核 / 发布 */
+function taskItemTypeClass(type: TaskType): 'inspect' | 'audit' | 'publish' {
+    if (type === TaskType.WX_INSPECT_VERSION) return 'inspect';
+    if (type === TaskType.WX_AUDIT) return 'audit';
+    if (type === TaskType.WX_PUBLISH) return 'publish';
+    return 'inspect';
+}
 
 const handleTaskClick = (taskItem: BaseTaskInfo) => {
     operationRecordStore.setOnSelectedTaskKey(taskItem.key);
