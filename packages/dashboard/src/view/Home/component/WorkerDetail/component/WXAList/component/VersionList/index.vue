@@ -17,8 +17,7 @@
                             size="small" :type="auditTagType(item.audit_status)" effect="light">
                             {{ WXReviewStatusDict[item.audit_status as WXReviewStatus] }}
                         </el-tag>
-                        <el-tag
-                            v-if="versionListInfo.type === WXTaskN.VersionType.DEVELOP && isSameAsOnline(item)"
+                        <el-tag v-if="versionListInfo.type === WXTaskN.VersionType.DEVELOP && isSameAsOnline(item)"
                             size="small" type="primary" effect="dark">已上线</el-tag>
                         <div class="header-actions">
                             <el-button v-if="versionListInfo.type === WXTaskN.VersionType.DEVELOP" size="small" plain
@@ -85,7 +84,7 @@ import { WXReviewStatusDict } from '@mp-assistant/common/dist/constant';
 import { WXReviewStatus, type VersionListItem } from '@mp-assistant/common/dist/types/wx';
 import { TaskType, WXTaskN, type BaseTaskInfo } from '@mp-assistant/common/dist/work/task';
 import { computed, inject } from 'vue';
-import type { AddTaskFormData } from '../../../AddTaskDialog/index';
+import type { AddTaskFormData } from '../../../../../../../../component/AddTaskDialog/index';
 import type { WXMPItem } from '@mp-assistant/common/dist/types/wx';
 import { VersionPositioningCriteria, VersionPositioningType } from '@mp-assistant/common/dist/utils/wx';
 import { dayjs, ElMessage } from 'element-plus';

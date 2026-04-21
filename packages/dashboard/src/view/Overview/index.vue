@@ -131,14 +131,14 @@
 import { ref, computed, onMounted, onUnmounted, reactive } from 'vue';
 import { Star, StarFilled, CopyDocument } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import WXAItem from '@/baseComponent/WXAItem/index.vue';
+import WXAItem from '@/component/WXAItem/index.vue';
 import { requestGetWorkerList, requestGetWorkerDetail, requestMarkWXAppId } from '@/api';
 import { WXWorkerN } from '@mp-assistant/common/dist/work';
 import type { WXMPItem } from '@mp-assistant/common/dist/types/wx';
 import { WSMessage } from '@mp-assistant/common/dist/ws/message.js';
 import { WSMessageEvent } from '@/event/WSMessageEvent';
-import AddTaskDialog from '@/component/WorkerDetail/component/AddTaskDialog/index.vue';
-import type { AddTaskBatchTarget } from '@/component/WorkerDetail/component/AddTaskDialog/index';
+import AddTaskDialog from '@/component/AddTaskDialog/index.vue';
+import type { AddTaskBatchTarget } from '@/component/AddTaskDialog/index';
 
 type FilterField = 'appid' | 'app_name' | 'username';
 

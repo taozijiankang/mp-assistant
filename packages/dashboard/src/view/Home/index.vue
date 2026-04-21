@@ -7,8 +7,8 @@
 </template>
 
 <script setup lang="ts">
-import WorkList from '@/component/WorkList/index.vue';
-import WorkerDetail from '@/component/WorkerDetail/index.vue';
+import WorkList from './component/WorkList/index.vue';
+import WorkerDetail from './component/WorkerDetail/index.vue';
 import { useOperationRecordStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 

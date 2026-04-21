@@ -27,12 +27,10 @@
                             </template>
                             <template #extra>
                                 <el-icon v-if="workerDetail.markWXAppIds.includes(wxa.wxaItem.appid)"
-                                    class="star-icon marked"
-                                    @click="handleMarkWXAppId(wxa.wxaItem.appid, false)">
+                                    class="star-icon marked" @click="handleMarkWXAppId(wxa.wxaItem.appid, false)">
                                     <StarFilled />
                                 </el-icon>
-                                <el-icon v-else class="star-icon"
-                                    @click="handleMarkWXAppId(wxa.wxaItem.appid, true)">
+                                <el-icon v-else class="star-icon" @click="handleMarkWXAppId(wxa.wxaItem.appid, true)">
                                     <Star />
                                 </el-icon>
                             </template>
@@ -42,8 +40,7 @@
                         <div v-for="taskInfo in wxa.relatedTask" :key="taskInfo.key" class="task-info">
                             <div class="top">
                                 <img v-if="taskInfo.type === TaskType.WX_INSPECT_VERSION"
-                                    src="@/assets/check-the-version.png" alt="task-type-icon"
-                                    class="task-type-icon">
+                                    src="@/assets/check-the-version.png" alt="task-type-icon" class="task-type-icon">
                                 <img v-if="taskInfo.type === TaskType.WX_AUDIT" src="@/assets/review.png"
                                     alt="task-type-icon" class="task-type-icon">
                                 <img v-if="taskInfo.type === TaskType.WX_PUBLISH" src="@/assets/release.png"
@@ -69,8 +66,7 @@
                             </div>
                         </div>
                         <VersionList v-if="wxa.inspectTaskVersionInfo" :wxmp-item="wxa.wxaItem"
-                            :related-task="wxa.relatedTask"
-                            :inspect-version-task-info="wxa.inspectTaskVersionInfo" />
+                            :related-task="wxa.relatedTask" :inspect-version-task-info="wxa.inspectTaskVersionInfo" />
                     </div>
                 </div>
             </div>
@@ -89,7 +85,7 @@ import { WXWorkerN } from '@mp-assistant/common/dist/work';
 import { TaskStatus, TaskStatusDict, TaskType, TaskTypeDict, WXTaskN, type BaseTaskInfo } from '@mp-assistant/common/dist/work/task';
 import { ref, computed } from 'vue';
 import VersionList from "./component/VersionList/index.vue"
-import WXAItem from '@/baseComponent/WXAItem/index.vue';
+import WXAItem from '@/component/WXAItem/index.vue';
 import { dayjs } from 'element-plus';
 import fuzzysort from 'fuzzysort';
 import { WXReviewStatusDict } from '@mp-assistant/common/dist/constant';

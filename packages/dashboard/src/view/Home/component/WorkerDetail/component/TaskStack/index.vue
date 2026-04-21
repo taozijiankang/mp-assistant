@@ -189,10 +189,10 @@ import { useOperationRecordStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import { Delete, WarningFilled, Loading } from '@element-plus/icons-vue';
 import { getFileUrl, requestPauseAndRecoverWorker, requestRemoveTask } from '@/api';
-import type { AddTaskFormData } from '../AddTaskDialog/index';
+import type { AddTaskFormData } from '../../../../../../component/AddTaskDialog/index';
 import fuzzysort from 'fuzzysort';
 import { VersionPositioningCriteriaDict, VersionPositioningTypeDict } from '@mp-assistant/common/dist/utils/wx';
-import WXAItem from '@/baseComponent/WXAItem/index.vue';
+import WXAItem from '@/component/WXAItem/index.vue';
 
 const props = defineProps<{
     workerDetail: WXWorkerN.WXWorkInfo;

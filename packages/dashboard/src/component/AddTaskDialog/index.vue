@@ -45,8 +45,7 @@
             <el-form v-if="addTaskForm.type === TaskType.WX_AUDIT" ref="auditFormRef" :model="auditForm"
                 :rules="auditFormRules" label-width="200px">
                 <el-form-item label="版本定位条件" prop="positioner">
-                    <PositionerEditor v-model="auditForm.positioner"
-                        :default-type="VersionPositioningType.Describe" />
+                    <PositionerEditor v-model="auditForm.positioner" :default-type="VersionPositioningType.Describe" />
                 </el-form-item>
                 <el-form-item label="版本描述" prop="populateData.versionDescription">
                     <el-input type="textarea" :rows="5" v-model="auditForm.populateData.versionDescription"
@@ -92,7 +91,7 @@ import { WXWorkerN } from '@mp-assistant/common/dist/work';
 import type { VersionPositioner } from '@mp-assistant/common/dist/utils/wx';
 import { VersionPositioningType } from '@mp-assistant/common/dist/utils/wx';
 import FilesUpload from '@/baseComponent/FilesUpload/index.vue';
-import SelectMp from '@/baseComponent/SelectMp/index.vue';
+import SelectMp from '@/component/SelectMp/index.vue';
 import PositionerEditor from './component/PositionerEditor/index.vue';
 
 const elFormRef = ref<InstanceType<typeof ElForm>>();

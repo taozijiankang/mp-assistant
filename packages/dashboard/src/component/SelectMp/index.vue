@@ -42,8 +42,7 @@
                 </div>
                 <el-scrollbar v-if="filteredWxaList.length > 0" class="wxa-grid-scrollbar" height="500px">
                     <div class="wxa-grid">
-                        <WXAItem class="wxa-card"
-                            :class="{ 'selected': selectedValue.includes(item.appid) }"
+                        <WXAItem class="wxa-card" :class="{ 'selected': selectedValue.includes(item.appid) }"
                             v-for="item in filteredWxaList" :key="item.appid" :wxa-item="item"
                             @click="handleUpdateSelectedValue(item.appid)">
                             <template #prefix>
@@ -78,7 +77,7 @@
 import type { WXMPItem } from '@mp-assistant/common/dist/types/wx';
 import fuzzysort from 'fuzzysort';
 import { ref, computed } from 'vue';
-import WXAItem from '../WXAItem/index.vue';
+import WXAItem from '@/component/WXAItem/index.vue';
 import { StarFilled, Check, Close } from '@element-plus/icons-vue';
 
 const props = defineProps<{
