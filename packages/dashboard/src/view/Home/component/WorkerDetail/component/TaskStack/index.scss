@@ -133,18 +133,20 @@ $status-colors: (
         padding: 10px 12px;
         border-radius: 8px;
         background: #fff;
+        border: 1px solid #ebeef5;
         gap: 8px;
         cursor: pointer;
-        transition: background-color 0.15s, box-shadow 0.15s;
-        box-shadow: 0 0 0 1px #ebeef5;
+        overflow: hidden;
+        isolation: isolate;
+        transition: background-color 0.15s, border-color 0.15s;
 
         &:hover:not(.selected) {
-          box-shadow: 0 0 0 1px #dcdfe6;
+          border-color: #dcdfe6;
         }
 
         &.selected {
           background: #ecf5ff;
-          box-shadow: 0 0 0 1px #a0cfff;
+          border-color: #b3d8ff;
 
           .task-item-header .task-type .task-type-name {
             color: #409eff;
@@ -471,7 +473,8 @@ $status-colors: (
 
         .positioner-chip {
           display: inline-flex;
-          align-items: center;
+          align-items: flex-start;
+          max-width: 100%;
           padding: 3px 10px;
           background: #f0f6ff;
           border: 1px solid #d4e8ff;
@@ -482,16 +485,23 @@ $status-colors: (
           .chip-type {
             color: #409eff;
             font-weight: 600;
+            flex-shrink: 0;
+            white-space: nowrap;
           }
 
           .chip-criteria {
             color: #86909c;
             margin: 0 6px;
+            flex-shrink: 0;
+            white-space: nowrap;
           }
 
           .chip-value {
             color: #1d2129;
             font-weight: 500;
+            min-width: 0;
+            flex: 1;
+            word-break: break-all;
           }
         }
       }
