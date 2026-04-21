@@ -131,103 +131,48 @@ $status-colors: (
     .task-list-content {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 8px;
       box-sizing: border-box;
 
-      .task-section {
-        border-radius: 11px;
-        overflow: hidden;
-        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.07);
+      .task-item-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        min-width: 0;
+        cursor: pointer;
 
-        &--pending {
-          background: linear-gradient(165deg, #f7f8fb 0%, #eef1f7 100%);
-          border: 1px solid #dfe3eb;
-        }
+        .task-item-status-dot {
+          flex-shrink: 0;
+          align-self: center;
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
 
-        &--running {
-          background: linear-gradient(165deg, #fffbf5 0%, #fff4e6 100%);
-          border: 1px solid #f0d9b8;
-        }
-
-        &--done {
-          background: linear-gradient(165deg, #f6fbf7 0%, #ecf6ee 100%);
-          border: 1px solid #c8e6c9;
-        }
-
-        .task-section-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          padding: 9px 12px 8px;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-        }
-
-        .task-section-title {
-          font-size: 13px;
-          font-weight: 700;
-          letter-spacing: 0.02em;
-        }
-
-        .task-section-count {
-          font-size: 12px;
-          font-weight: 600;
-          min-width: 22px;
-          text-align: center;
-          padding: 1px 8px;
-          border-radius: 10px;
-          background: rgba(255, 255, 255, 0.75);
-          border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        &--pending {
-          .task-section-title {
-            color: #4e5969;
+          &--running {
+            background: #e6a23c;
+            box-shadow: 0 0 0 2px rgba(230, 162, 60, 0.25);
           }
 
-          .task-section-count {
-            color: #606266;
+          &--not-started {
+            background: #909399;
+            box-shadow: 0 0 0 2px rgba(144, 147, 153, 0.22);
           }
-        }
-
-        &--running {
-          .task-section-title {
-            color: #b88230;
-          }
-
-          .task-section-count {
-            color: #c9912e;
-          }
-        }
-
-        &--done {
-          .task-section-title {
-            color: #3d7a45;
-          }
-
-          .task-section-count {
-            color: #529b62;
-          }
-        }
-
-        .task-section-body {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          padding: 6px 10px 10px;
         }
       }
 
-      .task-item {
+      .task-item-row .task-item {
         position: relative;
         display: flex;
+        flex: 1;
+        min-width: 0;
         flex-direction: column;
         padding: 10px 12px;
         border-radius: 8px;
         background: #fff;
         border: 1px solid #ebeef5;
         gap: 8px;
-        cursor: pointer;
+        cursor: inherit;
         overflow: hidden;
         isolation: isolate;
         transition:
@@ -299,14 +244,15 @@ $status-colors: (
           .task-type {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             min-width: 0;
             max-width: 100%;
 
             .task-type-icon {
-              width: 18px;
-              height: 18px;
+              width: 24px;
+              height: 24px;
               flex-shrink: 0;
+              object-fit: contain;
             }
 
             .task-type-name {
