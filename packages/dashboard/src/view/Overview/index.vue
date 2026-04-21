@@ -138,9 +138,15 @@ import type { WXMPItem } from '@mp-assistant/common/dist/types/wx';
 import { WSMessage } from '@mp-assistant/common/dist/ws/message.js';
 import { WSMessageEvent } from '@/event/WSMessageEvent';
 import AddTaskDialog from '@/component/AddTaskDialog/index.vue';
-import type { AddTaskBatchTarget } from '@/component/AddTaskDialog/index';
 
 type FilterField = 'appid' | 'app_name' | 'username';
+
+/** 总览勾选聚合出的「账号 + appId 列表」（字段与添加任务 targets 项一致） */
+interface OverviewSelectionRow {
+    workerKey: string;
+    workerName?: string;
+    appIds: string[];
+}
 
 const filterFieldOptions: { value: FilterField; label: string }[] = [
     { value: 'appid', label: 'appid' },
@@ -277,8 +283,8 @@ const handleClearSelection = () => {
     });
 };
 
-const selectedTargets = computed<AddTaskBatchTarget[]>(() => {
-    const map = new Map<string, AddTaskBatchTarget>();
+const selectedTargets = computed<OverviewSelectionRow[]>(() => {
+    const map = new Map<string, OverviewSelectionRow>();
     Object.keys(selectedMap).forEach(k => {
         const [workerKey, appid] = k.split('::');
         if (!workerKey || !appid) return;
@@ -310,7 +316,7 @@ const addTaskDialogRef = ref<InstanceType<typeof AddTaskDialog>>();
 
 const handleBatchAddTask = () => {
     if (selectedCount.value === 0) return;
-    addTaskDialogRef.value?.openBatch(selectedTargets.value);
+    addTaskDialogRef.value?.open({ targets: selectedTargets.value });
 };
 
 const handleDataChange = () => loadData();

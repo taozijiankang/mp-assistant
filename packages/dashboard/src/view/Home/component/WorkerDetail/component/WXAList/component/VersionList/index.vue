@@ -96,7 +96,7 @@ const props = defineProps<{
     inspectVersionTaskInfo: WXTaskN.InspectVersionInfo,
 }>();
 
-const handleAddTask = inject<(formData?: AddTaskFormData) => void>('handleAddTask');
+const handleAddTask = inject<(formData?: AddTaskFormData, presetAppIds?: string[]) => void>('handleAddTask');
 
 const versionList = computed(() => {
     return props.inspectVersionTaskInfo.result?.data as WXTaskN.VersionListData | undefined
@@ -196,24 +196,28 @@ const buildPositioner = (item: VersionListItem) => [
 
 const handleSubmitAudit = (item: VersionListItem) => {
     const nearestAuditTaskOptions = props.relatedTask.find(task => task.type === TaskType.WX_AUDIT)?.options as WXTaskN.AuditTaskOptions | undefined;
-    handleAddTask?.({
-        appIds: [props.wxmpItem.appid],
-        type: TaskType.WX_AUDIT,
-        positioner: buildPositioner(item),
-        populateData: {
-            versionDescription: nearestAuditTaskOptions?.populateData?.versionDescription || '',
-            imagePreview: (nearestAuditTaskOptions?.populateData?.imagePreview?.split(',') || []).filter(Boolean),
-            videoPreview: (nearestAuditTaskOptions?.populateData?.videoPreview?.split(',') || []).filter(Boolean),
-        }
-    });
+    handleAddTask?.(
+        {
+            type: TaskType.WX_AUDIT,
+            positioner: buildPositioner(item),
+            populateData: {
+                versionDescription: nearestAuditTaskOptions?.populateData?.versionDescription || '',
+                imagePreview: (nearestAuditTaskOptions?.populateData?.imagePreview?.split(',') || []).filter(Boolean),
+                videoPreview: (nearestAuditTaskOptions?.populateData?.videoPreview?.split(',') || []).filter(Boolean),
+            },
+        },
+        [props.wxmpItem.appid],
+    );
 };
 
 const handleSubmitPublish = (item: VersionListItem) => {
-    handleAddTask?.({
-        appIds: [props.wxmpItem.appid],
-        type: TaskType.WX_PUBLISH,
-        positioner: buildPositioner(item),
-    });
+    handleAddTask?.(
+        {
+            type: TaskType.WX_PUBLISH,
+            positioner: buildPositioner(item),
+        },
+        [props.wxmpItem.appid],
+    );
 };
 </script>
 

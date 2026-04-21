@@ -198,7 +198,7 @@ const props = defineProps<{
     workerDetail: WXWorkerN.WXWorkInfo;
 }>();
 
-const handleAddTask = inject<(formData?: AddTaskFormData) => void>('handleAddTask');
+const handleAddTask = inject<(formData?: AddTaskFormData, presetAppIds?: string[]) => void>('handleAddTask');
 
 const operationRecordStore = useOperationRecordStore();
 const { onSelectedTaskKey } = storeToRefs(operationRecordStore);

@@ -17,28 +17,8 @@
                         </el-radio-button>
                     </el-radio-group>
                 </el-form-item>
-                <el-form-item v-if="!batchMode" label="小程序" prop="appIds">
-                    <SelectMp :wxa-list="workerDetail?.wxaList || []" :marked-appid-list="workerDetail?.markWXAppIds"
-                        :selectedValue="addTaskForm.appIds" @update:selectedValue="(values) => {
-                            addTaskForm.appIds = values;
-                        }" />
-                </el-form-item>
-                <el-form-item v-else label="小程序">
-                    <div class="batch-summary">
-                        <div class="batch-summary-header">
-                            已选
-                            <b>{{ batchTotalAppCount }}</b>
-                            个小程序，跨
-                            <b>{{ batchTargets.length }}</b>
-                            个账号
-                        </div>
-                        <div class="batch-summary-list">
-                            <div v-for="target in batchTargets" :key="target.workerKey" class="batch-summary-item">
-                                <span class="batch-summary-worker">{{ target.workerName || target.workerKey }}</span>
-                                <span class="batch-summary-count">{{ target.appIds.length }} 个</span>
-                            </div>
-                        </div>
-                    </div>
+                <el-form-item label="小程序" prop="targets">
+                    <SelectMp v-model="addTaskForm.targets" @update:modelValue="onTargetsChange" />
                 </el-form-item>
             </el-form>
             <!-- 审核任务表单 -->
@@ -79,15 +59,14 @@
     </el-dialog>
 </template>
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { requestAddTask, requestGetWorkerDetail } from '@/api';
+import { ref, nextTick } from 'vue';
+import { requestAddTask } from '@/api';
 import { ElMessage } from 'element-plus';
 import type { FormRules } from 'element-plus';
 import type { ElForm } from 'element-plus';
 import { TaskType, WXTaskN } from '@mp-assistant/common/dist/work/task';
-import type { AddTaskForm, AddTaskFormData, AddTaskBatchTarget } from './index';
+import type { AddTaskFormData, AddTaskBatchTarget, AddTaskDialogOpenOptions } from './index';
 import { TaskTypeOptions } from '@mp-assistant/common/dist/work/task';
-import { WXWorkerN } from '@mp-assistant/common/dist/work';
 import type { VersionPositioner } from '@mp-assistant/common/dist/utils/wx';
 import { VersionPositioningType } from '@mp-assistant/common/dist/utils/wx';
 import FilesUpload from '@/baseComponent/FilesUpload/index.vue';
@@ -104,37 +83,51 @@ const visible = ref(false);
 
 const loading = ref(false);
 
-const workerDetail = ref<WXWorkerN.WXWorkInfo>();
-
-/** 是否批量模式（跨多个 worker 批量添加） */
-const batchMode = ref(false);
-
-/** 批量模式下的目标列表 */
-const batchTargets = ref<AddTaskBatchTarget[]>([]);
-
-const batchTotalAppCount = computed(() =>
-    batchTargets.value.reduce((sum, t) => sum + t.appIds.length, 0)
-);
-
-const getWorkerDetail = async (workerKey: string) => {
-    const { data } = await requestGetWorkerDetail(workerKey);
-    if (!WXWorkerN.isWXWorkerInfo(data)) {
-        throw new Error('Invalid worker info');
+/** 合并同一 workerKey */
+const mergeTargets = (list: AddTaskBatchTarget[]): AddTaskBatchTarget[] => {
+    const map = new Map<string, AddTaskBatchTarget>();
+    for (const t of list) {
+        const key = t.workerKey;
+        if (!key) continue;
+        if (!map.has(key)) {
+            map.set(key, {
+                workerKey: key,
+                workerName: t.workerName,
+                appIds: [...t.appIds],
+            });
+        } else {
+            const ex = map.get(key)!;
+            ex.appIds = [...new Set([...ex.appIds, ...t.appIds])];
+            if (t.workerName) ex.workerName = t.workerName;
+        }
     }
-    workerDetail.value = data;
+    return Array.from(map.values());
 };
 
-const addTaskForm = ref<AddTaskForm>({
-    appIds: [],
+const addTaskForm = ref<{
+    type: TaskType;
+    targets: AddTaskBatchTarget[];
+}>({
     type: TaskType.WX_INSPECT_VERSION,
+    targets: [],
 });
 
 const rules = ref<FormRules>({
     type: [
         { required: true, message: '请选择任务类型', trigger: 'change' },
     ],
-    appIds: [
-        { type: 'array', required: true, min: 1, message: '请选择至少一个小程序', trigger: 'change' },
+    targets: [
+        {
+            validator: (_rule, value: AddTaskBatchTarget[], callback) => {
+                const total = value?.reduce((s, t) => s + t.appIds.length, 0) ?? 0;
+                if (total < 1) {
+                    callback(new Error('请至少选择一个小程序'));
+                } else {
+                    callback();
+                }
+            },
+            trigger: 'change',
+        },
     ],
 });
 
@@ -243,42 +236,40 @@ const submitTasksForWorker = async (workerKey: string, appIds: string[]) => {
     }
 };
 
+const onTargetsChange = () => {
+    nextTick(() => {
+        elFormRef.value?.validateField('targets').catch(() => { });
+    });
+};
+
 const handleAddTask = async () => {
-    // 校验主表单（非批量模式需要校验 appIds）
     if (!(await elFormRef.value?.validate().catch(() => false))) {
         return;
     }
 
-    // 如果是审核任务，则验证审核任务表单
     if (addTaskForm.value.type === TaskType.WX_AUDIT) {
         if (!(await auditFormRef.value?.validate().catch(() => false))) {
             return;
         }
     }
-    // 如果是发布任务，则验证发布任务表单
     else if (addTaskForm.value.type === TaskType.WX_PUBLISH) {
         if (!(await publishFormRef.value?.validate().catch(() => false))) {
             return;
         }
     }
 
-    if (batchMode.value) {
-        if (batchTotalAppCount.value === 0) {
-            ElMessage.warning('请先在总览中选择小程序');
-            return;
-        }
-    } else if (!workerDetail.value) {
+    const targets = mergeTargets(addTaskForm.value.targets);
+    const totalApps = targets.reduce((s, t) => s + t.appIds.length, 0);
+    if (totalApps === 0) {
+        ElMessage.warning('请至少选择一个小程序');
         return;
     }
 
     loading.value = true;
     try {
-        if (batchMode.value) {
-            for (const target of batchTargets.value) {
-                await submitTasksForWorker(target.workerKey, target.appIds);
-            }
-        } else {
-            await submitTasksForWorker(workerDetail.value!.key, addTaskForm.value.appIds);
+        for (const target of targets) {
+            if (target.appIds.length === 0) continue;
+            await submitTasksForWorker(target.workerKey, target.appIds);
         }
         visible.value = false;
         ElMessage.success('Add task success');
@@ -292,50 +283,38 @@ const handleAddTask = async () => {
 
 const applyFormData = (formData?: AddTaskFormData) => {
     const {
-        appIds = [],
         type = TaskType.WX_INSPECT_VERSION,
         positioner = [],
         populateData = { versionDescription: '', imagePreview: [], videoPreview: [] },
     } = formData || {};
-    addTaskForm.value.appIds = appIds;
     addTaskForm.value.type = type;
 
-    // 审核任务表单
     auditForm.value.positioner = positioner;
     auditForm.value.populateData.versionDescription = populateData.versionDescription || '';
     auditForm.value.populateData.imagePreview = populateData.imagePreview || [];
     auditForm.value.populateData.videoPreview = populateData.videoPreview || [];
 
-    // 发布任务表单
     publishForm.value.positioner = positioner;
 };
 
-const open = (workerKey: string, formData?: AddTaskFormData) => {
-    batchMode.value = false;
-    batchTargets.value = [];
-    workerDetail.value = undefined;
-
+const open = (options: AddTaskDialogOpenOptions) => {
+    const { targets, formData } = options;
     applyFormData(formData);
 
-    visible.value = true;
-    getWorkerDetail(workerKey);
-};
-
-const openBatch = (targets: AddTaskBatchTarget[], formData?: AddTaskFormData) => {
-    batchMode.value = true;
-    batchTargets.value = targets.filter(t => t.appIds.length > 0);
-    workerDetail.value = undefined;
-
-    applyFormData(formData);
-    // 批量模式下 appIds 不参与校验，但仍需赋值以便扁平化展示
-    addTaskForm.value.appIds = batchTargets.value.flatMap(t => t.appIds);
+    let merged = mergeTargets(
+        (targets || []).map(t => ({
+            workerKey: t.workerKey,
+            workerName: t.workerName,
+            appIds: [...t.appIds],
+        }))
+    );
+    addTaskForm.value.targets = merged;
 
     visible.value = true;
 };
 
 defineExpose({
     open,
-    openBatch,
 });
 
 </script>
