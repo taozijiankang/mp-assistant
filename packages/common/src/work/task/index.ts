@@ -35,10 +35,8 @@ export interface TaskExecResult<T = any> {
 
 export namespace WXTaskN {
     export interface TaskOptions {
-        /** 小程序名称 */
-        app_name: string;
-        /** 小程序原始id */
-        username: string;
+        /** 小程序 appid，运行时根据 worker.wxaList 取 app_name / username */
+        appid: string;
     }
 
     export interface AuditTaskOptions extends TaskOptions {

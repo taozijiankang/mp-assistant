@@ -19,7 +19,7 @@ export enum TaskStatus {
 }
 
 export const TaskTypeDict = {
-    [TaskType.WX_INSPECT_VERSION]: '检查小程序版本',
+    [TaskType.WX_INSPECT_VERSION]: '检查版本',
     [TaskType.WX_AUDIT]: '审核',
     [TaskType.WX_PUBLISH]: '发布',
 }

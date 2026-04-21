@@ -8,6 +8,7 @@ export * from "./const.js"
 export interface BaseWorkerOptions {
     key?: string;
     name?: string;
+    weight?: number;
     wsMessageEventHandler: WSMessage.Event;
 }
 
@@ -15,6 +16,8 @@ export interface BaseWorkInfo {
     name: string;
     type: WorkerType;
     key: string;
+    /** 排序权重，数值越大越靠前 */
+    weight: number;
     taskList: BaseTaskInfo[];
     status: WorkerStatus;
     loadings: string[];

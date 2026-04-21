@@ -1,0 +1,172 @@
+.version-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+  font-family: "Source Han Sans SC";
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .bar {
+      width: 3px;
+      height: 14px;
+      border-radius: 2px;
+      background-color: #c0c4cc;
+    }
+    .text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1d2129;
+    }
+    .count {
+      font-size: 11px;
+      color: #86909c;
+      background-color: #f4f4f5;
+      padding: 0 6px;
+      border-radius: 8px;
+      line-height: 16px;
+    }
+
+    &.online .bar {
+      background-color: #409eff;
+    }
+    &.test .bar {
+      background-color: #f56c6c;
+    }
+    &.dev .bar {
+      background-color: #67c23a;
+    }
+  }
+
+  .version-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .version-card {
+    position: relative;
+    border: 1px solid #ebeef5;
+    border-left: 3px solid #c0c4cc;
+    border-radius: 6px;
+    padding: 8px 10px;
+    background-color: #fafbfc;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    &.accent-primary {
+      border-left-color: #409eff;
+    }
+    &.accent-success {
+      border-left-color: #67c23a;
+    }
+    &.accent-warning {
+      border-left-color: #e6a23c;
+    }
+    &.accent-danger {
+      border-left-color: #f56c6c;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+
+      .version-no {
+        font-family: "JetBrains Mono", Consolas, Menlo, monospace;
+        font-size: 14px;
+        font-weight: 600;
+        color: #1d2129;
+      }
+
+      .header-actions {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .publish-button-wrap {
+        display: inline-flex;
+      }
+    }
+
+    .card-time {
+      color: #86909c;
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: #86909c;
+      line-height: 18px;
+
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        min-width: 0;
+      }
+
+      .meta-label {
+        flex-shrink: 0;
+      }
+
+      .meta-value {
+        color: #917cd6;
+        word-break: break-all;
+      }
+
+      .copy-icon {
+        cursor: pointer;
+        font-size: 12px;
+        color: #c0c4cc;
+        transition: color 0.15s;
+        flex-shrink: 0;
+
+        &:hover {
+          color: #409eff;
+        }
+      }
+    }
+
+    .fail-reason {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background-color: #fef0f0;
+      border: 1px solid #fde2e2;
+      border-radius: 4px;
+      padding: 6px 8px;
+
+      .reason-block {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .reason-label {
+          color: #f56c6c;
+          font-weight: 600;
+          font-size: 12px;
+          line-height: 18px;
+        }
+
+        .reason-content {
+          color: #606266;
+          line-height: 20px;
+          word-break: break-word;
+          white-space: pre-wrap;
+        }
+      }
+    }
+
+  }
+}

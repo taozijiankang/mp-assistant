@@ -1,6 +1,6 @@
 <template>
-    <div v-if="workerDetail" class="worker-detail">
-        <div v-if="WXWorkerN.isWXWorkerInfo(workerDetail)" class="wx content-container">
+    <div class="worker-detail">
+        <div v-if="workerDetail && WXWorkerN.isWXWorkerInfo(workerDetail)" class="wx content-container">
             <!-- 操作栏 -->
             <div class="controller">
                 <el-button @click="handleEditWorker">修改</el-button>
@@ -30,6 +30,11 @@
                 <TaskStack class="task-stack" :workerDetail="workerDetail" />
             </div>
         </div>
+        <div v-else class="empty-state">
+            <el-empty description="暂无 Worker，先添加一个开始使用吧">
+                <el-button type="primary" @click="handleAddWorker">添加 Worker</el-button>
+            </el-empty>
+        </div>
         <AddTaskDialog ref="addTaskDialogRef" />
         <AddWorkerDialog ref="addWorkerDialogRef" @onSuccess="getWorkerDetail" />
     </div>
@@ -44,8 +49,8 @@ import TaskStack from './component/TaskStack/index.vue';
 import { WSMessageEvent } from '@/event/WSMessageEvent';
 import { WSMessage } from '@mp-assistant/common/dist/ws';
 import { useApiCall } from '@/hooks/useApiCall';
-import AddTaskDialog from './component/AddTaskDialog/index.vue';
-import type { AddTaskFormData } from './component/AddTaskDialog/index';
+import AddTaskDialog from '@/component/AddTaskDialog/index.vue';
+import type { AddTaskFormData } from '@/component/AddTaskDialog/index';
 import { getSuccessApiResponse } from '@mp-assistant/common/dist/api/utils';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import AddWorkerDialog from '@/component/AddWorkerDialog/index.vue';
@@ -89,13 +94,27 @@ const handleWorkerListChange = async (data: WSMessage.Worker.DetailChange.Data) 
     }
 }
 
-const handleAddTask = (formData?: AddTaskFormData) => {
-    addTaskDialogRef.value?.open(props.workerKey, formData);
+/** 第二个参数：预选的 appId 列表（仅首页 Worker 内打开时由 VersionList 等传入） */
+const handleAddTask = (formData?: AddTaskFormData, presetAppIds?: string[]) => {
+    addTaskDialogRef.value?.open({
+        targets: [{ workerKey: props.workerKey, appIds: presetAppIds ?? [] }],
+        formData,
+    });
+}
+
+const handleAddWorker = () => {
+    addWorkerDialogRef.value?.open();
 }
 
 const handleEditWorker = () => {
     if (workerDetail.value) {
-        addWorkerDialogRef.value?.open(true, workerDetail.value.key, workerDetail.value.name, workerDetail.value.type);
+        addWorkerDialogRef.value?.open(
+            true,
+            workerDetail.value.key,
+            workerDetail.value.name,
+            workerDetail.value.type,
+            workerDetail.value.weight ?? 0,
+        );
     }
 }
 

@@ -10,6 +10,10 @@
             <el-form-item label="名称" prop="name">
                 <el-input v-model="form.name" clearable />
             </el-form-item>
+            <el-form-item v-if="isEditMode" label="权重" prop="weight">
+                <el-input-number v-model="form.weight" :step="1" :precision="0" controls-position="right" />
+                <span class="form-tip">数值越大越靠前</span>
+            </el-form-item>
             <el-form-item>
                 <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
                     {{ isEditMode ? '修改' : '添加' }}</el-button>
@@ -37,9 +41,10 @@ const visible = ref(false);
 const isEditMode = ref(false);
 const workerKey = ref('');
 
-const form = ref<Api.Worker.AddWorker.RequestBody>({
+const form = ref<Api.Worker.AddWorker.RequestBody & { weight: number }>({
     type: WorkerType.WX,
     name: '',
+    weight: 0,
 });
 
 const rules = ref<FormRules>({
@@ -57,22 +62,26 @@ const { loading: submitLoading, call: handleSubmit } = useApiCall(async () => {
     }
 
     if (isEditMode.value) {
-        await requestUpdateWorker(workerKey.value, { name: form.value.name });
+        await requestUpdateWorker(workerKey.value, {
+            name: form.value.name,
+            weight: form.value.weight,
+        });
         ElMessage.success('修改 Worker 成功');
     } else {
-        await requestAddWorker(form.value);
+        await requestAddWorker({ type: form.value.type, name: form.value.name });
         ElMessage.success('添加 Worker 成功');
     }
     visible.value = false;
     return getSuccessApiResponse(null);
 });
 
-const open = (editMode = false, key = '', name = '', type = WorkerType.WX) => {
+const open = (editMode = false, key = '', name = '', type = WorkerType.WX, weight = 0) => {
     isEditMode.value = editMode;
     workerKey.value = key;
     form.value = {
         type,
         name,
+        weight,
     };
     visible.value = true;
 };

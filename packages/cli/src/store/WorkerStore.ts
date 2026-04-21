@@ -2,13 +2,17 @@ import { WorkerType } from "@mp-assistant/common/dist/work/index.js";
 import { getStoreDir } from "@mp-assistant/common/dist/pathManage.js";
 import { useLocalStore } from "../hooks/useLocalStore.js";
 import type { BaseWorker } from "@mp-assistant/core/dist/worker/BaseWorker.js";
-import { createWorker } from "@mp-assistant/core/dist/worker/index.js";
+import { createWorker, isWXWorker } from "@mp-assistant/core/dist/worker/index.js";
 import { WSMessageEvent } from "../event/WSMessageEvent.js";
 
 interface WorkerStoreItem {
     key: string;
     type: WorkerType;
     name: string;
+    /** 排序权重，数值越大越靠前 */
+    weight?: number;
+    /** 微信 worker 已标记的小程序 appid 列表 */
+    markWXAppIds?: string[];
 }
 
 const { get: getWorkerLocalStoreList, set: setWorkerLocalStoreList } = useLocalStore<WorkerStoreItem[]>('workerList', [], {
@@ -29,11 +33,16 @@ export class WorkerStore {
 
     constructor() {
         this.__workerList = getWorkerLocalStoreList().map(item => {
-            return createWorker(item.type, {
+            const worker = createWorker(item.type, {
                 key: item.key,
                 name: item.name,
+                weight: item.weight,
                 wsMessageEventHandler: WSMessageEvent.instance,
             });
+            if (isWXWorker(worker) && Array.isArray(item.markWXAppIds)) {
+                worker.markWXAppIds = [...item.markWXAppIds];
+            }
+            return worker;
         });
     }
 
@@ -51,11 +60,16 @@ export class WorkerStore {
 
     saveData() {
         setWorkerLocalStoreList(this.__workerList.map(item => {
-            return {
+            const base: WorkerStoreItem = {
                 key: item.key,
                 type: item.type!,
                 name: item.name,
+                weight: item.weight,
             };
+            if (isWXWorker(item)) {
+                base.markWXAppIds = [...item.markWXAppIds];
+            }
+            return base;
         }));
     }
 }

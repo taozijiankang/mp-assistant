@@ -2,7 +2,7 @@
     <div class="worker-list">
         <el-scrollbar class="worker-list-content-scrollbar">
             <div class="worker-list-content">
-                <div class="worker-item" v-for="worker in workerList" :key="worker.key"
+                <div class="worker-item" v-for="worker in sortedWorkerList" :key="worker.key"
                     :class="{ 'selected': worker.key === currentWorkerKey }" @click="handleWorkerItemClick(worker)">
                     <div class="info">
                         <template v-if="worker.type === WorkerType.WX">
@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { getFileUrl, requestGetWorkerList } from '@/api';
 import AddWorkerDialog from '@/component/AddWorkerDialog/index.vue';
 import { WSMessage } from "@mp-assistant/common/dist/ws/message.js"
@@ -56,6 +56,10 @@ const addWorkerDialogRef = ref<InstanceType<typeof AddWorkerDialog>>();
 
 const workerList = ref<BaseWorkInfo[]>([]);
 
+const sortedWorkerList = computed(() =>
+    [...workerList.value].sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0))
+);
+
 const getWorkerList = async () => {
     const { data } = await requestGetWorkerList();
 
@@ -67,7 +71,7 @@ const getWorkerList = async () => {
     }
 
     if (!props.currentWorkerKey || !workerList.value.some(item => item.key === props.currentWorkerKey)) {
-        emit('currentWorkerKeyChange', data[0]?.key);
+        emit('currentWorkerKeyChange', sortedWorkerList.value[0]?.key);
     }
 }
 

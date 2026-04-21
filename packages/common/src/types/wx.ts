@@ -17,6 +17,7 @@ export interface VersionListItem {
     avatar?: string;
     describe?: string;
     fail_reason?: string;
+    reject_reason?: string;
     is_speedup?: number;
     nick_name?: string;
     open_id?: string;

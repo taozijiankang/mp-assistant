@@ -22,28 +22,27 @@
       cursor: pointer;
       padding: 10px;
       box-sizing: border-box;
-      border-bottom: 1px solid #e1e1e1;
+      border-bottom: 1px solid #ebeef5;
       color: #1d2129;
+      transition: background-color 0.15s;
+
+      &:hover:not(.selected) {
+        background-color: #f2f6fc;
+      }
 
       &.selected {
-        background-color: #00b240;
-        color: #fff;
+        background-color: #e8f7ee;
 
-        .wa-info {
-          .span {
-            color: #fff;
-          }
-        }
-        .rq {
-          .text {
-            color: #fff;
-          }
+        .info .name {
+          color: #00b240;
+          font-weight: 700;
         }
       }
 
       .info {
         display: flex;
         flex-direction: row;
+        align-items: center;
         gap: 10px;
         .icon {
           width: 20px;
@@ -51,7 +50,7 @@
         }
         .name {
           font-size: 14px;
-          font-weight: bold;
+          font-weight: 600;
         }
       }
       .rq {

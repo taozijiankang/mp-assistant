@@ -1,0 +1,103 @@
+.positioner-editor {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background-color: #fafbfc;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+
+  .editor-tip {
+    color: #86909c;
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .positioner-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 6px 8px 10px;
+    background-color: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 6px;
+
+    .card-fields {
+      display: flex;
+      flex: 1;
+      gap: 8px;
+      min-width: 0;
+
+      .field-type {
+        width: 120px;
+        flex-shrink: 0;
+      }
+
+      .field-criteria {
+        width: 100px;
+        flex-shrink: 0;
+      }
+
+      .field-value {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+
+    .remove-icon {
+      font-size: 16px;
+      color: #a8abb2;
+      cursor: pointer;
+      padding: 7px;
+      border-radius: 4px;
+      transition: color 0.15s, background-color 0.15s;
+      flex-shrink: 0;
+
+      &:hover {
+        color: #f56c6c;
+        background-color: #fef0f0;
+      }
+    }
+  }
+
+  .and-divider {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 20px;
+    margin: -4px 0;
+
+    .line {
+      flex: 1;
+      height: 1px;
+      background-color: #e4e7ed;
+    }
+
+    .and-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: #909399;
+      background-color: #f0f2f5;
+      padding: 0 6px;
+      line-height: 14px;
+      border-radius: 7px;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .empty-hint {
+    color: #a8abb2;
+    font-size: 12px;
+    text-align: center;
+    padding: 12px 0;
+  }
+
+  .add-btn {
+    align-self: flex-start;
+
+    .el-icon {
+      margin-right: 4px;
+    }
+  }
+}
