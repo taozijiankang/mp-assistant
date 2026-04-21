@@ -441,7 +441,15 @@ $status-colors: (
         .task-item-footer {
           display: flex;
           justify-content: flex-end;
+          align-items: center;
+          gap: 6px;
           width: 100%;
+
+          .retry-btn {
+            padding: 2px 6px;
+            height: auto;
+            font-size: 12px;
+          }
 
           .delete-btn {
             color: #c0c4cc;

@@ -23,74 +23,84 @@
             </div>
             <el-scrollbar v-if="displayTaskList.length > 0" class="task-list-content-scrollbar">
                 <div class="task-scroll-panel">
-                <div class="task-list-content">
-                    <div v-for="section in taskDisplaySections" :key="section.key" class="task-section"
-                        :class="`task-section--${section.key}`">
-                        <div class="task-section-header">
-                            <span class="task-section-title">{{ section.title }}</span>
-                            <span class="task-section-count">{{ section.tasks.length }}</span>
-                        </div>
-                        <div class="task-section-body">
-                        <div v-for="taskItem in section.tasks" :key="taskItem.key" class="task-item"
-                        :class="[
-                            `task-item--type-${taskItemTypeClass(taskItem.type)}`,
-                            {
-                                selected: taskItem.key === onSelectedTaskKey,
-                                'not-started': taskItem.status === TaskStatus.NOT_STARTED,
-                                running: taskItem.status === TaskStatus.RUNNING,
-                                completed: taskItem.status === TaskStatus.COMPLETED,
-                                failed: taskItem.status === TaskStatus.FAILED,
-                            },
-                        ]" @click="handleTaskClick(taskItem)">
-                        <div class="task-item-header">
-                            <div class="task-type" :class="`task-type--${taskItemTypeClass(taskItem.type)}`">
-                                <img v-if="taskItem.type === TaskType.WX_INSPECT_VERSION"
-                                    src="@/assets/check-the-version.png" alt="" class="task-type-icon">
-                                <img v-if="taskItem.type === TaskType.WX_AUDIT" src="@/assets/review.png"
-                                    alt="" class="task-type-icon">
-                                <img v-if="taskItem.type === TaskType.WX_PUBLISH" src="@/assets/release.png"
-                                    alt="" class="task-type-icon">
-                                <span class="task-type-name">{{ TaskTypeDict[taskItem.type] }}</span>
+                    <div class="task-list-content">
+                        <div v-for="section in taskDisplaySections" :key="section.key" class="task-section"
+                            :class="`task-section--${section.key}`">
+                            <div class="task-section-header">
+                                <span class="task-section-title">{{ section.title }}</span>
+                                <span class="task-section-count">{{ section.tasks.length }}</span>
                             </div>
-                            <div class="task-status-chip">
-                                <div class="dot"></div>
-                                <span>{{ TaskStatusDict[taskItem.status] }}</span>
+                            <div class="task-section-body">
+                                <div v-for="taskItem in section.tasks" :key="taskItem.key" class="task-item" :class="[
+                                    `task-item--type-${taskItemTypeClass(taskItem.type)}`,
+                                    {
+                                        selected: taskItem.key === onSelectedTaskKey,
+                                        'not-started': taskItem.status === TaskStatus.NOT_STARTED,
+                                        running: taskItem.status === TaskStatus.RUNNING,
+                                        completed: taskItem.status === TaskStatus.COMPLETED,
+                                        failed: taskItem.status === TaskStatus.FAILED,
+                                    },
+                                ]" @click="handleTaskClick(taskItem)">
+                                    <div class="task-item-header">
+                                        <div class="task-type"
+                                            :class="`task-type--${taskItemTypeClass(taskItem.type)}`">
+                                            <img v-if="taskItem.type === TaskType.WX_INSPECT_VERSION"
+                                                src="@/assets/check-the-version.png" alt="" class="task-type-icon">
+                                            <img v-if="taskItem.type === TaskType.WX_AUDIT" src="@/assets/review.png"
+                                                alt="" class="task-type-icon">
+                                            <img v-if="taskItem.type === TaskType.WX_PUBLISH" src="@/assets/release.png"
+                                                alt="" class="task-type-icon">
+                                            <span class="task-type-name">{{ TaskTypeDict[taskItem.type] }}</span>
+                                        </div>
+                                        <div class="task-status-chip">
+                                            <div class="dot"></div>
+                                            <span>{{ TaskStatusDict[taskItem.status] }}</span>
+                                        </div>
+                                    </div>
+                                    <WXAItem v-if="getWxaInfo(taskItem.options)" class="task-wxa-item"
+                                        :wxa-item="getWxaInfo(taskItem.options)!" />
+                                    <div v-if="taskItem.status === TaskStatus.FAILED && taskItem.result?.msg"
+                                        class="fail-msg">
+                                        <el-icon class="fail-icon">
+                                            <WarningFilled />
+                                        </el-icon>
+                                        <span>{{ taskItem.result?.msg }}</span>
+                                    </div>
+                                    <div v-if="WXTaskN.isPublishInfo(taskItem) && taskItem.publishQRCodeFilePath && taskItem.status === TaskStatus.RUNNING"
+                                        class="publish-qrcode-container">
+                                        <div class="publish-qrcode-header">
+                                            <el-icon class="loading-icon">
+                                                <Loading />
+                                            </el-icon>
+                                            <span class="publish-qrcode-description">需要扫描二维码进行发布 剩余 {{
+                                                Math.round(taskItem.countdown) }}s</span>
+                                        </div>
+                                        <img :src="getFileUrl(taskItem.publishQRCodeFilePath)" alt="publish-qrcode"
+                                            class="publish-qrcode-image" />
+                                    </div>
+                                    <div v-if="taskItem.status !== TaskStatus.RUNNING" class="task-item-footer">
+                                        <el-button v-if="taskItem.status === TaskStatus.FAILED" class="retry-btn" text
+                                            type="primary" size="small"
+                                            :loading="retryTaskLoadings.includes(taskItem.key)"
+                                            @click.stop="handleRetryFailedTask(taskItem)">
+                                            <el-icon>
+                                                <RefreshRight />
+                                            </el-icon>
+                                            <span>重新添加</span>
+                                        </el-button>
+                                        <el-button class="delete-btn" text size="small"
+                                            :loading="removeTaskLoadings.includes(taskItem.key)"
+                                            @click.stop="handleDestroyTask(taskItem)">
+                                            <el-icon>
+                                                <Delete />
+                                            </el-icon>
+                                            <span>删除</span>
+                                        </el-button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <WXAItem v-if="getWxaInfo(taskItem.options)" class="task-wxa-item"
-                            :wxa-item="getWxaInfo(taskItem.options)!" />
-                        <div v-if="taskItem.status === TaskStatus.FAILED && taskItem.result?.msg" class="fail-msg">
-                            <el-icon class="fail-icon">
-                                <WarningFilled />
-                            </el-icon>
-                            <span>{{ taskItem.result?.msg }}</span>
-                        </div>
-                        <div v-if="WXTaskN.isPublishInfo(taskItem) && taskItem.publishQRCodeFilePath && taskItem.status === TaskStatus.RUNNING"
-                            class="publish-qrcode-container">
-                            <div class="publish-qrcode-header">
-                                <el-icon class="loading-icon">
-                                    <Loading />
-                                </el-icon>
-                                <span class="publish-qrcode-description">需要扫描二维码进行发布 剩余 {{
-                                    Math.round(taskItem.countdown) }}s</span>
-                            </div>
-                            <img :src="getFileUrl(taskItem.publishQRCodeFilePath)" alt="publish-qrcode"
-                                class="publish-qrcode-image" />
-                        </div>
-                        <div v-if="taskItem.status !== TaskStatus.RUNNING" class="task-item-footer">
-                            <el-button class="delete-btn" text size="small"
-                                :loading="removeTaskLoadings.includes(taskItem.key)"
-                                @click.stop="handleDestroyTask(taskItem)">
-                                <el-icon>
-                                    <Delete />
-                                </el-icon>
-                                <span>删除</span>
-                            </el-button>
-                        </div>
-                        </div>
                         </div>
                     </div>
-                </div>
                 </div>
             </el-scrollbar>
             <div v-else class="no-data">
@@ -201,8 +211,8 @@ import { dayjs, ElMessage, ElMessageBox } from 'element-plus';
 import { WorkerStatus, WXWorkerN } from '@mp-assistant/common/dist/work';
 import { useOperationRecordStore } from '@/stores';
 import { storeToRefs } from 'pinia';
-import { Delete, WarningFilled, Loading } from '@element-plus/icons-vue';
-import { getFileUrl, requestPauseAndRecoverWorker, requestRemoveTask } from '@/api';
+import { Delete, WarningFilled, Loading, RefreshRight } from '@element-plus/icons-vue';
+import { getFileUrl, requestAddTask, requestPauseAndRecoverWorker, requestRemoveTask } from '@/api';
 import type { AddTaskFormData } from '../../../../../../component/AddTaskDialog/index';
 import fuzzysort from 'fuzzysort';
 import { VersionPositioningCriteriaDict, VersionPositioningTypeDict } from '@mp-assistant/common/dist/utils/wx';
@@ -218,6 +228,7 @@ const operationRecordStore = useOperationRecordStore();
 const { onSelectedTaskKey } = storeToRefs(operationRecordStore);
 
 const removeTaskLoadings = ref<string[]>([]);
+const retryTaskLoadings = ref<string[]>([]);
 
 const filterKeyword = ref('');
 const filterStatus = ref<TaskStatus | 'all'>('all');
@@ -343,6 +354,44 @@ function taskItemTypeClass(type: TaskType): 'inspect' | 'audit' | 'publish' {
 const handleTaskClick = (taskItem: BaseTaskInfo) => {
     operationRecordStore.setOnSelectedTaskKey(taskItem.key);
 }
+
+function cloneTaskOptions<T extends any>(opts: T): T {
+    return JSON.parse(JSON.stringify(opts)) as T;
+}
+
+const handleRetryFailedTask = async (taskItem: BaseTaskInfo) => {
+    if (!WXTaskN.isWXTaskInfo(taskItem) || !taskItem.options?.appid) {
+        ElMessage.warning('无法读取任务参数');
+        return;
+    }
+    if (retryTaskLoadings.value.includes(taskItem.key)) {
+        return;
+    }
+    retryTaskLoadings.value.push(taskItem.key);
+    const workerKey = props.workerDetail.key;
+    try {
+        const options = cloneTaskOptions(taskItem.options);
+        await requestAddTask(workerKey, {
+            type: taskItem.type,
+            options,
+        });
+        if (
+            taskItem.type === TaskType.WX_AUDIT ||
+            taskItem.type === TaskType.WX_PUBLISH
+        ) {
+            await requestAddTask(workerKey, {
+                type: TaskType.WX_INSPECT_VERSION,
+                options: { appid: taskItem.options.appid },
+            });
+        }
+        ElMessage.success('已重新添加任务');
+    } catch (e) {
+        console.error(e);
+        ElMessage.error('重新添加失败');
+    } finally {
+        retryTaskLoadings.value = retryTaskLoadings.value.filter(k => k !== taskItem.key);
+    }
+};
 
 const getWxaInfo = (options: WXTaskN.TaskOptions) => {
     return props.workerDetail.wxaList.find(wxa => wxa.appid === options.appid);
