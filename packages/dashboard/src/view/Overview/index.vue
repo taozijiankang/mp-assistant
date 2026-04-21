@@ -2,37 +2,65 @@
     <div class="overview-page">
         <aside class="side-panel">
             <div class="side-header">
-                <span class="side-title">筛选</span>
+                <span class="side-title">查找</span>
                 <el-button v-if="keyword" size="small" text @click="keyword = ''">清空</el-button>
             </div>
-            <el-radio-group v-model="filterField" size="small" class="filter-field">
-                <el-radio-button v-for="opt in filterFieldOptions" :key="opt.value" :value="opt.value">
-                    {{ opt.label }}
-                </el-radio-button>
-            </el-radio-group>
-            <div class="filter-mode">
-                <span class="filter-mode-label">模糊匹配</span>
-                <el-switch v-model="fuzzyMatch" size="small" />
+
+            <div class="side-section">
+                <div class="section-label">匹配字段</div>
+                <el-radio-group v-model="filterField" size="small" class="filter-field">
+                    <el-radio-button v-for="opt in filterFieldOptions" :key="opt.value" :value="opt.value">
+                        {{ opt.label }}
+                    </el-radio-button>
+                </el-radio-group>
             </div>
-            <el-input v-model="keyword" type="textarea" :autosize="{ minRows: 6, maxRows: 20 }" class="search-input"
-                :placeholder="`一行一个 ${currentFieldLabel}，支持批量粘贴`" />
-            <div class="summary">
-                <template v-if="requestedValues.length">
-                    <div class="summary-row">查询 <b>{{ requestedValues.length }}</b> 个 {{ currentFieldLabel }}</div>
-                    <div class="summary-row num-ok">匹配 {{ matchedMpCount }} 个小程序</div>
-                    <div v-if="missingValues.length" class="summary-row num-miss">
-                        未找到 {{ missingValues.length }} 个
-                    </div>
-                </template>
-                <template v-else>
-                    <div class="summary-row">共 <b>{{ allMps.length }}</b> 个小程序</div>
-                    <div class="summary-row"><b>{{ activeWorkers.length }}</b> 个账号</div>
-                </template>
+
+            <div class="side-section side-section--search">
+                <div class="section-label">查找内容</div>
+                <el-input v-model="keyword" type="textarea" :autosize="{ minRows: 6, maxRows: 15 }" class="search-input"
+                    :placeholder="`一行一个 ${currentFieldLabel}，支持批量粘贴`" />
+                <div class="filter-mode">
+                    <span class="filter-mode-label">模糊匹配</span>
+                    <el-switch v-model="fuzzyMatch" size="small" />
+                </div>
             </div>
+
+            <div class="side-section side-section--summary">
+                <div class="summary">
+                    <template v-if="requestedValues.length">
+                        <div class="summary-row">查找 <b>{{ requestedValues.length }}</b> 个 {{ currentFieldLabel }}</div>
+                        <div class="summary-row num-ok">匹配 {{ matchedMpCount }} 个小程序</div>
+                        <div v-if="missingValues.length" class="summary-row num-miss">
+                            未找到 {{ missingValues.length }} 个
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class="summary-row">共 <b>{{ allMps.length }}</b> 个小程序</div>
+                        <div class="summary-row"><b>{{ activeWorkers.length }}</b> 个账号</div>
+                    </template>
+                </div>
+            </div>
+
             <div v-if="missingValues.length" class="missing-panel">
-                <div class="missing-label">未找到的 {{ currentFieldLabel }}</div>
+                <div class="missing-header">
+                    <span class="missing-label">
+                        未找到的 {{ currentFieldLabel }}
+                        <span class="missing-count">{{ missingValues.length }}</span>
+                    </span>
+                    <el-button size="small" text class="copy-all-btn" @click="handleCopy(missingValues.join('\n'))">
+                        <el-icon>
+                            <CopyDocument />
+                        </el-icon>
+                        <span>复制全部</span>
+                    </el-button>
+                </div>
                 <div class="missing-list">
-                    <span v-for="v in missingValues" :key="v" class="missing-chip">{{ v }}</span>
+                    <div v-for="v in missingValues" :key="v" class="missing-chip" @click="handleCopy(v)">
+                        <span class="missing-chip-text">{{ v }}</span>
+                        <el-icon class="missing-chip-copy">
+                            <CopyDocument />
+                        </el-icon>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -93,8 +121,7 @@
                     </template>
                 </div>
             </el-scrollbar>
-            <el-empty v-else class="empty-state"
-                :description="activeWorkers.length === 0 ? '暂无已登录的账号' : '没有匹配的小程序'" />
+            <el-empty v-else class="empty-state" :description="activeWorkers.length === 0 ? '暂无已登录的账号' : '没有匹配的小程序'" />
         </div>
         <AddTaskDialog ref="addTaskDialogRef" />
     </div>
@@ -102,7 +129,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, reactive } from 'vue';
-import { Star, StarFilled } from '@element-plus/icons-vue';
+import { Star, StarFilled, CopyDocument } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
 import WXAItem from '@/baseComponent/WXAItem/index.vue';
 import { requestGetWorkerList, requestGetWorkerDetail, requestMarkWXAppId } from '@/api';
 import { WXWorkerN } from '@mp-assistant/common/dist/work';
@@ -210,6 +238,16 @@ const getWxa = (worker: WXWorkerN.WXWorkInfo, appid: string): WXMPItem | undefin
 
 const handleToggleMark = async (worker: WXWorkerN.WXWorkInfo, appid: string, mark: boolean) => {
     await requestMarkWXAppId(worker.key, { appId: appid, mark });
+};
+
+const handleCopy = async (text: string) => {
+    if (!text) return;
+    try {
+        await navigator.clipboard.writeText(text);
+        ElMessage.success('已复制');
+    } catch {
+        ElMessage.error('复制失败');
+    }
 };
 
 const gridStyle = computed(() => ({
