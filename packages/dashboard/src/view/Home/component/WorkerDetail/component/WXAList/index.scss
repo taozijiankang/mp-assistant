@@ -9,6 +9,7 @@
   border-radius: 20px;
   min-width: 0;
   width: 100%;
+
   .controller {
     display: flex;
     align-items: center;
@@ -16,6 +17,7 @@
     gap: 10px;
     padding: 0 12px;
   }
+
   .filter-bar {
     display: flex;
     align-items: center;
@@ -31,137 +33,208 @@
       line-height: 22px;
     }
   }
-  .wxa-item-container-scrollbar {
+
+  .wxa-table-wrap {
     flex: 1;
     min-height: 0;
-    border-radius: 10px;
     padding: 0 12px;
-  }
-  .wxa-item-container {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    .wxa-item {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      background: #fff;
-      padding: 6px;
+
+    .wxa-table {
+      flex: 1;
+      min-height: 0;
+    }
+
+    :deep(.el-table__body-wrapper) {
+      border-radius: 0 0 10px 10px;
+    }
+
+    :deep(.el-table) {
       border-radius: 10px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
 
-      .wxa-item-header {
-        padding: 6px 6px 4px 8px;
-
-        :deep(.wxa-item-card) {
-          .wxa-name .wxa-name-text {
-            font-size: 15px;
-            font-weight: 600;
-          }
-        }
+    :deep(.wxa-table.el-table) {
+      .el-table__header th.el-table__cell,
+      .el-table__body td.el-table__cell {
+        vertical-align: top;
       }
+    }
 
-      .wxa-item-body {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        background: #eef2f8;
-        padding: 10px 12px;
-        border-radius: 8px;
-        margin-left: 46px;
-      }
+    :deep(.wxa-info-column .cell) {
+      max-width: 320px;
+      box-sizing: border-box;
+      overflow-x: hidden;
+    }
+  }
 
-      .star-icon {
-        font-size: 20px;
-        color: #c0c4cc;
-        cursor: pointer;
-        transition: color 0.15s, transform 0.15s;
+  .wxa-info-cell {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 0;
 
-        &.marked {
-          color: #f7ba2a;
-        }
-
-        &:hover {
-          transform: scale(1.1);
-        }
-      }
-      .task-info {
-        display: flex;
-        flex-direction: column;
-        font-size: 12px;
-        color: #86909c;
-        font-family: "Source Han Sans SC";
-        font-weight: 400;
-        line-height: 20px;
-
-        .top {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-
-          .task-type-icon {
-            width: 15px;
-            height: 15px;
-          }
-
-          .view-task-button {
-            height: auto;
-            padding: 0;
-            font-size: 12px;
-            color: #86909c;
-
-            &:hover {
-              color: #409eff;
-            }
-          }
-
-          .task-time {
-            margin-left: auto;
-          }
-
-          .task-status {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            &.success {
-              .dot {
-                background-color: #67c23a;
-              }
-              span {
-                color: #67c23a;
-              }
-            }
-            &.running {
-              .dot {
-                background-color: #e6a23c;
-              }
-              span {
-                color: #e6a23c;
-              }
-            }
-            &.fail {
-              .dot {
-                background-color: #f56c6c;
-              }
-              span {
-                color: #f56c6c;
-              }
-            }
-            .dot {
-              width: 6px;
-              height: 6px;
-              border-radius: 50%;
-            }
-            span {
-              color: #86909c;
-              font-family: "Source Han Sans SC";
-              font-size: 12px;
-              font-weight: 400;
-              line-height: 20px;
-            }
-          }
+    .wxa-info-header {
+      :deep(.wxa-item-card) {
+        .wxa-name .wxa-name-text {
+          font-size: 15px;
+          font-weight: 600;
         }
       }
     }
+
+    .wxa-fetch-version-row {
+      display: flex;
+      align-items: center;
+      padding: 0 2px;
+    }
+  }
+
+  .star-icon {
+    font-size: 20px;
+    color: #c0c4cc;
+    cursor: pointer;
+    transition:
+      color 0.15s,
+      transform 0.15s;
+
+    &.marked {
+      color: #f7ba2a;
+    }
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+
+  .wxa-info-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #eef2f8;
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+
+  .task-info {
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+    color: #86909c;
+    font-family: "Source Han Sans SC";
+    font-weight: 400;
+    line-height: 20px;
+
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+
+      .task-type-icon {
+        width: 15px;
+        height: 15px;
+      }
+
+      .view-task-button {
+        height: auto;
+        padding: 0;
+        font-size: 12px;
+        color: #86909c;
+
+        &:hover {
+          color: #409eff;
+        }
+      }
+
+      .task-time {
+        margin-left: auto;
+      }
+
+      .task-status {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        &.success {
+          .dot {
+            background-color: #67c23a;
+          }
+
+          span {
+            color: #67c23a;
+          }
+        }
+
+        &.running {
+          .dot {
+            background-color: #e6a23c;
+          }
+
+          span {
+            color: #e6a23c;
+          }
+        }
+
+        &.fail {
+          .dot {
+            background-color: #f56c6c;
+          }
+
+          span {
+            color: #f56c6c;
+          }
+        }
+
+        .dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+        }
+
+        span {
+          color: #86909c;
+          font-family: "Source Han Sans SC";
+          font-size: 12px;
+          font-weight: 400;
+          line-height: 20px;
+        }
+      }
+    }
+  }
+
+  .version-card-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .version-card-wrap {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .version-cell-empty {
+    color: #c0c4cc;
+    font-size: 12px;
+    line-height: 20px;
+    padding: 4px 0;
+  }
+
+  .version-cell {
+    min-width: 0;
+    max-width: 100%;
+    padding: 4px 0;
+    vertical-align: top;
+  }
+
+  .version-cell-placeholder {
+    color: #c0c4cc;
+    font-size: 12px;
+    line-height: 22px;
+    padding: 4px 0;
   }
 }

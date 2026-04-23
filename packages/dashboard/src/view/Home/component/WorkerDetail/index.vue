@@ -135,7 +135,7 @@ const handleWorkerListChange = async (data: WSMessage.Worker.DetailChange.Data) 
     }
 }
 
-/** 第二个参数：预选的 appId 列表（仅首页 Worker 内打开时由 VersionList 等传入） */
+/** 第二个参数：预选的 appId 列表（仅首页 Worker 内由小程序列表版本操作等传入） */
 const handleAddTask = (formData?: AddTaskFormData, presetAppIds?: string[]) => {
     addTaskDialogRef.value?.open({
         targets: [{ workerKey: props.workerKey, appIds: presetAppIds ?? [] }],

@@ -3,7 +3,6 @@
   flex-direction: row;
   align-items: flex-start;
   gap: 10px;
-  position: relative;
   min-width: 0;
 
   .wxa-icon {
@@ -20,20 +19,48 @@
     min-width: 0;
     flex: 1;
 
-    .wxa-name {
+    .wxa-name-row {
       display: flex;
       align-items: center;
-      gap: 5px;
+      justify-content: space-between;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .wxa-name {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
       color: #1d2129;
       font-family: "Source Han Sans SC";
       font-size: 14px;
       font-weight: 400;
       line-height: normal;
+
+      :deep(.el-tooltip__trigger) {
+        display: block;
+        min-width: 0;
+        max-width: 100%;
+      }
+
+      .wxa-name-text-wrap {
+        min-width: 0;
+        overflow: hidden;
+      }
+
       .wxa-name-text {
+        display: block;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+    }
+
+    .wxa-extra {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
     }
 
     .wxa-appid,
@@ -47,11 +74,5 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-  }
-
-  .wxa-extra {
-    position: absolute;
-    top: 0;
-    right: 0;
   }
 }

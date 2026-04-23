@@ -14,63 +14,117 @@
             </el-radio-group>
             <span class="total-count">共 {{ filteredWxaList.length }} 条</span>
         </div>
-        <el-scrollbar v-if="filteredWxaList.length > 0" class="wxa-item-container-scrollbar">
-            <div class="wxa-item-container">
-                <div class="wxa-item" :class="{ 'marked': workerDetail.markWXAppIds.includes(wxa.wxaItem.appid) }"
-                    v-for="wxa in filteredWxaList" :key="wxa.wxaItem.appid">
-                    <div class="wxa-item-header">
-                        <WXAItem :wxa-item="wxa.wxaItem">
-                            <template #name-suffix>
+        <div v-if="filteredWxaList.length > 0" class="wxa-table-wrap">
+            <el-table class="wxa-table" :data="filteredWxaList" :row-key="wxaRowKey" border stripe height="100%">
+                <el-table-column fixed="left" label="小程序信息" width="320" class-name="wxa-info-column">
+                    <template #default="{ row }: WxaTableColumnScope">
+                        <div class="wxa-info-cell">
+                            <div class="wxa-info-header">
+                                <WXAItem :wxa-item="row.wxaItem">
+                                    <template #extra>
+                                        <el-icon v-if="workerDetail.markWXAppIds.includes(row.wxaItem.appid)"
+                                            class="star-icon marked"
+                                            @click="handleMarkWXAppId(row.wxaItem.appid, false)">
+                                            <StarFilled />
+                                        </el-icon>
+                                        <el-icon v-else class="star-icon"
+                                            @click="handleMarkWXAppId(row.wxaItem.appid, true)">
+                                            <Star />
+                                        </el-icon>
+                                    </template>
+                                </WXAItem>
+                            </div>
+                            <div class="wxa-fetch-version-row">
                                 <el-button size="small" plain
-                                    :loading="restartTaskLoadings.includes(wxa.wxaItem.appid) || wxa.inspectTaskVersionInfo?.status === TaskStatus.RUNNING"
-                                    @click="handleRestartTask(wxa.wxaItem)">获取版本信息</el-button>
-                            </template>
-                            <template #extra>
-                                <el-icon v-if="workerDetail.markWXAppIds.includes(wxa.wxaItem.appid)"
-                                    class="star-icon marked" @click="handleMarkWXAppId(wxa.wxaItem.appid, false)">
-                                    <StarFilled />
-                                </el-icon>
-                                <el-icon v-else class="star-icon" @click="handleMarkWXAppId(wxa.wxaItem.appid, true)">
-                                    <Star />
-                                </el-icon>
-                            </template>
-                        </WXAItem>
-                    </div>
-                    <div v-if="wxa.relatedTask.length > 0 || wxa.inspectTaskVersionInfo" class="wxa-item-body">
-                        <div v-for="taskInfo in wxa.relatedTask" :key="taskInfo.key" class="task-info">
-                            <div class="top">
-                                <img v-if="taskInfo.type === TaskType.WX_INSPECT_VERSION"
-                                    src="@/assets/check-the-version.png" alt="task-type-icon" class="task-type-icon">
-                                <img v-if="taskInfo.type === TaskType.WX_AUDIT" src="@/assets/review.png"
-                                    alt="task-type-icon" class="task-type-icon">
-                                <img v-if="taskInfo.type === TaskType.WX_PUBLISH" src="@/assets/release.png"
-                                    alt="task-type-icon" class="task-type-icon">
-                                <span>{{ TaskTypeDict[taskInfo.type] }}</span>
-                                <el-button class="view-task-button" link
-                                    @click="handleViewTask(taskInfo)">查看</el-button>
-                                <div class="task-status" :class="{
-                                    'success': taskInfo.status === TaskStatus.COMPLETED,
-                                    'running': taskInfo.status === TaskStatus.RUNNING,
-                                    'fail': taskInfo.status === TaskStatus.FAILED,
-                                }">
-                                    <div class="dot"></div>
-                                    <span>
-                                        {{ TaskStatusDict[taskInfo.status] }}
-                                    </span>
+                                    :loading="restartTaskLoadings.includes(row.wxaItem.appid) || row.inspectTaskVersionInfo?.status === TaskStatus.RUNNING"
+                                    @click="handleRestartTask(row.wxaItem)">获取版本信息</el-button>
+                            </div>
+                            <div v-if="row.relatedTask.length > 0" class="wxa-info-tasks">
+                                <div v-for="taskInfo in row.relatedTask" :key="taskInfo.key" class="task-info">
+                                    <div class="top">
+                                        <img v-if="taskInfo.type === TaskType.WX_INSPECT_VERSION"
+                                            src="@/assets/check-the-version.png" alt="task-type-icon"
+                                            class="task-type-icon">
+                                        <img v-if="taskInfo.type === TaskType.WX_AUDIT" src="@/assets/review.png"
+                                            alt="task-type-icon" class="task-type-icon">
+                                        <img v-if="taskInfo.type === TaskType.WX_PUBLISH" src="@/assets/release.png"
+                                            alt="task-type-icon" class="task-type-icon">
+                                        <span>{{ taskTypeLabel(taskInfo) }}</span>
+                                        <el-button class="view-task-button" link
+                                            @click="handleViewTask(taskInfo)">查看</el-button>
+                                        <div class="task-status" :class="{
+                                            'success': taskInfo.status === TaskStatus.COMPLETED,
+                                            'running': taskInfo.status === TaskStatus.RUNNING,
+                                            'fail': taskInfo.status === TaskStatus.FAILED,
+                                        }">
+                                            <div class="dot"></div>
+                                            <span>
+                                                {{ taskStatusLabel(taskInfo) }}
+                                            </span>
+                                        </div>
+                                        <span
+                                            v-if="taskInfo.status === TaskStatus.COMPLETED || taskInfo.status === TaskStatus.FAILED"
+                                            class="task-time">
+                                            {{ dayjs(taskInfo.endTime).format('YYYY-MM-DD HH:mm:ss') }}
+                                        </span>
+                                    </div>
                                 </div>
-                                <span
-                                    v-if="taskInfo.status === TaskStatus.COMPLETED || taskInfo.status === TaskStatus.FAILED"
-                                    class="task-time">
-                                    {{ dayjs(taskInfo.endTime).format('YYYY-MM-DD HH:mm:ss') }}
-                                </span>
                             </div>
                         </div>
-                        <VersionList v-if="wxa.inspectTaskVersionInfo" :wxmp-item="wxa.wxaItem"
-                            :related-task="wxa.relatedTask" :inspect-version-task-info="wxa.inspectTaskVersionInfo" />
-                    </div>
-                </div>
-            </div>
-        </el-scrollbar>
+                    </template>
+                </el-table-column>
+                <el-table-column label="线上版本" :min-width="versionColWidth.online" align="left">
+                    <template #default="{ row }: WxaTableColumnScope">
+                        <div v-if="row.inspectTaskVersionInfo" class="version-cell">
+                            <div v-if="onlineVersions(row).length" class="version-card-list"
+                                :style="versionCardListStyle">
+                                <div v-for="(v, idx) in onlineVersions(row)" :key="`${row.wxaItem.appid}-online-${idx}`"
+                                    class="version-card-wrap" :style="versionCardWrapStyle">
+                                    <VersionCard :item="v" :version-type="WXTaskN.VersionType.ONLINE"
+                                        :wxmp-item="row.wxaItem" :related-task="row.relatedTask"
+                                        :online-version="onlineRef(row)" />
+                                </div>
+                            </div>
+                            <div v-else class="version-cell-empty">暂无</div>
+                        </div>
+                        <div v-else class="version-cell-placeholder">请先获取版本信息</div>
+                    </template>
+                </el-table-column>
+                <el-table-column label="审核版本" :min-width="versionColWidth.audit" align="left">
+                    <template #default="{ row }: WxaTableColumnScope">
+                        <div v-if="row.inspectTaskVersionInfo" class="version-cell">
+                            <div v-if="auditVersions(row).length" class="version-card-list"
+                                :style="versionCardListStyle">
+                                <div v-for="(v, idx) in auditVersions(row)" :key="`${row.wxaItem.appid}-audit-${idx}`"
+                                    class="version-card-wrap" :style="versionCardWrapStyle">
+                                    <VersionCard :item="v" :version-type="WXTaskN.VersionType.TEST"
+                                        :wxmp-item="row.wxaItem" :related-task="row.relatedTask"
+                                        :online-version="onlineRef(row)" />
+                                </div>
+                            </div>
+                            <div v-else class="version-cell-empty">暂无</div>
+                        </div>
+                        <div v-else class="version-cell-placeholder">请先获取版本信息</div>
+                    </template>
+                </el-table-column>
+                <el-table-column label="开发版本" :min-width="versionColWidth.dev" align="left">
+                    <template #default="{ row }: WxaTableColumnScope">
+                        <div v-if="row.inspectTaskVersionInfo" class="version-cell">
+                            <div v-if="devVersions(row).length" class="version-card-list" :style="versionCardListStyle">
+                                <div v-for="(v, idx) in devVersions(row)" :key="`${row.wxaItem.appid}-dev-${idx}`"
+                                    class="version-card-wrap" :style="versionCardWrapStyle">
+                                    <VersionCard :item="v" :version-type="WXTaskN.VersionType.DEVELOP"
+                                        :wxmp-item="row.wxaItem" :related-task="row.relatedTask"
+                                        :online-version="onlineRef(row)" />
+                                </div>
+                            </div>
+                            <div v-else class="version-cell-empty">暂无</div>
+                        </div>
+                        <div v-else class="version-cell-placeholder">请先获取版本信息</div>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </div>
         <div v-else class="no-data">
             <el-empty description="暂无数据" />
         </div>
@@ -80,16 +134,28 @@
 <script setup lang="ts">
 import { requestAddTask, requestMarkWXAppId, requestWorkerUpdateWxaList } from '@/api';
 import { useApiCall } from '@/hooks/useApiCall';
-import type { WXMPItem, WXReviewStatus } from '@mp-assistant/common/dist/types/wx';
+import type { WXMPItem, WXReviewStatus, VersionListItem } from '@mp-assistant/common/dist/types/wx';
 import { WXWorkerN } from '@mp-assistant/common/dist/work';
 import { TaskStatus, TaskStatusDict, TaskType, TaskTypeDict, WXTaskN, type BaseTaskInfo } from '@mp-assistant/common/dist/work/task';
 import { ref, computed } from 'vue';
-import VersionList from "./component/VersionList/index.vue"
+import VersionCard from "./component/VersionCard/index.vue";
 import WXAItem from '@/component/WXAItem/index.vue';
 import { dayjs } from 'element-plus';
 import fuzzysort from 'fuzzysort';
 import { WXReviewStatusDict } from '@mp-assistant/common/dist/constant';
 import { Star, StarFilled } from '@element-plus/icons-vue';
+
+type WxaListRow = {
+    wxaItem: WXMPItem;
+    relatedTask: BaseTaskInfo[];
+    inspectTaskVersionInfo?: WXTaskN.InspectVersionInfo;
+};
+
+/** 与 `el-table` 的 `:data` 行类型对齐的列默认插槽作用域（便于模板内维护） */
+type WxaTableColumnScope = {
+    row: WxaListRow;
+    $index: number;
+};
 
 const props = defineProps<{
     workerDetail: WXWorkerN.WXWorkInfo;
@@ -117,9 +183,8 @@ const markedCount = computed(() => {
     ).length;
 });
 
-const wxaList = computed(() => {
+const wxaList = computed((): WxaListRow[] => {
     return props.workerDetail.wxaList.map(item => {
-        // 获取相关任务，按创建时间倒序，每种类型只保留最新一条
         const relatedTask: BaseTaskInfo[] = [];
         const relatedTaskSorted = props.workerDetail.taskList
             .filter(taskItem => {
@@ -146,6 +211,41 @@ const wxaList = computed(() => {
     });
 });
 
+const versionData = (row: WxaListRow) =>
+    row.inspectTaskVersionInfo?.result?.data as WXTaskN.VersionListData | undefined;
+
+const onlineRef = (row: WxaListRow): VersionListItem | null =>
+    versionData(row)?.[WXTaskN.VersionType.ONLINE] ?? null;
+
+const onlineVersions = (row: WxaListRow): VersionListItem[] => {
+    const o = onlineRef(row);
+    return o ? [o] : [];
+};
+
+const auditVersions = (row: WxaListRow): VersionListItem[] => {
+    const t = versionData(row)?.[WXTaskN.VersionType.TEST];
+    return t?.audit_status ? [t] : [];
+};
+
+const devVersions = (row: WxaListRow): VersionListItem[] =>
+    versionData(row)?.[WXTaskN.VersionType.DEVELOP] ?? [];
+
+const wxaRowKey = (row: WxaListRow) => row.wxaItem.appid;
+
+/** 与行内 `versionCardWrapStyle` / `versionCardListStyle`、`versionColWidth` 一致。 */
+const VERSION_CARD_WIDTH = 380;
+const VERSION_CARD_LIST_GAP = 8;
+/** el-table 单元格左右 padding 各 12px，列 `min-width` 需在内容宽基础上加两侧。 */
+const TABLE_CELL_PADDING_X = 12 * 2;
+
+const versionCardWrapStyle = {
+    width: `${VERSION_CARD_WIDTH}px`,
+};
+
+const versionCardListStyle = {
+    gap: `${VERSION_CARD_LIST_GAP}px`,
+};
+
 const filteredWxaList = computed(() => {
     const markFilteredList = wxaList.value.filter(item => {
         if (markFilter.value === MarkFilter.All) {
@@ -159,29 +259,24 @@ const filteredWxaList = computed(() => {
         return markFilteredList;
     }
     const fuzzysortKeys: {
-        key: (item: { wxaItem: WXMPItem, inspectTaskVersionInfo: WXTaskN.InspectVersionInfo | undefined }) => string;
+        key: (item: WxaListRow) => string;
         weight: number;
     }[] = [
             {
-                // 小程序名称
                 key: item => item.wxaItem.app_name,
                 weight: 3,
             },
             {
-                // appid
                 key: item => item.wxaItem.appid,
                 weight: 2,
             },
             {
-                // username
                 key: item => item.wxaItem.username,
                 weight: 1,
             },
             {
-                // 审核状态
                 key: item => {
                     const result = item.inspectTaskVersionInfo?.result?.data as WXTaskN.VersionListData | undefined;
-                    // 审核版本
                     const auditVersion = result?.[WXTaskN.VersionType.TEST];
                     return WXReviewStatusDict[auditVersion?.audit_status as WXReviewStatus] || '';
                 },
@@ -196,6 +291,29 @@ const filteredWxaList = computed(() => {
             }, 0);
         },
     }).map(item => item.obj);
+});
+
+const colW = (n: number) => {
+    const c = Math.max(1, n);
+    return VERSION_CARD_WIDTH * c + VERSION_CARD_LIST_GAP * (c - 1) + TABLE_CELL_PADDING_X +
+        // 这个是为了让卡片之间有足够的间距
+        20;
+};
+
+const versionColWidth = computed(() => {
+    const rows = filteredWxaList.value.filter((r) => r.inspectTaskVersionInfo);
+    if (rows.length === 0) {
+        return { online: colW(1), audit: colW(1), dev: colW(1) };
+    }
+    const m = (fn: (r: WxaListRow) => number) => Math.max(1, ...rows.map(fn));
+    console.log('online', colW(m((r) => onlineVersions(r).length)));
+    console.log('audit', colW(m((r) => auditVersions(r).length)));
+    console.log('dev', colW(m((r) => devVersions(r).length)));
+    return {
+        online: colW(m((r) => onlineVersions(r).length)),
+        audit: colW(m((r) => auditVersions(r).length)),
+        dev: colW(m((r) => devVersions(r).length)),
+    };
 });
 
 const { loading: refreshWxaListLoading, call: handleRefreshWxaList } = useApiCall(async () => {
@@ -232,6 +350,10 @@ const handleMarkWXAppId = async (appId: string, mark: boolean) => {
 const handleViewTask = (taskInfo: BaseTaskInfo) => {
     emit('update:selectedTaskKey', taskInfo.key);
 };
+
+const taskTypeLabel = (task: BaseTaskInfo) => TaskTypeDict[task.type as TaskType];
+
+const taskStatusLabel = (task: BaseTaskInfo) => TaskStatusDict[task.status as TaskStatus];
 </script>
 
 <style scoped lang="scss">
