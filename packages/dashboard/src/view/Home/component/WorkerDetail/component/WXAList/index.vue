@@ -89,7 +89,6 @@ import WXAItem from '@/component/WXAItem/index.vue';
 import { dayjs } from 'element-plus';
 import fuzzysort from 'fuzzysort';
 import { WXReviewStatusDict } from '@mp-assistant/common/dist/constant';
-import { useOperationRecordStore } from '@/stores';
 import { Star, StarFilled } from '@element-plus/icons-vue';
 
 const props = defineProps<{
@@ -98,6 +97,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     (e: 'onRefreshWorkerDetail'): void;
+    (e: 'update:selectedTaskKey', key: string): void;
 }>();
 
 const searchValue = ref('');
@@ -229,10 +229,8 @@ const handleMarkWXAppId = async (appId: string, mark: boolean) => {
     });
 };
 
-const operationRecordStore = useOperationRecordStore();
-
 const handleViewTask = (taskInfo: BaseTaskInfo) => {
-    operationRecordStore.setOnSelectedTaskKey(taskInfo.key);
+    emit('update:selectedTaskKey', taskInfo.key);
 };
 </script>
 

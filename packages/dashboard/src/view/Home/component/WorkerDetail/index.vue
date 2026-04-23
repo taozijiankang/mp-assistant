@@ -26,8 +26,9 @@
             </div>
             <!-- 登录 -->
             <div v-else class="login-content">
-                <WXAList class="wxa-list" :workerDetail="workerDetail" @onRefreshWorkerDetail="getWorkerDetail" />
-                <TaskStack class="task-stack" :workerDetail="workerDetail" />
+                <WXAList class="wxa-list" :workerDetail="workerDetail" @onRefreshWorkerDetail="getWorkerDetail"
+                    @update:selected-task-key="selectedTaskKey = $event" />
+                <TaskStack class="task-stack" :workerDetail="workerDetail" v-model:selected-task-key="selectedTaskKey" />
             </div>
         </div>
         <div v-else class="empty-state">
@@ -35,17 +36,24 @@
                 <el-button type="primary" @click="handleAddWorker">添加 Worker</el-button>
             </el-empty>
         </div>
+        <!-- 添加任务对话框 -->
         <AddTaskDialog ref="addTaskDialogRef" />
+        <!-- 添加Worker对话框 -->
         <AddWorkerDialog ref="addWorkerDialogRef" @onSuccess="getWorkerDetail" />
+        <!-- 任务详情 -->
+        <TaskDetailDrawer :task="selectedTaskEntity" :wxa-item="selectedTaskWxaItem" @close="selectedTaskKey = ''" />
     </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, ref, provide } from 'vue';
+import { onMounted, onUnmounted, watch, ref, provide, computed } from 'vue';
 import { getFileUrl, requestGetWorkerDetail, requestGetWorkerList, requestLoginWorker, requestLogoutWorker, requestRemoveWorker } from '@/api';
 import { WXWorkerN, type BaseWorkInfo } from '@mp-assistant/common/dist/work';
+import { WXTaskN } from '@mp-assistant/common/dist/work/task';
+import type { WXMPItem } from '@mp-assistant/common/dist/types/wx';
 import WXAList from './component/WXAList/index.vue';
 import TaskStack from './component/TaskStack/index.vue';
+import TaskDetailDrawer from './component/TaskDetailDrawer/index.vue';
 import { WSMessageEvent } from '@/event/WSMessageEvent';
 import { WSMessage } from '@mp-assistant/common/dist/ws';
 import { useApiCall } from '@/hooks/useApiCall';
@@ -62,12 +70,30 @@ const props = defineProps<{
 const addTaskDialogRef = ref<InstanceType<typeof AddTaskDialog>>();
 const addWorkerDialogRef = ref<InstanceType<typeof AddWorkerDialog>>();
 
+const selectedTaskKey = ref('');
+
 const { data: workerDetail, call: getWorkerDetail } = useApiCall(async () => {
     const { data: workList } = await requestGetWorkerList();
     if (workList.some(item => item.key === props.workerKey)) {
         return await requestGetWorkerDetail(props.workerKey);
     }
     return getSuccessApiResponse(null);
+});
+
+const selectedTaskEntity = computed(() => {
+    const d = workerDetail.value;
+    if (!d || !WXWorkerN.isWXWorkerInfo(d) || !d.isLogin || !selectedTaskKey.value) {
+        return null;
+    }
+    return d.taskList.find(t => t.key === selectedTaskKey.value) ?? null;
+});
+
+const selectedTaskWxaItem = computed((): WXMPItem | null => {
+    const task = selectedTaskEntity.value;
+    const d = workerDetail.value;
+    if (!task || !d || !WXWorkerN.isWXWorkerInfo(d)) return null;
+    if (!WXTaskN.isWXTaskInfo(task) || !task.options?.appid) return null;
+    return d.wxaList.find(w => w.appid === task.options.appid) ?? null;
 });
 
 const { loading: handleWorkerLoginLoading, call: handleWorkerLogin } = useApiCall(async () => {
@@ -85,7 +111,22 @@ const { loading: workerLogoutLoading, call: workerLogout } = useApiCall(async ()
 });
 
 watch(() => props.workerKey, () => {
+    selectedTaskKey.value = '';
     getWorkerDetail();
+});
+
+watch(workerDetail, (d) => {
+    if (!d || !WXWorkerN.isWXWorkerInfo(d)) {
+        selectedTaskKey.value = '';
+        return;
+    }
+    if (!d.isLogin) {
+        selectedTaskKey.value = '';
+        return;
+    }
+    if (selectedTaskKey.value && !d.taskList.some(t => t.key === selectedTaskKey.value)) {
+        selectedTaskKey.value = '';
+    }
 });
 
 const handleWorkerListChange = async (data: WSMessage.Worker.DetailChange.Data) => {
