@@ -227,8 +227,14 @@ const auditVersions = (row: WxaListRow): VersionListItem[] => {
     return t?.audit_status ? [t] : [];
 };
 
-const devVersions = (row: WxaListRow): VersionListItem[] =>
-    versionData(row)?.[WXTaskN.VersionType.DEVELOP] ?? [];
+const devVersions = (row: WxaListRow): VersionListItem[] => {
+    const list = versionData(row)?.[WXTaskN.VersionType.DEVELOP] ?? [];
+    return [...list].sort((a, b) => {
+        const an = a.nick_name?.trim() ?? '';
+        const bn = b.nick_name?.trim() ?? '';
+        return an.localeCompare(bn, 'zh-CN', { numeric: true });
+    });
+};
 
 const wxaRowKey = (row: WxaListRow) => row.wxaItem.appid;
 
