@@ -10,17 +10,9 @@ export const useOperationRecordStore = defineStore(
       currentWorkerKey.value = key;
     }
 
-    const onSelectedTaskKey = ref('');
-
-    const setOnSelectedTaskKey = (key: string) => {
-      onSelectedTaskKey.value = key;
-    }
-
     return {
       currentWorkerKey,
       setCurrentWorkerKey,
-      onSelectedTaskKey,
-      setOnSelectedTaskKey,
     }
   },
   {

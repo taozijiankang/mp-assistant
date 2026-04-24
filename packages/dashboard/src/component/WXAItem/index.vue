@@ -3,15 +3,18 @@
         <slot name="prefix" />
         <img class="wxa-icon" :src="wxaItem.app_headimg" alt="小程序头像" />
         <div class="wxa-info">
-            <div class="wxa-name">
-                <span class="wxa-name-text">{{ wxaItem.app_name }}</span>
-                <slot name="name-suffix" />
+            <div class="wxa-name-row">
+                <div class="wxa-name">
+                    <div class="wxa-name-text-wrap" :title="wxaItem.app_name?.trim() || undefined">
+                        <span class="wxa-name-text">{{ wxaItem.app_name }}</span>
+                    </div>
+                </div>
+                <div v-if="$slots.extra" class="wxa-extra">
+                    <slot name="extra" />
+                </div>
             </div>
             <div class="wxa-appid">appid: {{ wxaItem.appid }}</div>
             <div class="wxa-username">username: {{ wxaItem.username }}</div>
-        </div>
-        <div v-if="$slots.extra" class="wxa-extra">
-            <slot name="extra" />
         </div>
     </div>
 </template>

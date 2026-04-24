@@ -122,6 +122,22 @@ export namespace WorkerApi {
     }
 
     /**
+     * 清空该 Worker 下所有小程序标记
+     */
+    export namespace ClearAllMarkWXAppIds {
+        export const url = '/worker-clearAllMarkWXAppIds';
+        export const method = 'POST';
+
+        export type RequestQuery = {
+            key: string;
+        };
+
+        export type ResponseData = void;
+        export type SuccessResponse = APISuccessRes<ResponseData>;
+        export type Response = SuccessResponse | APIErrorRes;
+    }
+
+    /**
      * 登录 Worker
      */
     export namespace WorkerLogin {
