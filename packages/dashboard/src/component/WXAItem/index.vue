@@ -5,12 +5,9 @@
         <div class="wxa-info">
             <div class="wxa-name-row">
                 <div class="wxa-name">
-                    <el-tooltip :content="wxaItem.app_name" placement="top" effect="dark"
-                        :disabled="!wxaItem.app_name?.trim()">
-                        <div class="wxa-name-text-wrap">
-                            <span class="wxa-name-text">{{ wxaItem.app_name }}</span>
-                        </div>
-                    </el-tooltip>
+                    <div class="wxa-name-text-wrap" :title="wxaItem.app_name?.trim() || undefined">
+                        <span class="wxa-name-text">{{ wxaItem.app_name }}</span>
+                    </div>
                 </div>
                 <div v-if="$slots.extra" class="wxa-extra">
                     <slot name="extra" />

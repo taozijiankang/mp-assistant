@@ -85,42 +85,45 @@
                     </el-button>
                 </div>
             </div>
-            <el-scrollbar v-if="activeWorkers.length > 0 && visibleRows.length > 0" class="grid-scrollbar">
-                <div class="overview-grid" :style="gridStyle">
-                    <div class="grid-index-header">#</div>
-                    <div v-for="worker in activeWorkers" :key="worker.key" class="grid-col-header">
-                        <span class="worker-name">{{ worker.name }}</span>
-                        <span class="worker-count">{{ worker.wxaList.length }}</span>
-                    </div>
-                    <template v-for="(row, rowIndex) in visibleRows" :key="row.appid">
-                        <div class="grid-index" :class="{ 'is-highlighted': row.highlighted }">
-                            {{ rowIndex + 1 }}
-                        </div>
-                        <div v-for="worker in activeWorkers" :key="worker.key" class="grid-cell" :class="{
-                            'is-empty': !getWxa(worker, row.appid),
-                            'is-highlighted': row.highlighted,
-                            'is-selectable': !!getWxa(worker, row.appid),
-                        }" @click="getWxa(worker, row.appid) && handleToggleSelect(worker.key, row.appid)">
-                            <WXAItem v-if="getWxa(worker, row.appid)" :wxa-item="getWxa(worker, row.appid)!">
-                                <template #prefix>
-                                    <el-checkbox class="cell-checkbox" :model-value="isSelected(worker.key, row.appid)"
-                                        @click.stop @change="handleToggleSelect(worker.key, row.appid)" />
-                                </template>
-                                <template #extra>
-                                    <el-icon v-if="worker.markWXAppIds.includes(row.appid)" class="star-icon marked"
-                                        @click.stop="handleToggleMark(worker, row.appid, false)">
-                                        <StarFilled />
-                                    </el-icon>
-                                    <el-icon v-else class="star-icon"
-                                        @click.stop="handleToggleMark(worker, row.appid, true)">
-                                        <Star />
-                                    </el-icon>
-                                </template>
-                            </WXAItem>
-                        </div>
-                    </template>
-                </div>
-            </el-scrollbar>
+            <div v-if="activeWorkers.length > 0 && visibleRows.length > 0" class="table-panel">
+                <el-table class="overview-table" :data="visibleRows" :row-class-name="overviewRowClassName"
+                    row-key="appid" border height="100%">
+                    <el-table-column label="#" width="56" fixed="left" align="center">
+                        <template #default="{ $index }">{{ $index + 1 }}</template>
+                    </el-table-column>
+                    <el-table-column v-for="worker in activeWorkers" :key="worker.key" :min-width="WORKER_COL_WIDTH"
+                        align="left">
+                        <template #header>
+                            <div class="worker-col-header">
+                                <span class="worker-name" :title="worker.name">{{ worker.name }}</span>
+                                <span class="worker-count">{{ worker.wxaList.length }}</span>
+                            </div>
+                        </template>
+                        <template #default="{ row }">
+                            <div class="overview-cell" :class="{ 'is-selectable': !!getWxa(worker, row.appid) }"
+                                @click="getWxa(worker, row.appid) && handleToggleSelect(worker.key, row.appid)">
+                                <WXAItem v-if="getWxa(worker, row.appid)" :wxa-item="getWxa(worker, row.appid)!">
+                                    <template #prefix>
+                                        <el-checkbox class="cell-checkbox"
+                                            :model-value="isSelected(worker.key, row.appid)" @click.stop
+                                            @change="handleToggleSelect(worker.key, row.appid)" />
+                                    </template>
+                                    <template #extra>
+                                        <el-icon v-if="worker.markWXAppIds.includes(row.appid)" class="star-icon marked"
+                                            @click.stop="handleToggleMark(worker, row.appid, false)">
+                                            <StarFilled />
+                                        </el-icon>
+                                        <el-icon v-else class="star-icon"
+                                            @click.stop="handleToggleMark(worker, row.appid, true)">
+                                            <Star />
+                                        </el-icon>
+                                    </template>
+                                </WXAItem>
+                            </div>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
             <el-empty v-else class="empty-state" :description="activeWorkers.length === 0 ? '暂无已登录的账号' : '没有匹配的小程序'" />
         </div>
         <AddTaskDialog ref="addTaskDialogRef" />
@@ -238,9 +241,15 @@ const visibleRows = computed<OverviewRow[]>(() => {
     return rows.slice().sort((a, b) => Number(b.highlighted) - Number(a.highlighted));
 });
 
+const overviewRowClassName = ({ row }: { row: OverviewRow }) =>
+    row.highlighted ? 'overview-row--search-hit' : '';
+
 const getWxa = (worker: WXWorkerN.WXWorkInfo, appid: string): WXMPItem | undefined => {
     return worker.wxaList.find(w => w.appid === appid);
 };
+
+/** 每个 Worker 列固定宽度（px），与表头、横向滚动布局一致 */
+const WORKER_COL_WIDTH = 280;
 
 const handleToggleMark = async (worker: WXWorkerN.WXWorkInfo, appid: string, mark: boolean) => {
     await requestMarkWXAppId(worker.key, { appId: appid, mark });
@@ -255,10 +264,6 @@ const handleCopy = async (text: string) => {
         ElMessage.error('复制失败');
     }
 };
-
-const gridStyle = computed(() => ({
-    gridTemplateColumns: `56px repeat(${activeWorkers.value.length}, minmax(280px, 1fr))`,
-}));
 
 /** 选中的格子集合，key 格式：`${workerKey}::${appid}` */
 const selectedMap = reactive<Record<string, boolean>>({});

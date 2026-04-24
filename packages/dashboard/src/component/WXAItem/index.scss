@@ -38,14 +38,10 @@
       font-weight: 400;
       line-height: normal;
 
-      :deep(.el-tooltip__trigger) {
+      .wxa-name-text-wrap {
         display: block;
         min-width: 0;
         max-width: 100%;
-      }
-
-      .wxa-name-text-wrap {
-        min-width: 0;
         overflow: hidden;
       }
 
