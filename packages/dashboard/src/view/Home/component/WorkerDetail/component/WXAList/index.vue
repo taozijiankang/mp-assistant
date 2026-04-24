@@ -185,23 +185,41 @@ const markedCount = computed(() => {
 
 const wxaList = computed((): WxaListRow[] => {
     return props.workerDetail.wxaList.map(item => {
-        const relatedTask: BaseTaskInfo[] = [];
-        const relatedTaskSorted = props.workerDetail.taskList
+        const sortedForApp = props.workerDetail.taskList
             .filter(taskItem => {
                 const options: WXTaskN.TaskOptions = taskItem.options;
                 return options.appid === item.appid;
             })
             .sort((a, b) => b.createTime - a.createTime);
-        for (const taskItem of relatedTaskSorted) {
-            if (relatedTask.some(existing => existing.type === taskItem.type)) {
+
+        const relatedTask: BaseTaskInfo[] = [];
+        for (const taskItem of sortedForApp) {
+            if (
+                taskItem.type === TaskType.WX_INSPECT_VERSION &&
+                taskItem.status === TaskStatus.COMPLETED &&
+                relatedTask.some(
+                    t =>
+                        t.type === TaskType.WX_INSPECT_VERSION &&
+                        t.status === TaskStatus.COMPLETED
+                )
+            ) {
                 continue;
             }
             relatedTask.push(taskItem);
         }
 
-        const inspectTaskVersionInfo = relatedTask.find(
-            taskItem => taskItem.type === TaskType.WX_INSPECT_VERSION
-        ) as WXTaskN.InspectVersionInfo | undefined;
+        const inspectTaskVersionInfo = props.workerDetail.taskList
+            .filter(taskItem => {
+                const options: WXTaskN.TaskOptions = taskItem.options;
+                return (
+                    options.appid === item.appid &&
+                    taskItem.type === TaskType.WX_INSPECT_VERSION &&
+                    taskItem.status === TaskStatus.COMPLETED
+                );
+            })
+            .sort((a, b) => b.createTime - a.createTime)[0] as
+            | WXTaskN.InspectVersionInfo
+            | undefined;
 
         return {
             wxaItem: item,
