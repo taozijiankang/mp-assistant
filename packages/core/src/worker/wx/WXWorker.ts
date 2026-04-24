@@ -50,6 +50,14 @@ export class WXWorker extends BaseWorker {
         this.emitDetailChangeEvent();
     }
 
+    clearAllMarkWXAppIds() {
+        if (this.markWXAppIds.length === 0) {
+            return;
+        }
+        this.markWXAppIds = [];
+        this.emitDetailChangeEvent();
+    }
+
     protected _setLoginStatus(s: boolean) {
         if (this.__isLogin === s) {
             return;

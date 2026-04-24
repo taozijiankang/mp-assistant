@@ -140,6 +140,23 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         }
     });
 
+    fastify.post(Api.Worker.ClearAllMarkWXAppIds.url, async (request, reply): Promise<Api.Worker.ClearAllMarkWXAppIds.Response> => {
+        const { key } = request.query as Api.Worker.ClearAllMarkWXAppIds.RequestQuery;
+
+        const worker = WorkerStore.instance.workerList.find(item => item.key === key);
+        if (!worker) {
+            return getErrorApiResponse('Worker not found', 404);
+        }
+        if (isWXWorker(worker)) {
+            worker.clearAllMarkWXAppIds();
+            WorkerStore.instance.saveData();
+            return getSuccessApiResponse(undefined);
+        }
+        else {
+            return getErrorApiResponse('Worker type not supported', 400);
+        }
+    });
+
     fastify.post(Api.Worker.WorkerLogin.url, async (request, reply): Promise<Api.Worker.WorkerLogin.Response> => {
         const { key } = request.query as Api.Worker.WorkerLogin.RequestQuery;
 

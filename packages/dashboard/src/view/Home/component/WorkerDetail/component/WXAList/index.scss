@@ -25,6 +25,13 @@
     gap: 10px;
     padding: 0 12px;
 
+    .filter-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
     .total-count {
       color: rgba(29, 33, 41, 0.55);
       font-family: "Source Han Sans SC";

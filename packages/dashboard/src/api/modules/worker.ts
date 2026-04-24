@@ -50,6 +50,13 @@ export function requestMarkWXAppId(key: string, body: Api.Worker.MarkWXAppId.Req
     );
 }
 
+export function requestClearAllMarkWXAppIds(key: string) {
+    return request<Api.Worker.ClearAllMarkWXAppIds.ResponseData>(
+        Api.Worker.ClearAllMarkWXAppIds.url,
+        { method: Api.Worker.ClearAllMarkWXAppIds.method, query: { key } }
+    );
+}
+
 export function requestLoginWorker(key: string) {
     return request<Api.Worker.WorkerLogin.ResponseData>(
         Api.Worker.WorkerLogin.url,

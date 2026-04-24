@@ -12,7 +12,11 @@
                 <el-radio-button :value="MarkFilter.Marked">已标记 {{ markedCount }}</el-radio-button>
                 <el-radio-button :value="MarkFilter.Unmarked">未标记</el-radio-button>
             </el-radio-group>
-            <span class="total-count">共 {{ filteredWxaList.length }} 条</span>
+            <div class="filter-bar-right">
+                <el-button size="small" text type="danger" :disabled="!hasAnyMark" :loading="clearAllMarkLoading"
+                    @click="handleClearAllMark">清空全部标记</el-button>
+                <span class="total-count">共 {{ filteredWxaList.length }} 条</span>
+            </div>
         </div>
         <div v-if="filteredWxaList.length > 0" class="wxa-table-wrap">
             <el-table class="wxa-table" :data="filteredWxaList" :row-key="wxaRowKey" border stripe height="100%">
@@ -132,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { requestAddTask, requestMarkWXAppId, requestWorkerUpdateWxaList } from '@/api';
+import { requestAddTask, requestClearAllMarkWXAppIds, requestMarkWXAppId, requestWorkerUpdateWxaList } from '@/api';
 import { useApiCall } from '@/hooks/useApiCall';
 import type { WXMPItem, WXReviewStatus, VersionListItem } from '@mp-assistant/common/dist/types/wx';
 import { WXWorkerN } from '@mp-assistant/common/dist/work';
@@ -140,7 +144,7 @@ import { TaskStatus, TaskStatusDict, TaskType, TaskTypeDict, WXTaskN, type BaseT
 import { ref, computed } from 'vue';
 import VersionCard from "./component/VersionCard/index.vue";
 import WXAItem from '@/component/WXAItem/index.vue';
-import { dayjs } from 'element-plus';
+import { dayjs, ElMessageBox } from 'element-plus';
 import fuzzysort from 'fuzzysort';
 import { WXReviewStatusDict } from '@mp-assistant/common/dist/constant';
 import { Star, StarFilled } from '@element-plus/icons-vue';
@@ -182,6 +186,8 @@ const markedCount = computed(() => {
         props.workerDetail.markWXAppIds.includes(item.appid)
     ).length;
 });
+
+const hasAnyMark = computed(() => props.workerDetail.markWXAppIds.length > 0);
 
 const wxaList = computed((): WxaListRow[] => {
     return props.workerDetail.wxaList.map(item => {
@@ -368,6 +374,20 @@ const handleMarkWXAppId = async (appId: string, mark: boolean) => {
     await requestMarkWXAppId(props.workerDetail.key, {
         appId,
         mark,
+    });
+};
+
+const { loading: clearAllMarkLoading, call: clearAllMark } = useApiCall(() =>
+    requestClearAllMarkWXAppIds(props.workerDetail.key)
+);
+
+const handleClearAllMark = () => {
+    ElMessageBox.confirm('确定清除当前 Worker 下所有小程序的标记吗？', '提示', {
+        type: 'warning',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+    }).then(() => {
+        void clearAllMark();
     });
 };
 
