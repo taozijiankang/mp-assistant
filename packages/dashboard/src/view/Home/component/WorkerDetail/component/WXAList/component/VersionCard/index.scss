@@ -8,7 +8,7 @@
   background-color: #fafbfc;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   font-size: 12px;
   font-family: "Source Han Sans SC";
 
@@ -62,7 +62,6 @@
   .card-meta {
     display: flex;
     flex-direction: column;
-    gap: 4px;
     color: #86909c;
     line-height: 18px;
 
@@ -122,6 +121,9 @@
         line-height: 20px;
         word-break: break-word;
         white-space: pre-wrap;
+        max-height: 120px;
+        overflow-y: auto;
+        overflow-x: hidden;
       }
     }
   }

@@ -16,7 +16,11 @@
       </div>
       <el-button type="primary" @click="handleEditConfig" plain :icon="Setting"></el-button>
     </div>
-    <router-view />
+    <router-view v-slot="{ Component }">
+      <keep-alive>
+        <component :is="Component" />
+      </keep-alive>
+    </router-view>
     <EditConfigDialog ref="editConfigDialogRef" />
   </div>
 </template>

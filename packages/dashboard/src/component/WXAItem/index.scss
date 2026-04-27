@@ -59,16 +59,39 @@
       align-items: center;
     }
 
-    .wxa-appid,
-    .wxa-username {
+    .wxa-meta-line {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
       color: #86909c;
       font-family: "Source Han Sans SC";
       font-size: 12px;
       font-weight: 400;
       line-height: 18px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+
+      .wxa-meta-prefix {
+        flex-shrink: 0;
+      }
+
+      .wxa-meta-value {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .copy-icon {
+        cursor: pointer;
+        font-size: 12px;
+        color: #c0c4cc;
+        flex-shrink: 0;
+        transition: color 0.15s;
+
+        &:hover {
+          color: #409eff;
+        }
+      }
     }
   }
 }
