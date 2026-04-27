@@ -68,6 +68,33 @@
       }
     }
 
+    /* 加粗表格分隔线（默认 1px，与 Element Plus 外框 patch 对齐为同一粗细） */
+    :deep(.wxa-table.el-table--border) {
+      --el-table-border: 2px solid var(--el-table-border-color);
+
+      &::before,
+      &::after {
+        width: 2px;
+      }
+
+      .el-table__inner-wrapper::after {
+        height: 2px;
+      }
+
+      .el-table__inner-wrapper::before {
+        height: 2px;
+      }
+
+      .el-table__border-left-patch,
+      .el-table__border-right-patch {
+        width: 2px;
+      }
+
+      .el-table__border-bottom-patch {
+        height: 2px;
+      }
+    }
+
     :deep(.wxa-info-column .cell) {
       max-width: 320px;
       box-sizing: border-box;
@@ -85,7 +112,7 @@
     .wxa-info-header {
       :deep(.wxa-item-card) {
         .wxa-name .wxa-name-text {
-          font-size: 15px;
+          font-size: 14px;
           font-weight: 600;
         }
       }

@@ -324,10 +324,10 @@ const filteredWxaList = computed(() => {
 });
 
 const colW = (n: number) => {
-    const c = Math.max(1, n);
+    const c = Math.min(Math.max(1, n), 3);
     return VERSION_CARD_WIDTH * c + VERSION_CARD_LIST_GAP * (c - 1) + TABLE_CELL_PADDING_X +
-        // 这个是为了让卡片之间有足够的间距
-        20;
+        // 为了保证卡片之间有足够的间距
+        2;
 };
 
 const versionColWidth = computed(() => {
@@ -336,9 +336,6 @@ const versionColWidth = computed(() => {
         return { online: colW(1), audit: colW(1), dev: colW(1) };
     }
     const m = (fn: (r: WxaListRow) => number) => Math.max(1, ...rows.map(fn));
-    console.log('online', colW(m((r) => onlineVersions(r).length)));
-    console.log('audit', colW(m((r) => auditVersions(r).length)));
-    console.log('dev', colW(m((r) => devVersions(r).length)));
     return {
         online: colW(m((r) => onlineVersions(r).length)),
         audit: colW(m((r) => auditVersions(r).length)),
