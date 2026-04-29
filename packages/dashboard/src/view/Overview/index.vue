@@ -193,7 +193,9 @@ const allMps = computed<WXMPItem[]>(() => {
             if (!map.has(mp.appid)) map.set(mp.appid, mp);
         });
     });
-    return Array.from(map.values());
+    return Array.from(map.values()).sort((a, b) =>
+        a.app_name.localeCompare(b.app_name, 'zh-CN', { numeric: true }),
+    );
 });
 
 const requestedValues = computed<string[]>(() => {

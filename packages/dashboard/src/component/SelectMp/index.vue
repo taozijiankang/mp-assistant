@@ -229,7 +229,9 @@ const filteredWxaList = computed(() => {
     });
 
     if (!searchValue.value) {
-        return markFilteredList;
+        return markFilteredList.slice().sort((a, b) =>
+            a.app_name.localeCompare(b.app_name, 'zh-CN', { numeric: true }),
+        );
     }
     const fuzzysortKeys: { key: (item: WXMPItem) => string; weight: number }[] = [
         { key: item => item.app_name, weight: 3 },

@@ -286,7 +286,9 @@ const filteredWxaList = computed(() => {
     });
 
     if (!searchValue.value) {
-        return markFilteredList;
+        return markFilteredList.slice().sort((a, b) =>
+            a.wxaItem.app_name.localeCompare(b.wxaItem.app_name, 'zh-CN', { numeric: true }),
+        );
     }
     const fuzzysortKeys: {
         key: (item: WxaListRow) => string;
