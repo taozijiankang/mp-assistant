@@ -1,10 +1,9 @@
-import { BaseTaskOptions } from "@mp-assistant/common/dist/work/BaseTask.js";
+import { WXTaskType, BaseTaskOptions } from "@mp-assistant/common/dist/work/index.js";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { ChildProcess, fork } from "node:child_process";
 import path from "node:path";
-import { createTask } from "./index.js";
-import { WXTaskType } from "@mp-assistant/common/dist/work/const.js";
 import { chromium } from "playwright";
+import { createExecutor } from "./index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -12,6 +11,7 @@ export function executeTask(type: string, options: BaseTaskOptions, debugPort: n
     return fork(__filename, [type, JSON.stringify(options), debugPort.toString()]);
 }
 
+// 子进程入口：根据 taskType 创建对应 Executor 并执行
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
     const taskType = process.argv[2] || '';
     const options = process.argv[3] ? JSON.parse(process.argv[3]) : {};
@@ -27,14 +27,13 @@ if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === imp
     }
 
     const browser = await chromium.connectOverCDP(`http://localhost:${debugPort}`);
-    const browserContent = browser.contexts()[0];
+    const browserContext = browser.contexts()[0];
 
-    if (!browserContent) {
-        console.error('Browser content is not found');
+    if (!browserContext) {
+        console.error('Browser context is not found');
         process.exit(1);
     }
 
-    const task = createTask(taskType as WXTaskType, options, true);
-
-    task.execute(browserContent);
+    const executor = createExecutor(taskType as WXTaskType, options, browserContext);
+    await executor.execute();
 }

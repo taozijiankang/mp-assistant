@@ -1,8 +1,6 @@
 import { TaskStatus } from "@mp-assistant/common/dist/work/const.js";
-import { wait } from "@mp-assistant/common/dist/utils/global.js";
 import { BaseTaskOptions, BaseTaskInfo } from "@mp-assistant/common/dist/work/BaseTask.js";
 import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
-import { BrowserContext } from "playwright";
 import { executeTask } from "./executeTask.js";
 import { ChildProcess } from "node:child_process";
 
@@ -19,13 +17,9 @@ export abstract class BaseTask<
 
     private task: ChildProcess | null = null;
 
-    /** 是否是执行者 */
-    protected isExecutor: boolean = false;
-
-    constructor({ options, key }: { options: Options, key?: string }, isExecutor: boolean = false) {
+    constructor({ options, key }: { options: Options, key?: string }) {
         this.options = options;
         this.key = key || `task-${getUUID()}`;
-        this.isExecutor = isExecutor;
     }
 
     getInfo(): Info {
@@ -72,10 +66,6 @@ export abstract class BaseTask<
         this.task.on('message', (message) => {
             this.onMessage(message);
         });
-    }
-
-    async execute(browserContent: BrowserContext): Promise<void> {
-        //
     }
 
     protected onCompleted(): void {
