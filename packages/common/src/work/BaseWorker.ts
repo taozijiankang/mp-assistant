@@ -1,4 +1,5 @@
 import { WorkerStatus, WorkerType } from "./const.js";
+import { BaseTaskInfo } from "./BaseTask.js";
 
 export interface BaseWorkerOptions {
     name: string;
@@ -14,4 +15,5 @@ export interface BaseWorkerInfo {
     status: WorkerStatus;
     createdTime: string;
     options: BaseWorkerOptions;
+    taskList: BaseTaskInfo[];
 }

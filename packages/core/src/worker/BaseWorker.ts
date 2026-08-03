@@ -31,7 +31,7 @@ export abstract class BaseWorker<
     options: Options;
     key?: string;
   }) {
-    this.key = key || getUUID();
+    this.key = key || `worker-${getUUID()}`;
     this.options = options;
     this.status = WorkerStatus.INIT;
     this.createdTime = new Date().toISOString();
@@ -44,7 +44,12 @@ export abstract class BaseWorker<
       status: this.status,
       createdTime: this.createdTime,
       options: this.options as BaseWorkerOptions,
+      taskList: this.taskList.map(t => t.getInfo()),
     } as Info;
+  }
+
+  getTask(taskKey: string): BaseTask | undefined {
+    return this.taskList.find(t => t.getKey() === taskKey);
   }
 
   addTask(task: BaseTask): void {
@@ -99,6 +104,7 @@ export abstract class BaseWorker<
         const syncTaskNum = Math.max(0, this.options.syncTaskNum - onRunningTaskNum);
         const idleTask = this.taskList.filter(task => task.getStatus() === TaskStatus.IDLE).slice(0, syncTaskNum);
         idleTask.forEach(task => {
+          task.run(this.debugPort!);
         });
       }
     } catch (error) {

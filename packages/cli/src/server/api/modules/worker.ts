@@ -4,8 +4,10 @@ import { Api } from "@mp-assistant/common/dist/api/index.js";
 import { getSuccessApiResponse, getErrorApiResponse } from "@mp-assistant/common/dist/api/utils.js";
 import { WSStore } from "../../../store/WSStore.js";
 import { WSMessage } from "@mp-assistant/common/dist/ws/message.js";
-import { WorkerType } from "@mp-assistant/common/dist/work/index.js";
-import { createWorker } from "@mp-assistant/core/dist/worker/index.js";
+import { WorkerType, WXTaskType } from "@mp-assistant/common/dist/work/index.js";
+import { createTask, createWorker } from "@mp-assistant/core/dist/worker/index.js";
+import { ConfigStore } from "../../../store/ConfigStore.js";
+import { getChromeUserDataDir } from "../../../pathManage.js";
 
 export const registerWorkerApi = (fastify: FastifyInstance) => {
     fastify.get(Api.Worker.GetWorkerList.url, async (request, reply): Promise<Api.Worker.GetWorkerList.Response> => {
@@ -32,6 +34,10 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
             syncTaskNum,
             weight,
         });
+        worker.launch({
+            headless: ConfigStore.instance.config.headless,
+        }, getChromeUserDataDir());
+
         WorkerStore.instance.addWorker(worker);
 
         WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
@@ -98,7 +104,12 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         const { type, options } = request.body as Api.Worker.AddTask.RequestBody;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
-        return getErrorApiResponse('Worker not found', 404);
+        if (!worker) {
+            return getErrorApiResponse('Worker not found', 404);
+        }
+        const task = createTask(type as WXTaskType, options);
+        worker.addTask(task);
+        return getSuccessApiResponse(task.getInfo());
     });
 
     fastify.delete(Api.Worker.RemoveTask.url, async (request, reply): Promise<Api.Worker.RemoveTask.Response> => {
@@ -111,6 +122,14 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
     fastify.get(Api.Worker.TaskDetail.url, async (request, reply): Promise<Api.Worker.TaskDetail.Response> => {
         const { key, taskKey } = request.query as Api.Worker.TaskDetail.RequestQuery;
 
-        return getErrorApiResponse('Worker not found', 404);
+        const worker = WorkerStore.instance.workerList.find(item => item.key === key);
+        if (!worker) {
+            return getErrorApiResponse('Worker not found', 404);
+        }
+        const task = worker.getTask(taskKey);
+        if (!task) {
+            return getErrorApiResponse('Task not found', 404);
+        }
+        return getSuccessApiResponse(task.getInfo());
     });
 }   

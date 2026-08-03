@@ -24,7 +24,7 @@ export abstract class BaseTask<
 
     constructor({ options, key }: { options: Options, key?: string }, isExecutor: boolean = false) {
         this.options = options;
-        this.key = key || getUUID();
+        this.key = key || `task-${getUUID()}`;
         this.isExecutor = isExecutor;
     }
 
@@ -32,6 +32,7 @@ export abstract class BaseTask<
         return {
             key: this.key,
             type: this.type,
+            status: this.status,
             createdTime: new Date().toISOString(),
             options: this.options as BaseTaskOptions,
         } as Info;
@@ -61,7 +62,9 @@ export abstract class BaseTask<
         });
         // 任务退出
         this.task.on('close', (code) => {
-            if (code !== 0) {
+            if (code === 0) {
+                this.onCompleted();
+            } else {
                 this.onFailed();
             }
         });
