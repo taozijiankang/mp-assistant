@@ -1,122 +1,103 @@
-import { BrowserContext } from "playwright";
+import { TaskStatus } from "@mp-assistant/common/dist/work/const.js";
+import { wait } from "@mp-assistant/common/dist/utils/global.js";
+import { BaseTaskOptions, BaseTaskInfo } from "@mp-assistant/common/dist/work/BaseTask.js";
 import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
-import { BaseTaskInfo, TaskExecResult, TaskRunningReport, TaskStatus, TaskType } from "@mp-assistant/common/dist/work/task/index.js";
-import type { BaseWorker } from "./BaseWorker.js";
+import { BrowserContext } from "playwright";
+import { executeTask } from "./executeTask.js";
+import { ChildProcess } from "node:child_process";
 
-export abstract class BaseTask {
-    readonly type?: TaskType;
+export abstract class BaseTask<
+    Options extends BaseTaskOptions = BaseTaskOptions,
+    Info extends BaseTaskInfo = BaseTaskInfo
+> {
+    declare readonly type: string;
 
-    readonly key: string;
+    declare readonly key: string;
+    declare readonly options: Options;
 
-    private __status: TaskStatus = TaskStatus.NOT_STARTED;
+    protected status: TaskStatus = TaskStatus.IDLE;
 
-    readonly options: any;
+    private task: ChildProcess | null = null;
 
-    private __runningReportList: TaskRunningReport[] = [];
+    /** 是否是执行者 */
+    protected isExecutor: boolean = false;
 
-    result?: TaskExecResult;
-
-    protected _worker?: BaseWorker;
-
-    private __createTime: number = 0;
-    private __startTime: number = 0;
-    private __endTime: number = 0;
-
-    get worker(): BaseWorker | null {
-        return this._worker || null;
-    }
-    set worker(worker: BaseWorker) {
-        this._worker = worker;
-    }
-
-    get status() {
-        return this.__status;
-    }
-
-    get runningReportList() {
-        return [...this.__runningReportList];
-    }
-
-    constructor(options: any) {
-        this.key = getUUID();
+    constructor({ options, key }: { options: Options, key?: string }, isExecutor: boolean = false) {
         this.options = options;
-
-        this.__createTime = Date.now();
+        this.key = key || getUUID();
+        this.isExecutor = isExecutor;
     }
 
-    protected _setStatus(status: TaskStatus) {
-        if (this.__status === status) {
-            return;
-        }
-        this.__status = status;
-
-        this.emitDetailChangeEvent();
-    }
-
-    protected _complete(status: TaskStatus.COMPLETED | TaskStatus.FAILED, result: TaskExecResult) {
-        this.__endTime = Date.now();
-        this.result = result;
-        this._setStatus(status);
-        this.emitDetailChangeEvent();
-    }
-
-    protected _addRunningReport(report: TaskRunningReport) {
-        this.__runningReportList.push(report);
-
-        this.emitDetailChangeEvent();
-    }
-
-    info(): BaseTaskInfo {
+    getInfo(): Info {
         return {
-            workerKey: this._worker?.key || '',
             key: this.key,
-            type: this.type!,
-            status: this.status,
-            runningReportList: this.runningReportList,
-            options: this.options,
-            result: this.result,
-            createTime: this.__createTime,
-            startTime: this.__startTime,
-            endTime: this.__endTime,
-        };
+            type: this.type,
+            createdTime: new Date().toISOString(),
+            options: this.options as BaseTaskOptions,
+        } as Info;
     }
 
-    async start(browserContent: BrowserContext) {
-        if (this.status !== TaskStatus.NOT_STARTED) {
+    getKey(): string {
+        return this.key;
+    }
+
+    getStatus(): TaskStatus {
+        return this.status;
+    }
+
+    setStatus(status: TaskStatus): void {
+        this.status = status;
+    }
+
+    async run(debugPort: number): Promise<void> {
+        if (this.status !== TaskStatus.IDLE) {
             return;
         }
-        this.__startTime = Date.now();
-        this._setStatus(TaskStatus.RUNNING);
-        try {
-            // 清空运行报告
-            this.__runningReportList = [];
+        this.setStatus(TaskStatus.RUNNING);
+        this.task = executeTask(this.type, this.options, debugPort);
+        // 任务创建失败
+        this.task.on('error', () => {
+            this.onFailed();
+        });
+        // 任务退出
+        this.task.on('close', (code) => {
+            if (code !== 0) {
+                this.onFailed();
+            }
+        });
 
-            await this._start(browserContent);
-        } catch (error) {
-            console.error('任务执行失败', error);
+        this.task.on('message', (message) => {
+            this.onMessage(message);
+        });
+    }
 
-            this._complete(TaskStatus.FAILED, {
-                msg: error instanceof Error ? error.message : '未知错误',
-            });
+    async execute(browserContent: BrowserContext): Promise<void> {
+        //
+    }
+
+    protected onCompleted(): void {
+        if (this.status !== TaskStatus.RUNNING) {
+            return;
+        }
+        console.log(`[${this.type}] completed`);
+        this.setStatus(TaskStatus.COMPLETED);
+    }
+
+    protected onFailed(): void {
+        if (this.status !== TaskStatus.RUNNING) {
+            return;
+        }
+        console.log(`[${this.type}] failed`);
+        this.setStatus(TaskStatus.FAILED);
+    }
+
+    protected onMessage(message: any): void {
+        console.log(`[${this.type}] message: ${message}`);
+    }
+
+    protected sendMessage(message: any): void {
+        if (this.task) {
+            this.task.send(message);
         }
     }
-
-    async destroy() {
-        this.__runningReportList = [];
-        this.result = void 0;
-    }
-
-    private __emitDetailChangeEventTimer: ReturnType<typeof setTimeout> | null = null;
-    /**
-     * 触发详情改变事件
-     * 会有一层节流
-     */
-    emitDetailChangeEvent() {
-        this.__emitDetailChangeEventTimer && clearTimeout(this.__emitDetailChangeEventTimer);
-        this.__emitDetailChangeEventTimer = setTimeout(() => {
-            this.worker?.emitDetailChangeEvent();
-        }, 0);
-    }
-
-    protected abstract _start(browserContent: BrowserContext): Promise<void> | void;
 }

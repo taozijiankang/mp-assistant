@@ -4,9 +4,9 @@ import { execSync } from 'child_process';
 import { getRootDir } from "./pathManage.js";
 
 /**
- * 初始化
+ * 安装 Chromium
  */
-export async function init() {
+export async function installChromium() {
     const executablePath = chromium.executablePath();
     if (!executablePath || !fs.statSync(executablePath, { throwIfNoEntry: false })?.isFile()) {
         // 先检测是否安装了 Chromium

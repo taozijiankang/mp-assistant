@@ -1,4 +1,4 @@
-import { VersionListItem } from "../types/wx.js";
+import { VersionListItem } from "../../types/wx.js";
 
 export enum VersionPositioningType {
     /** 描述 */

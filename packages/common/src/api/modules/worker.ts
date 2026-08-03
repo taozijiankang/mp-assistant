@@ -1,5 +1,7 @@
-import { BaseWorkInfo, WorkerType } from "../../work/index.js";
-import { BaseTaskInfo, TaskType } from "../../work/task/index.js";
+import { BaseTaskInfo } from "../../work/BaseTask.js";
+import { BaseWorkerInfo, BaseWorkerOptions } from "../../work/BaseWorker.js";
+import { WorkerType, WXTaskType } from "../../work/const.js";
+import { WXWorkerInfo } from "../../work/wx/WXWorker.js";
 import { APIErrorRes, APISuccessRes } from "../type.js";
 
 export namespace WorkerApi {
@@ -7,10 +9,10 @@ export namespace WorkerApi {
      * 获取所有 Worker 信息
      */
     export namespace GetWorkerList {
-        export const url = '/worker-list';
+        export const url = '/worker/list';
         export const method = 'GET';
 
-        export type ResponseData = BaseWorkInfo[];
+        export type ResponseData = BaseWorkerInfo[];
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }
@@ -19,14 +21,14 @@ export namespace WorkerApi {
      * 获取指定 Worker 信息
      */
     export namespace GetWorkerDetail {
-        export const url = '/worker-detail';
+        export const url = '/worker/detail';
         export const method = 'GET';
 
         export type RequestQuery = {
             key: string;
         };
 
-        export type ResponseData = BaseWorkInfo;
+        export type ResponseData = BaseWorkerInfo;
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }
@@ -34,16 +36,13 @@ export namespace WorkerApi {
     /**
      * 添加 Worker
      */
-    export namespace AddWorker {
-        export const url = '/worker-add';
+    export namespace AddWXWorker {
+        export const url = '/worker/addWXWorker';
         export const method = 'POST';
 
-        export type RequestBody = {
-            type: WorkerType;
-            name: string;
-        };
+        export type RequestBody = BaseWorkerOptions;
 
-        export type ResponseData = BaseWorkInfo;
+        export type ResponseData = WXWorkerInfo;
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }
@@ -52,11 +51,12 @@ export namespace WorkerApi {
      * 暂停 Worker
      */
     export namespace PauseAndRecoverWorker {
-        export const url = '/worker-pauseAndRecover';
+        export const url = '/worker/pauseAndRecover';
         export const method = 'POST';
 
         export type RequestQuery = {
             key: string;
+            suspend: boolean;
         };
 
         export type ResponseData = void;
@@ -68,7 +68,7 @@ export namespace WorkerApi {
      * 删除 Worker
      */
     export namespace RemoveWorker {
-        export const url = '/worker-remove';
+        export const url = '/worker/remove';
         export const method = 'DELETE';
 
         export type RequestQuery = {
@@ -84,7 +84,7 @@ export namespace WorkerApi {
      * 修改 Worker
      */
     export namespace UpdateWorker {
-        export const url = '/worker-update';
+        export const url = '/worker/update';
         export const method = 'PUT';
 
         export type RequestQuery = {
@@ -95,7 +95,7 @@ export namespace WorkerApi {
             weight?: number;
         };
 
-        export type ResponseData = BaseWorkInfo;
+        export type ResponseData = BaseWorkerInfo;
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }
@@ -104,7 +104,7 @@ export namespace WorkerApi {
      * 标记小程序
      */
     export namespace MarkWXAppId {
-        export const url = '/worker-markWXAppId';
+        export const url = '/worker/markWXAppId';
         export const method = 'POST';
 
         export type RequestQuery = {
@@ -125,56 +125,8 @@ export namespace WorkerApi {
      * 清空该 Worker 下所有小程序标记
      */
     export namespace ClearAllMarkWXAppIds {
-        export const url = '/worker-clearAllMarkWXAppIds';
+        export const url = '/worker/clearAllMarkWXAppIds';
         export const method = 'POST';
-
-        export type RequestQuery = {
-            key: string;
-        };
-
-        export type ResponseData = void;
-        export type SuccessResponse = APISuccessRes<ResponseData>;
-        export type Response = SuccessResponse | APIErrorRes;
-    }
-
-    /**
-     * 登录 Worker
-     */
-    export namespace WorkerLogin {
-        export const url = '/worker-login';
-        export const method = 'POST';
-
-        export type RequestQuery = {
-            key: string;
-        };
-
-        export type ResponseData = void;
-        export type SuccessResponse = APISuccessRes<ResponseData>;
-        export type Response = SuccessResponse | APIErrorRes;
-    }
-
-    /**
-     * 登出 Worker
-     */
-    export namespace WorkerLogout {
-        export const url = '/worker-logout';
-        export const method = 'POST';
-
-        export type RequestQuery = {
-            key: string;
-        };
-
-        export type ResponseData = void;
-        export type SuccessResponse = APISuccessRes<ResponseData>;
-        export type Response = SuccessResponse | APIErrorRes;
-    }
-
-    /**
-     * 获取 Worker 的小程序列表
-     */
-    export namespace WorkerUpdateWxaList {
-        export const url = '/worker-updateWxaList';
-        export const method = 'GET';
 
         export type RequestQuery = {
             key: string;
@@ -189,18 +141,18 @@ export namespace WorkerApi {
      * 添加任务
      */
     export namespace AddTask {
-        export const url = '/worker-addTask';
+        export const url = '/worker/addTask';
         export const method = 'POST';
 
         export type RequestQuery = {
             key: string;
         };
         export type RequestBody = {
-            type: TaskType;
+            type: WXTaskType;
             options: any;
         };
 
-        export type ResponseData = BaseWorkInfo;
+        export type ResponseData = BaseTaskInfo;
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }
@@ -209,26 +161,8 @@ export namespace WorkerApi {
      * 删除任务
      */
     export namespace RemoveTask {
-        export const url = '/worker-removeTask';
+        export const url = '/worker/removeTask';
         export const method = 'DELETE';
-
-        export type RequestQuery = {
-            key: string;
-            taskKey: string;
-        };
-
-        export type ResponseData = BaseWorkInfo;
-        export type SuccessResponse = APISuccessRes<ResponseData>;
-        export type Response = SuccessResponse | APIErrorRes;
-    }
-
-
-    /**
-     * 获取任务信息
-     */
-    export namespace TaskDetail {
-        export const url = '/worker-taskDetail';
-        export const method = 'GET';
 
         export type RequestQuery = {
             key: string;
@@ -240,19 +174,20 @@ export namespace WorkerApi {
         export type Response = SuccessResponse | APIErrorRes;
     }
 
+
     /**
-     * 获取发布二维码
+     * 获取任务信息
      */
-    export namespace GetPublishQRCode {
-        export const url = '/worker-getPublishQRCode';
-        export const method = 'POST';
+    export namespace TaskDetail {
+        export const url = '/worker/taskDetail';
+        export const method = 'GET';
 
         export type RequestQuery = {
             key: string;
             taskKey: string;
         };
 
-        export type ResponseData = void;
+        export type ResponseData = BaseTaskInfo;
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }

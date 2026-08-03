@@ -1,15 +1,11 @@
 import { FastifyInstance } from "fastify";
 import { WorkerStore } from "../../../store/WorkerStore.js";
 import { Api } from "@mp-assistant/common/dist/api/index.js";
-import { createWorker, isWXWorker } from "@mp-assistant/core/dist/worker/index.js";
-import { ConfigStore } from "../../../store/ConfigStore.js";
-import { createTask, isReleaseTask } from "@mp-assistant/core/dist/worker/wx/task/index.js";
 import { getSuccessApiResponse, getErrorApiResponse } from "@mp-assistant/common/dist/api/utils.js";
 import { WSStore } from "../../../store/WSStore.js";
 import { WSMessage } from "@mp-assistant/common/dist/ws/message.js";
-import { WSMessageEvent } from "../../../event/WSMessageEvent.js";
-import { WorkerStatus } from "@mp-assistant/common/dist/work/index.js";
-import { TaskStatus } from "@mp-assistant/common/dist/work/task/const.js";
+import { WorkerType } from "@mp-assistant/common/dist/work/index.js";
+import { createWorker } from "@mp-assistant/core/dist/worker/index.js";
 
 export const registerWorkerApi = (fastify: FastifyInstance) => {
     fastify.get(Api.Worker.GetWorkerList.url, async (request, reply): Promise<Api.Worker.GetWorkerList.Response> => {
@@ -29,24 +25,13 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         return getSuccessApiResponse(worker.info());
     });
 
-    fastify.post(Api.Worker.AddWorker.url, async (request, reply): Promise<Api.Worker.AddWorker.Response> => {
-        const { type, name } = request.body as Api.Worker.AddWorker.RequestBody;
-
-        // 新增 worker 默认权重为 0，靠后展示；如需置顶可在编辑中调高权重
-        const worker = createWorker(type, {
+    fastify.post(Api.Worker.AddWXWorker.url, async (request, reply): Promise<Api.Worker.AddWXWorker.Response> => {
+        const { name, syncTaskNum, weight } = request.body as Api.Worker.AddWXWorker.RequestBody;
+        const worker = createWorker(WorkerType.WX, {
             name,
-            weight: 0,
-            wsMessageEventHandler: WSMessageEvent.instance,
+            syncTaskNum,
+            weight,
         });
-        await worker.init({
-            headless: ConfigStore.instance.config.headless,
-        });
-
-        // 如果是微信worker则自动触发登录
-        if (isWXWorker(worker)) {
-            worker.login();
-        }
-
         WorkerStore.instance.addWorker(worker);
 
         WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
@@ -55,16 +40,17 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
     });
 
     fastify.post(Api.Worker.PauseAndRecoverWorker.url, async (request, reply): Promise<Api.Worker.PauseAndRecoverWorker.Response> => {
-        const { key } = request.query as Api.Worker.PauseAndRecoverWorker.RequestQuery;
+        const { key, suspend } = request.query as Api.Worker.PauseAndRecoverWorker.RequestQuery;
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {
             return getErrorApiResponse('Worker not found', 404);
         }
 
-        worker.pauseAndRecover();
+        worker.suspend(suspend);
 
         WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
-        return getSuccessApiResponse(undefined, worker.status === WorkerStatus.PAUSED ? '暂停Worker成功' : '恢复Worker成功');
+
+        return getSuccessApiResponse(undefined, suspend ? '暂停Worker成功' : '恢复Worker成功');
     })
 
     fastify.delete(Api.Worker.RemoveWorker.url, async (request, reply): Promise<Api.Worker.RemoveWorker.Response> => {
@@ -74,17 +60,6 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         if (!worker) {
             return getErrorApiResponse('Worker not found', 404);
         }
-
-        // 如果任务正在运行则不能删除
-        if (worker.taskList.some(item => item.status === TaskStatus.RUNNING)) {
-            return getErrorApiResponse('Worker正在运行中，请先暂停，或者等任务执行完成后再删除', 400);
-        }
-
-        worker.destroy();
-
-        WorkerStore.instance.removeWorker(worker);
-
-        WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
 
         return getSuccessApiResponse(undefined);
     });
@@ -97,22 +72,6 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         if (!worker) {
             return getErrorApiResponse('Worker not found', 404);
         }
-        if (typeof name === 'string' && name) {
-            worker.name = name;
-        }
-        let weightChanged = false;
-        if (typeof weight === 'number' && Number.isFinite(weight) && weight !== worker.weight) {
-            worker.weight = weight;
-            weightChanged = true;
-        }
-
-        WorkerStore.instance.saveData();
-
-        // 权重变化会影响 worker 列表展示顺序，需要广播列表变化
-        if (weightChanged) {
-            WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
-        }
-        WSStore.instance.broadcast(WSMessage.Worker.DetailChange.createMessage({ key }));
 
         return getSuccessApiResponse(worker.info());
     });
@@ -122,151 +81,36 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         const { appId, mark } = request.body as Api.Worker.MarkWXAppId.RequestBody;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
-        if (!worker) {
-            return getErrorApiResponse('Worker not found', 404);
-        }
-        if (isWXWorker(worker)) {
-            if (mark) {
-                worker.markWXAppId(appId);
-            }
-            else {
-                worker.unmarkWXAppId(appId);
-            }
-            WorkerStore.instance.saveData();
-            return getSuccessApiResponse(undefined);
-        }
-        else {
-            return getErrorApiResponse('Worker type not supported', 400);
-        }
+
+        return getErrorApiResponse('Worker type not supported', 400);
     });
 
     fastify.post(Api.Worker.ClearAllMarkWXAppIds.url, async (request, reply): Promise<Api.Worker.ClearAllMarkWXAppIds.Response> => {
         const { key } = request.query as Api.Worker.ClearAllMarkWXAppIds.RequestQuery;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
-        if (!worker) {
-            return getErrorApiResponse('Worker not found', 404);
-        }
-        if (isWXWorker(worker)) {
-            worker.clearAllMarkWXAppIds();
-            WorkerStore.instance.saveData();
-            return getSuccessApiResponse(undefined);
-        }
-        else {
-            return getErrorApiResponse('Worker type not supported', 400);
-        }
+        return getErrorApiResponse('Worker not found', 404);
     });
 
-    fastify.post(Api.Worker.WorkerLogin.url, async (request, reply): Promise<Api.Worker.WorkerLogin.Response> => {
-        const { key } = request.query as Api.Worker.WorkerLogin.RequestQuery;
-
-        const worker = WorkerStore.instance.workerList.find(item => item.key === key);
-        if (!worker) {
-            return getErrorApiResponse('Worker not found', 404);
-        }
-        if (isWXWorker(worker)) {
-            worker.login();
-            return getSuccessApiResponse(undefined);
-        }
-        else {
-            return getErrorApiResponse('Worker type not supported', 400);
-        }
-    });
-
-    fastify.post(Api.Worker.WorkerLogout.url, async (request, reply): Promise<Api.Worker.WorkerLogout.Response> => {
-        const { key } = request.query as Api.Worker.WorkerLogout.RequestQuery;
-
-        const worker = WorkerStore.instance.workerList.find(item => item.key === key);
-        if (!worker) {
-            return getErrorApiResponse('Worker not found', 404);
-        }
-        if (isWXWorker(worker)) {
-            worker.logout();
-            return getSuccessApiResponse(undefined);
-        }
-        else {
-            return getErrorApiResponse('Worker type not supported', 400);
-        }
-    });
-
-    fastify.get(Api.Worker.WorkerUpdateWxaList.url, async (request, reply): Promise<Api.Worker.WorkerUpdateWxaList.Response> => {
-        const { key } = request.query as Api.Worker.WorkerUpdateWxaList.RequestQuery;
-
-        const worker = WorkerStore.instance.workerList.find(item => item.key === key);
-        if (!worker) {
-            return getErrorApiResponse('Worker not found', 404);
-        }
-
-        if (isWXWorker(worker)) {
-            worker.updateWxaList();
-            return getSuccessApiResponse(undefined);
-        }
-        else {
-            return getErrorApiResponse('Worker type not supported', 400);
-        }
-    });
 
     fastify.post(Api.Worker.AddTask.url, async (request, reply): Promise<Api.Worker.AddTask.Response> => {
         const { key } = request.query as Api.Worker.AddTask.RequestQuery;
         const { type, options } = request.body as Api.Worker.AddTask.RequestBody;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
-        if (!worker) {
-            return getErrorApiResponse('Worker not found', 404);
-        }
-        const task = createTask(type, options);
-        if (!task) {
-            return getErrorApiResponse('Task not found', 400);
-        }
-        worker.addTask(task);
-        return getSuccessApiResponse(worker.info());
+        return getErrorApiResponse('Worker not found', 404);
     });
 
     fastify.delete(Api.Worker.RemoveTask.url, async (request, reply): Promise<Api.Worker.RemoveTask.Response> => {
         const { key, taskKey } = request.query as Api.Worker.RemoveTask.RequestQuery;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
-        if (!worker) {
-            return getErrorApiResponse('Worker not found', 404);
-        }
-        await worker.removeTask(taskKey);
-        return getSuccessApiResponse(worker.info());
+        return getErrorApiResponse('Worker not found', 404);
     });
 
     fastify.get(Api.Worker.TaskDetail.url, async (request, reply): Promise<Api.Worker.TaskDetail.Response> => {
         const { key, taskKey } = request.query as Api.Worker.TaskDetail.RequestQuery;
 
-        const worker = WorkerStore.instance.workerList.find(item => item.key === key);
-        if (!worker) {
-            return getErrorApiResponse('Worker not found', 404);
-        }
-        const task = worker.taskList.find(item => item.key === taskKey);
-        if (!task) {
-            return getErrorApiResponse('Task not found', 404);
-        }
-        return getSuccessApiResponse(task.info());
+        return getErrorApiResponse('Worker not found', 404);
     });
-
-    fastify.post(Api.Worker.GetPublishQRCode.url, async (request, reply): Promise<Api.Worker.GetPublishQRCode.Response> => {
-        const { key, taskKey } = request.query as Api.Worker.GetPublishQRCode.RequestQuery;
-        const worker = WorkerStore.instance.workerList.find(item => item.key === key);
-        if (!worker) {
-            return getErrorApiResponse('Worker not found', 404);
-        }
-        const task = worker.taskList.find(item => item.key === taskKey);
-        if (!task) {
-            return getErrorApiResponse('Task not found', 404);
-        }
-
-        if (!isReleaseTask(task)) {
-            return getErrorApiResponse('Task type not supported', 400);
-        }
-
-        const qrCodeLoadingStatus = await task.getQrcodePath();
-        if (!qrCodeLoadingStatus) {
-            return getErrorApiResponse('Publish QR code path not found', 404);
-        }
-
-        return getSuccessApiResponse(undefined);
-    })
 }   

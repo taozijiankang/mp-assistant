@@ -6,8 +6,8 @@ import fs from "node:fs"
 import path from "node:path";
 import dayjs from "dayjs";
 import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
-import { getFilesDir } from "@mp-assistant/common/dist/pathManage.js";
 import { pathNormalize } from "@mp-assistant/common/dist/utils/node.js";
+import { getFilesDir } from "../../../pathManage.js";
 
 export const registerCommonApi = (fastify: FastifyInstance) => {
     fastify.post(Api.Common.UploadFile.url, async function (req, reply): Promise<Api.Common.UploadFile.Response> {
