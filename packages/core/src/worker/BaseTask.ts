@@ -4,6 +4,7 @@ import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
 import { ChildProcess } from "node:child_process";
 import { invokeExecuteTask } from "../bin/invoke.js";
 import { BaseTaskExecutor, BaseTaskExecutorMessage } from "./BaseTaskExecutor.js";
+import { BrowserContext } from "playwright";
 
 export abstract class BaseTask<
     Options extends BaseTaskOptions = BaseTaskOptions,
@@ -82,8 +83,8 @@ export abstract class BaseTask<
         });
     }
 
-    createExecutor(): BaseTaskExecutor<Options> {
-        return new BaseTaskExecutor(this.options);
+    execute(context: BrowserContext) {
+        new BaseTaskExecutor(this.options, context).execute();
     }
 
     protected onCompleted(): void {

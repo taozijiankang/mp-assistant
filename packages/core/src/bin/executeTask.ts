@@ -19,8 +19,7 @@ async function start(taskType: WXTaskType, options: BaseTaskOptions, debugPort: 
         process.exit(1);
     }
 
-    const task = createTask(taskType as WXTaskType, options);
-    task.createExecutor().execute(browserContext);
+    createTask(taskType as WXTaskType, options).execute(browserContext);
 }
 
 const taskType = process.argv[2] || '';

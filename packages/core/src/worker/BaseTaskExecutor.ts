@@ -11,17 +11,19 @@ export interface BaseTaskExecutorMessage {
 
 export class BaseTaskExecutor<Options extends BaseTaskOptions = BaseTaskOptions> {
     protected options: Options;
+    protected context: BrowserContext;
 
-    constructor(options: Options) {
+    constructor(options: Options, context: BrowserContext) {
         this.options = options;
-
+        this.context = context;
+        
         process.on('message', (message_) => {
             const message = message_ as { type: keyof BaseTaskExecutorMessage, data: any };
             this.onTaskMessage(message.type, message.data);
         });
     }
 
-    async execute(context: BrowserContext) {
+    async execute() {
         this.onCompleted();
     }
 
