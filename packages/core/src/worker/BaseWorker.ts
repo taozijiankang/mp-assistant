@@ -1,36 +1,41 @@
 import { TaskStatus, WorkerStatus, WorkerType } from "@mp-assistant/common/dist/work/const.js";
-import { BaseWorkerInfo, BaseWorkerOptions } from "@mp-assistant/common/dist/work/BaseWorker.js";
+import { BaseWorkerInfo, BaseWorkerOptions, WorkerEvent } from "@mp-assistant/common/dist/work/BaseWorker.js";
 import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
 import { BrowserContext, chromium, LaunchOptions } from "playwright";
 import path from "node:path";
 import { wait } from "@mp-assistant/common/dist/utils/global.js";
 import { BaseTask } from "./BaseTask.js";
+import { EventEmitter } from "@mp-assistant/common/dist/event/EventEmitter.js";
 import getPort from "get-port";
 
 export abstract class BaseWorker<
   Options extends BaseWorkerOptions = BaseWorkerOptions,
   Info extends BaseWorkerInfo = BaseWorkerInfo
-> {
+> extends EventEmitter<WorkerEvent> {
   declare readonly type: WorkerType;
 
-  key: string;
+  readonly key: string;
 
-  options: Options;
+  protected readonly options: Options;
 
-  status: WorkerStatus;
-  createdTime: string;
+  protected status: WorkerStatus;
+  protected createdTime: string;
 
   private browserContent: BrowserContext | null = null;
 
   /** Chrome DevTools Protocol 远程调试端口 */
-  debugPort?: number;
+  protected debugPort?: number;
 
   private taskList: BaseTask[] = [];
+
+  private destroyed = false;
 
   constructor({ options, key }: {
     options: Options;
     key?: string;
   }) {
+    super();
+    
     this.key = key || `worker-${getUUID()}`;
     this.options = options;
     this.status = WorkerStatus.INIT;
@@ -53,11 +58,46 @@ export abstract class BaseWorker<
   }
 
   addTask(task: BaseTask): void {
+    task.on('detailChange', () => {
+      this.changeDetail();
+    });
     this.taskList.push(task);
+    this.changeDetail();
   }
 
   removeTask(taskKey: string): void {
+    const task = this.taskList.find(t => t.getKey() === taskKey);
+    if (task) {
+      task.off('detailChange');
+    }
     this.taskList = this.taskList.filter(t => t.getKey() !== taskKey);
+    this.changeDetail();
+  }
+
+  setName(name: string): void {
+    this.options.name = name;
+    this.changeDetail();
+  }
+
+  setWeight(weight: number): void {
+    this.options.weight = weight;
+    this.changeDetail();
+  }
+
+  protected changeDetail(): void {
+    this.emit('detailChange', this.info() as Info);
+  }
+
+  destroy(): void {
+    this.destroyed = true;
+    this.taskList.forEach(t => {
+      t.off('detailChange');
+      t.abort();
+    });
+    if (this.browserContent) {
+      this.browserContent.close();
+      this.browserContent = null;
+    }
   }
 
   /**
@@ -98,6 +138,7 @@ export abstract class BaseWorker<
   }
 
   private async taskCycle() {
+    if (this.destroyed) return;
     try {
       if (this.status === WorkerStatus.RUNNING) {
         const onRunningTaskNum = this.taskList.filter(task => task.getStatus() === TaskStatus.RUNNING).length;

@@ -191,4 +191,38 @@ export namespace WorkerApi {
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }
+
+    /**
+     * 终止任务
+     */
+    export namespace AbortTask {
+        export const url = '/worker/abortTask';
+        export const method = 'POST';
+
+        export type RequestQuery = {
+            key: string;
+            taskKey: string;
+        };
+
+        export type ResponseData = BaseTaskInfo;
+        export type SuccessResponse = APISuccessRes<ResponseData>;
+        export type Response = SuccessResponse | APIErrorRes;
+    }
+
+    /**
+     * 重置任务状态
+     */
+    export namespace ResetTaskStatus {
+        export const url = '/worker/resetTaskStatus';
+        export const method = 'POST';
+
+        export type RequestQuery = {
+            key: string;
+            taskKey: string;
+        };
+
+        export type ResponseData = BaseTaskInfo;
+        export type SuccessResponse = APISuccessRes<ResponseData>;
+        export type Response = SuccessResponse | APIErrorRes;
+    }
 }

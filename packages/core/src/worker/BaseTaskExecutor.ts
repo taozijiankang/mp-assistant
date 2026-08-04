@@ -7,6 +7,11 @@ export interface BaseTaskExecutorMessage {
     COMPLETED: {
         status: TaskStatus.COMPLETED | TaskStatus.FAILED;
     };
+    /** 运行报告 */
+    REPORT: {
+        type: 'text' | 'image';
+        message: string;
+    };
 }
 
 export class BaseTaskExecutor<Options extends BaseTaskOptions = BaseTaskOptions> {
@@ -43,6 +48,10 @@ export class BaseTaskExecutor<Options extends BaseTaskOptions = BaseTaskOptions>
         this.sendToTaskMessage('COMPLETED', {
             status: TaskStatus.COMPLETED,
         });
+    }
+
+    protected report(type: 'text' | 'image', message: string): void {
+        this.sendToTaskMessage('REPORT', { type, message });
     }
 
     protected failed(): void {

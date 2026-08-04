@@ -17,17 +17,25 @@ import {
     WXWorkerOptions
 } from "@mp-assistant/common/dist/work/index.js";
 
-export function createWorker(type: WorkerType, options: BaseWorkerOptions): BaseWorker {
+export function createWorker(type: WorkerType.WX, options: WXWorkerOptions, key?: string): WXWorker;
+export function createWorker(type: WorkerType, options: BaseWorkerOptions, key?: string): BaseWorker;
+export function createWorker(type: WorkerType, options: BaseWorkerOptions, key?: string): BaseWorker {
     switch (type) {
         case WorkerType.WX:
             return new WXWorker({
                 options: options as WXWorkerOptions,
+                key,
             });
         default:
             throw new Error(`Unsupported worker type: ${type}`);
     }
 }
 
+export function createTask(type: WXTaskType.WX_AUDIT, options: WXAuditTaskOptions): WXAuditTask;
+export function createTask(type: WXTaskType.WX_LOGIN, options: WXLoginTaskOptions): WXLoginTask;
+export function createTask(type: WXTaskType.WX_INSPECT_VERSION, options: WXInspectVersionTaskOptions): WXInspectVersionTask;
+export function createTask(type: WXTaskType.WX_PUBLISH, options: WXPublishTaskOptions): WXPublishTask;
+export function createTask(type: WXTaskType, options: BaseTaskOptions): BaseTask;
 export function createTask(type: WXTaskType, options: BaseTaskOptions): BaseTask {
     switch (type) {
         case WXTaskType.WX_AUDIT:
@@ -49,4 +57,26 @@ export function createTask(type: WXTaskType, options: BaseTaskOptions): BaseTask
         default:
             throw new Error(`Unsupported task type: ${type}`);
     }
+}
+
+// Worker type guard
+export function isWXWorker(worker: BaseWorker): worker is WXWorker {
+    return worker.type === WorkerType.WX;
+}
+
+// Task type guards
+export function isWXAuditTask(task: BaseTask): task is WXAuditTask {
+    return task.type === WXTaskType.WX_AUDIT;
+}
+
+export function isWXLoginTask(task: BaseTask): task is WXLoginTask {
+    return task.type === WXTaskType.WX_LOGIN;
+}
+
+export function isWXInspectVersionTask(task: BaseTask): task is WXInspectVersionTask {
+    return task.type === WXTaskType.WX_INSPECT_VERSION;
+}
+
+export function isWXPublishTask(task: BaseTask): task is WXPublishTask {
+    return task.type === WXTaskType.WX_PUBLISH;
 }

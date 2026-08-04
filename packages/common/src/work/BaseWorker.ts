@@ -17,3 +17,8 @@ export interface BaseWorkerInfo {
     options: BaseWorkerOptions;
     taskList: BaseTaskInfo[];
 }
+
+export interface WorkerEvent {
+    /** 详情改变 */
+    detailChange: BaseWorkerInfo;
+}
