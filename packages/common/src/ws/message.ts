@@ -69,6 +69,7 @@ export namespace WSMessage {
     }
 
     export interface EventMap {
+        [Heartbeat.type]: Heartbeat.Data,
         [Worker.ListChange.type]: Worker.ListChange.Data,
         [Worker.DetailChange.type]: Worker.DetailChange.Data,
     }

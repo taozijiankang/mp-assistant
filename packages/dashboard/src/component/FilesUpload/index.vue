@@ -26,7 +26,7 @@ import { getFileUrl, requestUploadFile } from '@/api';
 import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Delete } from '@element-plus/icons-vue';
-import Empty from '../Empty/index.vue';
+import Empty from '../../baseComponent/Empty/index.vue';
 
 const props = withDefaults(defineProps<{
     files: string[];

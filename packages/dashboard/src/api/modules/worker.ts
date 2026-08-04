@@ -15,17 +15,17 @@ export function requestGetWorkerDetail(key: string) {
     );
 }
 
-export function requestAddWorker(body: Api.Worker.AddWorker.RequestBody) {
-    return request<Api.Worker.AddWorker.ResponseData>(
-        Api.Worker.AddWorker.url,
-        { method: Api.Worker.AddWorker.method, body }
+export function requestAddWXWorker(body: Api.Worker.AddWXWorker.RequestBody) {
+    return request<Api.Worker.AddWXWorker.ResponseData>(
+        Api.Worker.AddWXWorker.url,
+        { method: Api.Worker.AddWXWorker.method, body }
     );
 }
 
-export function requestPauseAndRecoverWorker(key: string) {
+export function requestPauseAndRecoverWorker(key: string, suspend: boolean) {
     return request<Api.Worker.PauseAndRecoverWorker.ResponseData>(
         Api.Worker.PauseAndRecoverWorker.url,
-        { method: Api.Worker.PauseAndRecoverWorker.method, query: { key } }
+        { method: Api.Worker.PauseAndRecoverWorker.method, query: { key, suspend: String(suspend) } }
     );
 }
 
@@ -57,27 +57,6 @@ export function requestClearAllMarkWXAppIds(key: string) {
     );
 }
 
-export function requestLoginWorker(key: string) {
-    return request<Api.Worker.WorkerLogin.ResponseData>(
-        Api.Worker.WorkerLogin.url,
-        { method: Api.Worker.WorkerLogin.method, query: { key } }
-    );
-}
-
-export function requestLogoutWorker(key: string) {
-    return request<Api.Worker.WorkerLogout.ResponseData>(
-        Api.Worker.WorkerLogout.url,
-        { method: Api.Worker.WorkerLogout.method, query: { key } }
-    );
-}
-
-export function requestWorkerUpdateWxaList(key: string) {
-    return request<Api.Worker.WorkerUpdateWxaList.ResponseData>(
-        Api.Worker.WorkerUpdateWxaList.url,
-        { method: Api.Worker.WorkerUpdateWxaList.method, query: { key } }
-    );
-}
-
 export function requestAddTask(key: string, body: Api.Worker.AddTask.RequestBody) {
     return request<Api.Worker.AddTask.ResponseData>(
         Api.Worker.AddTask.url,
@@ -99,10 +78,16 @@ export function requestGetTaskDetail(key: string, taskKey: string) {
     );
 }
 
-export function requestGetPublishQRCode(key: string, taskKey: string) {
-    return request<Api.Worker.GetPublishQRCode.ResponseData>(
-        Api.Worker.GetPublishQRCode.url,
-        { method: Api.Worker.GetPublishQRCode.method, query: { key, taskKey } }
+export function requestAbortTask(key: string, taskKey: string) {
+    return request<Api.Worker.AbortTask.ResponseData>(
+        Api.Worker.AbortTask.url,
+        { method: Api.Worker.AbortTask.method, query: { key, taskKey } }
     );
 }
 
+export function requestResetTaskStatus(key: string, taskKey: string) {
+    return request<Api.Worker.ResetTaskStatus.ResponseData>(
+        Api.Worker.ResetTaskStatus.url,
+        { method: Api.Worker.ResetTaskStatus.method, query: { key, taskKey } }
+    );
+}
