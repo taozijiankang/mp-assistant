@@ -46,7 +46,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
     });
 
     fastify.post(Api.Worker.PauseAndRecoverWorker.url, async (request, reply): Promise<Api.Worker.PauseAndRecoverWorker.Response> => {
-        const { key, suspend } = request.query as Api.Worker.PauseAndRecoverWorker.RequestQuery;
+        const { key, suspend } = request.body as Api.Worker.PauseAndRecoverWorker.RequestBody;
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {
             return getErrorApiResponse('Worker not found', 404);
@@ -60,7 +60,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
     })
 
     fastify.delete(Api.Worker.RemoveWorker.url, async (request, reply): Promise<Api.Worker.RemoveWorker.Response> => {
-        const { key } = request.query as Api.Worker.RemoveWorker.RequestQuery;
+        const { key } = request.body as Api.Worker.RemoveWorker.RequestBody;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {
@@ -76,8 +76,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
     });
 
     fastify.put(Api.Worker.UpdateWorker.url, async (request, reply): Promise<Api.Worker.UpdateWorker.Response> => {
-        const { key } = request.query as Api.Worker.UpdateWorker.RequestQuery;
-        const { name, weight } = request.body as Api.Worker.UpdateWorker.RequestBody;
+        const { key, name, weight } = request.body as Api.Worker.UpdateWorker.RequestBody;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {
@@ -93,8 +92,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
     });
 
     fastify.post(Api.Worker.MarkWXAppId.url, async (request, reply): Promise<Api.Worker.MarkWXAppId.Response> => {
-        const { key } = request.query as Api.Worker.MarkWXAppId.RequestQuery;
-        const { appId, mark } = request.body as Api.Worker.MarkWXAppId.RequestBody;
+        const { key, appId, mark } = request.body as Api.Worker.MarkWXAppId.RequestBody;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {
@@ -110,7 +108,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
     });
 
     fastify.post(Api.Worker.ClearAllMarkWXAppIds.url, async (request, reply): Promise<Api.Worker.ClearAllMarkWXAppIds.Response> => {
-        const { key } = request.query as Api.Worker.ClearAllMarkWXAppIds.RequestQuery;
+        const { key } = request.body as Api.Worker.ClearAllMarkWXAppIds.RequestBody;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {
@@ -127,8 +125,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
 
 
     fastify.post(Api.Worker.AddTask.url, async (request, reply): Promise<Api.Worker.AddTask.Response> => {
-        const { key } = request.query as Api.Worker.AddTask.RequestQuery;
-        const { type, options } = request.body as Api.Worker.AddTask.RequestBody;
+        const { key, type, options } = request.body as Api.Worker.AddTask.RequestBody;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {
@@ -140,7 +137,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
     });
 
     fastify.delete(Api.Worker.RemoveTask.url, async (request, reply): Promise<Api.Worker.RemoveTask.Response> => {
-        const { key, taskKey } = request.query as Api.Worker.RemoveTask.RequestQuery;
+        const { key, taskKey } = request.body as Api.Worker.RemoveTask.RequestBody;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {
@@ -171,7 +168,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
     });
 
     fastify.post(Api.Worker.AbortTask.url, async (request, reply): Promise<Api.Worker.AbortTask.Response> => {
-        const { key, taskKey } = request.query as Api.Worker.AbortTask.RequestQuery;
+        const { key, taskKey } = request.body as Api.Worker.AbortTask.RequestBody;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {
@@ -188,7 +185,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
     });
 
     fastify.post(Api.Worker.ResetTaskStatus.url, async (request, reply): Promise<Api.Worker.ResetTaskStatus.Response> => {
-        const { key, taskKey } = request.query as Api.Worker.ResetTaskStatus.RequestQuery;
+        const { key, taskKey } = request.body as Api.Worker.ResetTaskStatus.RequestBody;
 
         const worker = WorkerStore.instance.workerList.find(item => item.key === key);
         if (!worker) {

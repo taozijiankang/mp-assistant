@@ -54,7 +54,7 @@ export namespace WorkerApi {
         export const url = '/worker/pauseAndRecover';
         export const method = 'POST';
 
-        export type RequestQuery = {
+        export type RequestBody = {
             key: string;
             suspend: boolean;
         };
@@ -71,7 +71,7 @@ export namespace WorkerApi {
         export const url = '/worker/remove';
         export const method = 'DELETE';
 
-        export type RequestQuery = {
+        export type RequestBody = {
             key: string;
         };
 
@@ -87,10 +87,8 @@ export namespace WorkerApi {
         export const url = '/worker/update';
         export const method = 'PUT';
 
-        export type RequestQuery = {
-            key: string;
-        };
         export type RequestBody = {
+            key: string;
             name?: string;
             weight?: number;
         };
@@ -107,11 +105,8 @@ export namespace WorkerApi {
         export const url = '/worker/markWXAppId';
         export const method = 'POST';
 
-        export type RequestQuery = {
-            key: string;
-        }
-
         export type RequestBody = {
+            key: string;
             appId: string;
             mark: boolean;
         };
@@ -128,7 +123,7 @@ export namespace WorkerApi {
         export const url = '/worker/clearAllMarkWXAppIds';
         export const method = 'POST';
 
-        export type RequestQuery = {
+        export type RequestBody = {
             key: string;
         };
 
@@ -144,10 +139,8 @@ export namespace WorkerApi {
         export const url = '/worker/addTask';
         export const method = 'POST';
 
-        export type RequestQuery = {
-            key: string;
-        };
         export type RequestBody = {
+            key: string;
             type: WXTaskType;
             options: any;
         };
@@ -164,7 +157,7 @@ export namespace WorkerApi {
         export const url = '/worker/removeTask';
         export const method = 'DELETE';
 
-        export type RequestQuery = {
+        export type RequestBody = {
             key: string;
             taskKey: string;
         };
@@ -199,7 +192,7 @@ export namespace WorkerApi {
         export const url = '/worker/abortTask';
         export const method = 'POST';
 
-        export type RequestQuery = {
+        export type RequestBody = {
             key: string;
             taskKey: string;
         };
@@ -216,7 +209,7 @@ export namespace WorkerApi {
         export const url = '/worker/resetTaskStatus';
         export const method = 'POST';
 
-        export type RequestQuery = {
+        export type RequestBody = {
             key: string;
             taskKey: string;
         };

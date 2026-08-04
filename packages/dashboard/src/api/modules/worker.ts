@@ -22,52 +22,52 @@ export function requestAddWXWorker(body: Api.Worker.AddWXWorker.RequestBody) {
     );
 }
 
-export function requestPauseAndRecoverWorker(key: string, suspend: boolean) {
+export function requestPauseAndRecoverWorker(body: Api.Worker.PauseAndRecoverWorker.RequestBody) {
     return request<Api.Worker.PauseAndRecoverWorker.ResponseData>(
         Api.Worker.PauseAndRecoverWorker.url,
-        { method: Api.Worker.PauseAndRecoverWorker.method, query: { key, suspend: String(suspend) } }
+        { method: Api.Worker.PauseAndRecoverWorker.method, body }
     );
 }
 
-export function requestRemoveWorker(key: string) {
+export function requestRemoveWorker(body: Api.Worker.RemoveWorker.RequestBody) {
     return request<Api.Worker.RemoveWorker.ResponseData>(
         Api.Worker.RemoveWorker.url,
-        { method: Api.Worker.RemoveWorker.method, query: { key } }
+        { method: Api.Worker.RemoveWorker.method, body }
     );
 }
 
-export function requestUpdateWorker(key: string, body: Api.Worker.UpdateWorker.RequestBody) {
+export function requestUpdateWorker(body: Api.Worker.UpdateWorker.RequestBody) {
     return request<Api.Worker.UpdateWorker.ResponseData>(
         Api.Worker.UpdateWorker.url,
-        { method: Api.Worker.UpdateWorker.method, query: { key }, body }
+        { method: Api.Worker.UpdateWorker.method, body }
     );
 }
 
-export function requestMarkWXAppId(key: string, body: Api.Worker.MarkWXAppId.RequestBody) {
+export function requestMarkWXAppId(body: Api.Worker.MarkWXAppId.RequestBody) {
     return request<Api.Worker.MarkWXAppId.ResponseData>(
         Api.Worker.MarkWXAppId.url,
-        { method: Api.Worker.MarkWXAppId.method, query: { key }, body }
+        { method: Api.Worker.MarkWXAppId.method, body }
     );
 }
 
-export function requestClearAllMarkWXAppIds(key: string) {
+export function requestClearAllMarkWXAppIds(body: Api.Worker.ClearAllMarkWXAppIds.RequestBody) {
     return request<Api.Worker.ClearAllMarkWXAppIds.ResponseData>(
         Api.Worker.ClearAllMarkWXAppIds.url,
-        { method: Api.Worker.ClearAllMarkWXAppIds.method, query: { key } }
+        { method: Api.Worker.ClearAllMarkWXAppIds.method, body }
     );
 }
 
-export function requestAddTask(key: string, body: Api.Worker.AddTask.RequestBody) {
+export function requestAddTask(body: Api.Worker.AddTask.RequestBody) {
     return request<Api.Worker.AddTask.ResponseData>(
         Api.Worker.AddTask.url,
-        { method: Api.Worker.AddTask.method, query: { key }, body }
+        { method: Api.Worker.AddTask.method, body }
     );
 }
 
-export function requestRemoveTask(key: string, taskKey: string) {
+export function requestRemoveTask(body: Api.Worker.RemoveTask.RequestBody) {
     return request<Api.Worker.RemoveTask.ResponseData>(
         Api.Worker.RemoveTask.url,
-        { method: Api.Worker.RemoveTask.method, query: { key, taskKey } }
+        { method: Api.Worker.RemoveTask.method, body }
     );
 }
 
@@ -78,16 +78,16 @@ export function requestGetTaskDetail(key: string, taskKey: string) {
     );
 }
 
-export function requestAbortTask(key: string, taskKey: string) {
+export function requestAbortTask(body: Api.Worker.AbortTask.RequestBody) {
     return request<Api.Worker.AbortTask.ResponseData>(
         Api.Worker.AbortTask.url,
-        { method: Api.Worker.AbortTask.method, query: { key, taskKey } }
+        { method: Api.Worker.AbortTask.method, body }
     );
 }
 
-export function requestResetTaskStatus(key: string, taskKey: string) {
+export function requestResetTaskStatus(body: Api.Worker.ResetTaskStatus.RequestBody) {
     return request<Api.Worker.ResetTaskStatus.ResponseData>(
         Api.Worker.ResetTaskStatus.url,
-        { method: Api.Worker.ResetTaskStatus.method, query: { key, taskKey } }
+        { method: Api.Worker.ResetTaskStatus.method, body }
     );
 }
