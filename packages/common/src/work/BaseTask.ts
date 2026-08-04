@@ -20,8 +20,3 @@ export interface BaseTaskInfo {
     options: BaseTaskOptions;
     reports: TaskReport[];
 }
-
-export interface TaskEvent {
-    /** 详情改变 */
-    detailChange: BaseTaskInfo;
-}

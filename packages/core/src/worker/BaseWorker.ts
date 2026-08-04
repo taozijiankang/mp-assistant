@@ -58,9 +58,7 @@ export abstract class BaseWorker<
   }
 
   addTask(task: BaseTask): void {
-    task.on('detailChange', () => {
-      this.changeDetail();
-    });
+    task.worker = this;
     this.taskList.push(task);
     this.changeDetail();
   }
@@ -68,7 +66,7 @@ export abstract class BaseWorker<
   removeTask(taskKey: string): void {
     const task = this.taskList.find(t => t.getKey() === taskKey);
     if (task) {
-      task.off('detailChange');
+      task.worker = null;
     }
     this.taskList = this.taskList.filter(t => t.getKey() !== taskKey);
     this.changeDetail();
@@ -84,14 +82,14 @@ export abstract class BaseWorker<
     this.changeDetail();
   }
 
-  protected changeDetail(): void {
+  changeDetail(): void {
     this.emit('detailChange', this.info() as Info);
   }
 
   destroy(): void {
     this.destroyed = true;
     this.taskList.forEach(t => {
-      t.off('detailChange');
+      t.worker = null;
       t.abort();
     });
     if (this.browserContent) {

@@ -1,16 +1,19 @@
 import { TaskStatus } from "@mp-assistant/common/dist/work/const.js";
-import { BaseTaskOptions, BaseTaskInfo, TaskReport, TaskEvent } from "@mp-assistant/common/dist/work/BaseTask.js";
+import { BaseTaskOptions, BaseTaskInfo, TaskReport } from "@mp-assistant/common/dist/work/BaseTask.js";
 import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
 import { ChildProcess } from "node:child_process";
 import { invokeExecuteTask } from "../bin/invoke.js";
 import { BaseTaskExecutor, BaseTaskExecutorMessage } from "./BaseTaskExecutor.js";
-import { EventEmitter } from "@mp-assistant/common/dist/event/EventEmitter.js";
 import { BrowserContext } from "playwright";
+
+export interface TaskWorker {
+    changeDetail(): void;
+}
 
 export abstract class BaseTask<
     Options extends BaseTaskOptions = BaseTaskOptions,
     Info extends BaseTaskInfo = BaseTaskInfo
-> extends EventEmitter<TaskEvent> {
+> {
     declare readonly type: string;
     declare readonly key: string;
     declare readonly options: Options;
@@ -23,15 +26,12 @@ export abstract class BaseTask<
 
     private reports: TaskReport[] = [];
 
+    worker: TaskWorker | null = null;
+
     constructor({ options, key, isExecutor }: { options: Options, key?: string, isExecutor?: boolean }) {
-        super();
         this.isExecutor = isExecutor ?? false;
         this.options = options;
         this.key = key || `task-${getUUID()}`;
-    }
-
-    protected changeDetail(): void {
-        this.emit('detailChange', this.getInfo() as Info);
     }
 
     getInfo(): Info {
@@ -55,7 +55,7 @@ export abstract class BaseTask<
 
     setStatus(status: TaskStatus): void {
         this.status = status;
-        this.changeDetail();
+        this.worker?.changeDetail();
 
         // 任务完成或失败，杀死任务进程，先移除监听防止旧回调干扰后续 rerun
         if (this.status === TaskStatus.COMPLETED || this.status === TaskStatus.FAILED) {
@@ -144,7 +144,7 @@ export abstract class BaseTask<
                     ..._data,
                     time: Date.now(),
                 });
-                this.changeDetail();
+                this.worker?.changeDetail();
                 break;
             default:
                 return;
