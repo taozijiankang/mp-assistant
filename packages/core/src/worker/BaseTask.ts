@@ -3,7 +3,7 @@ import { BaseTaskOptions, BaseTaskInfo } from "@mp-assistant/common/dist/work/Ba
 import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
 import { ChildProcess } from "node:child_process";
 import { invokeExecuteTask } from "../bin/invoke.js";
-import { BrowserContext } from "playwright";
+import { BaseTaskExecutor, BaseTaskExecutorMessage } from "./BaseTaskExecutor.js";
 
 export abstract class BaseTask<
     Options extends BaseTaskOptions = BaseTaskOptions,
@@ -23,15 +23,6 @@ export abstract class BaseTask<
         this.isExecutor = isExecutor ?? false;
         this.options = options;
         this.key = key || `task-${getUUID()}`;
-
-        if (
-            this.isExecutor
-        ) {
-            process.on('message', (message_) => {
-                const message = message_ as { type: string, data: any };
-                this.onTaskMessage(message.type, message.data);
-            });
-        }
     }
 
     getInfo(): Info {
@@ -54,6 +45,14 @@ export abstract class BaseTask<
 
     setStatus(status: TaskStatus): void {
         this.status = status;
+
+        // 任务完成或失败，杀死任务进程
+        if (this.status === TaskStatus.COMPLETED || this.status === TaskStatus.FAILED) {
+            if (this.executorTask) {
+                this.executorTask.kill();
+                this.executorTask = null;
+            }
+        }
     }
 
     async run(debugPort: number): Promise<void> {
@@ -83,7 +82,9 @@ export abstract class BaseTask<
         });
     }
 
-    abstract execute(browserContext: BrowserContext): Promise<void>;
+    createExecutor(): BaseTaskExecutor<Options> {
+        return new BaseTaskExecutor(this.options);
+    }
 
     protected onCompleted(): void {
         if (this.status !== TaskStatus.RUNNING) {
@@ -102,7 +103,20 @@ export abstract class BaseTask<
     }
 
     protected onExecutorMessage(type: string, data: any): void {
-        console.log(`[${this.type}] executor message: ${type}: ${data}`);
+        const _type = type as keyof BaseTaskExecutorMessage;
+        const _data = data as BaseTaskExecutorMessage[keyof BaseTaskExecutorMessage];
+
+        switch (_type) {
+            case 'COMPLETED':
+                if (_data.status === TaskStatus.COMPLETED) {
+                    this.onCompleted();
+                } else {
+                    this.onFailed();
+                }
+                break;
+            default:
+                return;
+        }
     }
 
     protected sendToExecutorMessage(type: string, data: any): void {
@@ -114,19 +128,6 @@ export abstract class BaseTask<
             this.executorTask.send({ type, data });
         }
     }
-
-    protected onTaskMessage(type: string, data: any): void {
-        console.log(`[${this.type}] task message: ${type}: ${data}`);
-    }
-
-    protected sendToTaskMessage(type: string, data: any): void {
-        if (
-            this.status === TaskStatus.RUNNING &&
-            this.isExecutor
-        ) {
-            if (process.send) {
-                process.send({ type, data });
-            }
-        }
-    }
 }
+
+
