@@ -1,25 +1,37 @@
 import { TaskStatus } from "@mp-assistant/common/dist/work/const.js";
 import { BaseTaskOptions, BaseTaskInfo } from "@mp-assistant/common/dist/work/BaseTask.js";
 import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
-import { executeTask } from "./executeTask.js";
 import { ChildProcess } from "node:child_process";
+import { invokeExecuteTask } from "../bin/invoke.js";
+import { BrowserContext } from "playwright";
 
 export abstract class BaseTask<
     Options extends BaseTaskOptions = BaseTaskOptions,
     Info extends BaseTaskInfo = BaseTaskInfo
 > {
     declare readonly type: string;
-
     declare readonly key: string;
     declare readonly options: Options;
 
     protected status: TaskStatus = TaskStatus.IDLE;
 
-    private task: ChildProcess | null = null;
+    private executorTask: ChildProcess | null = null;
 
-    constructor({ options, key }: { options: Options, key?: string }) {
+    protected isExecutor = false;
+
+    constructor({ options, key, isExecutor }: { options: Options, key?: string, isExecutor?: boolean }) {
+        this.isExecutor = isExecutor ?? false;
         this.options = options;
         this.key = key || `task-${getUUID()}`;
+
+        if (
+            this.isExecutor
+        ) {
+            process.on('message', (message_) => {
+                const message = message_ as { type: string, data: any };
+                this.onTaskMessage(message.type, message.data);
+            });
+        }
     }
 
     getInfo(): Info {
@@ -49,13 +61,15 @@ export abstract class BaseTask<
             return;
         }
         this.setStatus(TaskStatus.RUNNING);
-        this.task = executeTask(this.type, this.options, debugPort);
+
+        this.executorTask = invokeExecuteTask(this.type, this.options, debugPort);
+
         // 任务创建失败
-        this.task.on('error', () => {
+        this.executorTask.on('error', () => {
             this.onFailed();
         });
         // 任务退出
-        this.task.on('close', (code) => {
+        this.executorTask.on('close', (code) => {
             if (code === 0) {
                 this.onCompleted();
             } else {
@@ -63,10 +77,13 @@ export abstract class BaseTask<
             }
         });
 
-        this.task.on('message', (message) => {
-            this.onMessage(message);
+        this.executorTask.on('message', (message_) => {
+            const message = message_ as { type: string, data: any };
+            this.onExecutorMessage(message.type, message.data);
         });
     }
+
+    abstract execute(browserContext: BrowserContext): Promise<void>;
 
     protected onCompleted(): void {
         if (this.status !== TaskStatus.RUNNING) {
@@ -84,13 +101,32 @@ export abstract class BaseTask<
         this.setStatus(TaskStatus.FAILED);
     }
 
-    protected onMessage(message: any): void {
-        console.log(`[${this.type}] message: ${message}`);
+    protected onExecutorMessage(type: string, data: any): void {
+        console.log(`[${this.type}] executor message: ${type}: ${data}`);
     }
 
-    protected sendMessage(message: any): void {
-        if (this.task) {
-            this.task.send(message);
+    protected sendToExecutorMessage(type: string, data: any): void {
+        if (
+            this.status === TaskStatus.RUNNING &&
+            this.executorTask &&
+            this.executorTask.exitCode === null
+        ) {
+            this.executorTask.send({ type, data });
+        }
+    }
+
+    protected onTaskMessage(type: string, data: any): void {
+        console.log(`[${this.type}] task message: ${type}: ${data}`);
+    }
+
+    protected sendToTaskMessage(type: string, data: any): void {
+        if (
+            this.status === TaskStatus.RUNNING &&
+            this.isExecutor
+        ) {
+            if (process.send) {
+                process.send({ type, data });
+            }
         }
     }
 }
