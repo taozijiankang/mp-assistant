@@ -22,14 +22,11 @@ export abstract class BaseTask<
 
     private executorTask: ChildProcess | null = null;
 
-    protected isExecutor = false;
-
     private reports: TaskReport[] = [];
 
     worker: TaskWorker | null = null;
 
-    constructor({ options, key, isExecutor }: { options: Options, key?: string, isExecutor?: boolean }) {
-        this.isExecutor = isExecutor ?? false;
+    constructor({ options, key }: { options: Options, key?: string }) {
         this.options = options;
         this.key = key || `task-${getUUID()}`;
     }
