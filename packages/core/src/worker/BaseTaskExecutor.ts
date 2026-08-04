@@ -16,7 +16,7 @@ export class BaseTaskExecutor<Options extends BaseTaskOptions = BaseTaskOptions>
     constructor(options: Options, context: BrowserContext) {
         this.options = options;
         this.context = context;
-        
+
         process.on('message', (message_) => {
             const message = message_ as { type: keyof BaseTaskExecutorMessage, data: any };
             this.onTaskMessage(message.type, message.data);
@@ -24,7 +24,9 @@ export class BaseTaskExecutor<Options extends BaseTaskOptions = BaseTaskOptions>
     }
 
     async execute() {
-        this.onCompleted();
+        console.log('execute task');
+
+        this.completed();
     }
 
     protected onTaskMessage<T extends keyof BaseTaskExecutorMessage>(type: T, data: BaseTaskExecutorMessage[T]): void {
@@ -37,13 +39,13 @@ export class BaseTaskExecutor<Options extends BaseTaskOptions = BaseTaskOptions>
         }
     }
 
-    protected onCompleted(): void {
+    protected completed(): void {
         this.sendToTaskMessage('COMPLETED', {
             status: TaskStatus.COMPLETED,
         });
     }
 
-    protected onFailed(): void {
+    protected failed(): void {
         this.sendToTaskMessage('COMPLETED', {
             status: TaskStatus.FAILED,
         });

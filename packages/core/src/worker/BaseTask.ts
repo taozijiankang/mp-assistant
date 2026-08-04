@@ -66,14 +66,14 @@ export abstract class BaseTask<
 
         // 任务创建失败
         this.executorTask.on('error', () => {
-            this.onFailed();
+            this.failed();
         });
         // 任务退出
         this.executorTask.on('close', (code) => {
             if (code === 0) {
-                this.onCompleted();
+                this.completed();
             } else {
-                this.onFailed();
+                this.failed();
             }
         });
 
@@ -87,7 +87,7 @@ export abstract class BaseTask<
         new BaseTaskExecutor(this.options, context).execute();
     }
 
-    protected onCompleted(): void {
+    protected completed(): void {
         if (this.status !== TaskStatus.RUNNING) {
             return;
         }
@@ -95,7 +95,7 @@ export abstract class BaseTask<
         this.setStatus(TaskStatus.COMPLETED);
     }
 
-    protected onFailed(): void {
+    protected failed(): void {
         if (this.status !== TaskStatus.RUNNING) {
             return;
         }
@@ -110,9 +110,9 @@ export abstract class BaseTask<
         switch (_type) {
             case 'COMPLETED':
                 if (_data.status === TaskStatus.COMPLETED) {
-                    this.onCompleted();
+                    this.completed();
                 } else {
-                    this.onFailed();
+                    this.failed();
                 }
                 break;
             default:
