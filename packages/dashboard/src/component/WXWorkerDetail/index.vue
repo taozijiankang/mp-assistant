@@ -28,6 +28,19 @@
             <span class="label">创建时间</span>
             <span>{{ worker.createdTime }}</span>
           </div>
+          <div v-if="worker.loginQRCode" class="detail-row qrcode-row">
+            <span class="label">登录二维码</span>
+            <img :src="worker.loginQRCode" class="qrcode-image" />
+          </div>
+          <div v-if="worker.wxaList && worker.wxaList.length > 0" class="wxa-section">
+            <div class="section-title">小程序列表 ({{ worker.wxaList.length }})</div>
+            <div class="wxa-list">
+              <div v-for="item in worker.wxaList" :key="item.appid" class="wxa-item">
+                <img :src="item.app_headimg" class="wxa-avatar" />
+                <span class="wxa-name">{{ item.app_name }}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="detail-section task-section">
@@ -82,7 +95,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import type { BaseWorkerInfo } from "@mp-assistant/common/dist/work/BaseWorker.js";
+import type { WXWorkerInfo } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
 import { WorkerStatus, WorkerStatusDict, WXTaskTypeDict } from "@mp-assistant/common/dist/work/const.js";
 import { requestRemoveTask, requestAbortTask, requestResetTaskStatus } from "@/api";
 import { useApiCall } from "@/hooks/useApiCall";
@@ -91,7 +104,7 @@ import WXTaskDetail from "@/component/WXTaskDetail/index.vue";
 import AddWXTaskDialog from "@/component/AddWXTaskDialog/index.vue";
 
 const props = defineProps<{
-  worker: BaseWorkerInfo | null;
+  worker: WXWorkerInfo | null;
 }>();
 
 defineEmits<{
