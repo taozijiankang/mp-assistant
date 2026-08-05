@@ -47,8 +47,6 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
 
         worker.suspend(suspend);
 
-        WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
-
         return getSuccessApiResponse(undefined, suspend ? '暂停Worker成功' : '恢复Worker成功');
     })
 
@@ -78,8 +76,6 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
 
         if (name !== undefined) worker.setName(name);
         if (weight !== undefined) worker.setWeight(weight);
-
-        WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
 
         return getSuccessApiResponse(worker.info());
     });

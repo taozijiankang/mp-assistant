@@ -106,8 +106,17 @@ export abstract class BaseWorker<
   suspend(v: boolean = true) {
     if (v && this.status === WorkerStatus.RUNNING) {
       this.status = WorkerStatus.PAUSED;
+      // 终止所有正在运行的任务并重置，恢复后可继续运行
+      this.taskList.forEach(t => {
+        if (t.getStatus() === TaskStatus.RUNNING) {
+          t.abort();
+          t.resetStatus();
+        }
+      });
+      this.changeDetail();
     } else if (!v && this.status === WorkerStatus.PAUSED) {
       this.status = WorkerStatus.RUNNING;
+      this.changeDetail();
     }
   }
 
@@ -117,11 +126,17 @@ export abstract class BaseWorker<
     }
     this.status = WorkerStatus.RUNNING;
 
-    // 获取可用端口作为 Chrome DevTools Protocol 远程调试端口
+    await this.createBrowser(options, chromeUserDataDir);
+
+    // 开始任务循环
+    this.taskCycle();
+  }
+
+  /** 创建浏览器实例并监听关闭事件，意外关闭时自动重启 */
+  private async createBrowser(options: Pick<LaunchOptions, 'headless'>, chromeUserDataDir: string) {
     const debugPort = await getPort({ port: 9222 });
     this.debugPort = debugPort;
 
-    // 启动浏览器
     this.browserContent = await chromium.launchPersistentContext(
       path.join(chromeUserDataDir, this.key),
       {
@@ -132,8 +147,15 @@ export abstract class BaseWorker<
         viewport: null,
       });
 
-    // 开始任务循环
-    this.taskCycle();
+    this.browserContent.on('close', () => {
+      if (this.destroyed) return;
+      console.warn(`[${this.key}] 浏览器意外关闭，自动重启中...`);
+      this.browserContent = null;
+      this.suspend(true);
+      this.createBrowser(options, chromeUserDataDir).then(() => {
+        this.suspend(false);
+      });
+    });
   }
 
   private async taskCycle() {

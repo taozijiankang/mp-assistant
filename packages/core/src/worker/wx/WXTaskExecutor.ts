@@ -33,6 +33,10 @@ export abstract class WXTaskExecutor<
 
                     // 用户页面
                     if (WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
+                        this.sendToTaskMessage({
+                            type: 'CHANGE_LOGIN_STATUS',
+                            data: { isLogin: true },
+                        });
                         resolve();
                     }
                     // 登录页面
