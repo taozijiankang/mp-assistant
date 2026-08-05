@@ -22,14 +22,21 @@ export class WXLoginExecutor extends WXTaskExecutor<WXLoginTaskOptions> {
         try {
             const page = await this.createPage();
 
+            this.report('text', '正在检查登录状态...');
             const isLogin = await this.getLoginStatus(page);
-            if (!isLogin) {
+            if (isLogin) {
+                this.report('text', '已登录');
+            } else {
+                this.report('text', '未登录，需要扫码');
                 await this.login(page);
+                this.report('text', '登录成功');
             }
 
+            this.report('text', '正在获取小程序列表...');
             await this.updateWxaList(page);
+            this.report('text', '小程序列表获取完成');
 
-            this.completed();
+            this.completed('登录任务完成');
         } catch (error) {
             this.failed(error instanceof Error ? error.message : '登录失败');
         }

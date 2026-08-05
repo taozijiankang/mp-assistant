@@ -41,6 +41,7 @@ export abstract class WXTaskExecutor<
                     }
                     // 登录页面
                     else if (url.pathname === WXMP_NO_LOGIN_PATH) {
+                        this.report('text', '正在获取登录二维码...');
                         // 扫码登录的二维码元素
                         const loginQRCodeLocator = page.locator('img.login__type__container__scan__qrcode');
                         // 检查二维码图片地址是否设置完成 （如果是前端渲染的话，这个元素的src值可能会延迟出来）
@@ -65,6 +66,7 @@ export abstract class WXTaskExecutor<
                             const buffer = await loginQRCodeLocator.screenshot();
                             const base64 = buffer.toString('base64');
                             const imageSrc = `data:image/png;base64,${base64}`;
+                            this.report('text', '二维码已生成，请扫码登录');
                             this.sendToTaskMessage({
                                 type: 'LOGIN_QR_CODE',
                                 data: { imageSrc },

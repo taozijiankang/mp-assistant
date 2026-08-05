@@ -29,17 +29,22 @@ export abstract class BaseWorker<
   private taskList: BaseTask[] = [];
 
   private destroyed = false;
+  private processExiting = false;
 
   constructor({ options, key }: {
     options: Options;
     key?: string;
   }) {
     super();
-    
+
     this.key = key || `worker-${getUUID()}`;
     this.options = options;
     this.status = WorkerStatus.INIT;
     this.createdTime = new Date().toISOString();
+
+    // 监听进程退出信号，防止浏览器因进程退出而关闭时触发自动重启
+    process.on('SIGINT', () => { this.processExiting = true; });
+    process.on('SIGTERM', () => { this.processExiting = true; });
   }
 
   info(): Info {
@@ -148,7 +153,7 @@ export abstract class BaseWorker<
       });
 
     this.browserContent.on('close', () => {
-      if (this.destroyed) return;
+      if (this.destroyed || this.processExiting) return;
       console.warn(`[${this.key}] 浏览器意外关闭，自动重启中...`);
       this.browserContent = null;
       this.suspend(true);
