@@ -10,10 +10,6 @@ export interface WXTaskExecutorMessage extends BaseTaskExecutorMessage {
     LOGIN_QR_CODE: {
         imageSrc: string;
     };
-    /** 登录状态变更 */
-    CHANGE_LOGIN_STATUS: {
-        isLogin: boolean;
-    };
 }
 
 export abstract class WXTaskExecutor<
@@ -27,15 +23,16 @@ export abstract class WXTaskExecutor<
                 reject(new Error('登录超时'));
             }, 3 * 60 * 1000);
 
-            page.on('load', async () => {
+            const f = async () => {
                 try {
                     const url = new URL(page.url());
 
                     // 用户页面
                     if (WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
+                        page.off('load', f);
                         this.sendToTaskMessage({
-                            type: 'CHANGE_LOGIN_STATUS',
-                            data: { isLogin: true },
+                            type: 'LOGIN_QR_CODE',
+                            data: { imageSrc: '' },
                         });
                         resolve();
                     }
@@ -79,29 +76,16 @@ export abstract class WXTaskExecutor<
                 catch (error) {
                     reject(error);
                 }
-            });
+            }
+
+            page.on('load', f);
         });
     }
 
     protected async getLoginStatus(page: Page) {
-        let isLogin = false;
         await page.goto(WXMP_URL);
         const url = new URL(page.url());
-        if (WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
-            isLogin = true;
-            this.sendToTaskMessage({
-                type: 'CHANGE_LOGIN_STATUS',
-                data: { isLogin: true },
-            });
-        } else {
-            isLogin = false;
-            this.sendToTaskMessage({
-                type: 'CHANGE_LOGIN_STATUS',
-                data: { isLogin: false },
-            });
-        }
-
-        return isLogin;
+        return WXMP_USER_PAGE_PATH_REX.test(url.pathname);
     }
 
     protected sendToTaskMessage(message: ExecutorCustomMessage<WXTaskExecutorMessage>): void {

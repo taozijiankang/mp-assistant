@@ -6,6 +6,12 @@
           <el-option v-for="opt in WXTaskTypeOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
         </el-select>
       </el-form-item>
+      <el-form-item v-if="form.type === WXTaskType.WX_LOGIN" label="操作" prop="action">
+        <el-radio-group v-model="form.action">
+          <el-radio value="login">登录</el-radio>
+          <el-radio value="logout">退出登录</el-radio>
+        </el-radio-group>
+      </el-form-item>
     </el-form>
     <template #footer>
       <el-button @click="visible = false">取消</el-button>
@@ -30,6 +36,7 @@ const currentWorkerKey = ref("");
 
 const form = reactive({
   type: WXTaskType.WX_LOGIN as string,
+  action: 'login' as 'login' | 'logout',
 });
 
 const rules: FormRules = {
@@ -38,6 +45,7 @@ const rules: FormRules = {
 
 const resetForm = () => {
   form.type = WXTaskType.WX_LOGIN;
+  form.action = 'login';
   currentWorkerKey.value = "";
   formRef.value?.resetFields();
 };
@@ -45,11 +53,15 @@ const resetForm = () => {
 const handleSubmit = async () => {
   if (!formRef.value) return;
   await formRef.value.validate();
+  const options: Record<string, any> = {};
+  if (form.type === WXTaskType.WX_LOGIN) {
+    options.action = form.action;
+  }
   try {
     await callAdd({
       key: currentWorkerKey.value,
       type: form.type as WXTaskType,
-      options: {},
+      options,
     });
     ElMessage.success("添加成功");
     visible.value = false;

@@ -17,8 +17,7 @@ export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
     /** 从运行中的登录任务获取二维码（未登录且有码时返回） */
     private getLoginQRCode(): string | undefined {
         for (const task of super.info().taskList) {
-            if (task.status !== TaskStatus.RUNNING || !isWXLoginTaskInfo(task)) continue;
-            if (!task.isLogin && task.loginQRCode) {
+            if (task.status === TaskStatus.RUNNING && isWXLoginTaskInfo(task) && task.loginQRCode) {
                 return task.loginQRCode;
             }
         }

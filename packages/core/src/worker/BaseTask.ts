@@ -98,6 +98,11 @@ export abstract class BaseTask<
     }
 
     abort(): void {
+        this.reports.push({
+            type: 'text',
+            message: '任务被终止',
+            time: Date.now(),
+        });
         this.failed('任务被终止');
     }
 
@@ -105,7 +110,18 @@ export abstract class BaseTask<
         if (this.status !== TaskStatus.FAILED && this.status !== TaskStatus.COMPLETED) {
             return;
         }
+        this.reports.push({
+            type: 'text',
+            message: '任务被重置',
+            time: Date.now(),
+        });
+        this.onReset();
         this.setStatus(TaskStatus.IDLE);
+    }
+
+    /** 子类可重写，重置自身字段 */
+    protected onReset(): void {
+        // 子类实现
     }
 
     protected completed(message?: string): void {

@@ -2,7 +2,7 @@ import { WXLoginTaskOptions } from "@mp-assistant/common/dist/work/index.js";
 import { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
 import { WXTaskExecutor, WXTaskExecutorMessage } from "../../WXTaskExecutor.js";
 import { ExecutorCustomMessage } from "../../../type.js";
-import { WXMP_URL, WXMP_USER_PAGE_PATH_REX } from "../../../../constant/wx.js";
+import { WXMP_NO_LOGIN_PATH, WXMP_URL, WXMP_USER_PAGE_PATH_REX } from "../../../../constant/wx.js";
 import { expect, Page } from "playwright/test";
 import { requestWxaList } from "../../../../api/index.js";
 
@@ -21,6 +21,16 @@ export class WXLoginExecutor extends WXTaskExecutor<WXLoginTaskOptions> {
     async execute(): Promise<void> {
         try {
             const page = await this.createPage();
+
+            if (this.options.action === 'logout') {
+                this.report('text', '正在退出登录...');
+                await this.logout(page);
+                this.report('text', '退出登录成功');
+                this.report('text', '正在更新登录状态...');
+                await this.getLoginStatus(page);
+                this.completed('退出登录完成');
+                return;
+            }
 
             this.report('text', '正在检查登录状态...');
             const isLogin = await this.getLoginStatus(page);
@@ -72,8 +82,8 @@ export class WXLoginExecutor extends WXTaskExecutor<WXLoginTaskOptions> {
         await page.waitForEvent('load');
 
         const url2 = new URL(page.url());
-        if (!WXMP_USER_PAGE_PATH_REX.test(url2.pathname)) {
-            //
+        if (url2.pathname !== WXMP_NO_LOGIN_PATH) {
+            throw new Error('退出登录失败');
         }
     }
 

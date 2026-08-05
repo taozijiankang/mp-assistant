@@ -11,32 +11,28 @@ export abstract class WXTask<
 
     /** 登录二维码 base64 data URL，由 executor 通过 LOGIN_QR_CODE 消息上报 */
     protected loginQRCode?: string;
-    /** 是否已登录 */
-    protected isLogin?: boolean;
 
     getInfo(): Info {
         return {
             ...super.getInfo(),
             loginQRCode: this.loginQRCode,
-            isLogin: this.isLogin,
         } as Info;
+    }
+
+    protected onReset(): void {
+        this.loginQRCode = '';
     }
 
     protected onExecutorMessage(message: ExecutorCustomMessage<WXTaskExecutorMessage>): void {
         const { type, data } = message;
         switch (type) {
-            case 'CHANGE_LOGIN_STATUS': {
-                this.isLogin = data.isLogin;
-                this.worker?.changeDetail();
-                return;
-            }
             case 'LOGIN_QR_CODE': {
                 this.loginQRCode = data.imageSrc;
                 this.worker?.changeDetail();
                 return;
             }
             default: {
-                super.onExecutorMessage(message);
+                super.onExecutorMessage(message as any);
                 return;
             }
         }

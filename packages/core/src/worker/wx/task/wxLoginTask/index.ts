@@ -18,6 +18,11 @@ export class WXLoginTask extends WXTask<WXLoginTaskOptions, WXLoginTaskInfo> {
         } as WXLoginTaskInfo;
     }
 
+    protected onReset(): void {
+        super.onReset();
+        this.wxaList = undefined;
+    }
+
     protected onExecutorMessage(message: ExecutorCustomMessage<WXLoginExecutorMessage>): void {
         if (message.type === 'UPDATE_WXA_LIST') {
             this.wxaList = message.data.wxaList;

@@ -29,13 +29,7 @@
           <span class="label">{{ task.status === TaskStatus.FAILED ? '失败原因' : '完成信息' }}</span>
           <span>{{ task.completedMessage }}</span>
         </div>
-        <div v-if="task.isLogin !== undefined" class="detail-row">
-          <span class="label">登录状态</span>
-          <el-tag :type="task.isLogin ? 'success' : 'warning'" size="small">
-            {{ task.isLogin ? '已登录' : '未登录' }}
-          </el-tag>
-        </div>
-        <div v-if="task.loginQRCode && !task.isLogin" class="detail-row qrcode-row">
+        <div v-if="task.status === TaskStatus.RUNNING && task.loginQRCode" class="detail-row qrcode-row">
           <span class="label">登录二维码</span>
           <img :src="task.loginQRCode" class="qrcode-image" />
         </div>
