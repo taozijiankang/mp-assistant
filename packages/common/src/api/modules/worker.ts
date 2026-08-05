@@ -1,6 +1,6 @@
 import { BaseTaskInfo } from "../../work/BaseTask.js";
 import { BaseWorkerInfo, BaseWorkerOptions } from "../../work/BaseWorker.js";
-import { WorkerType, WXTaskType } from "../../work/const.js";
+import { WXTaskType } from "../../work/const.js";
 import { WXWorkerInfo } from "../../work/wx/WXWorker.js";
 import { APIErrorRes, APISuccessRes } from "../type.js";
 
@@ -13,22 +13,6 @@ export namespace WorkerApi {
         export const method = 'GET';
 
         export type ResponseData = BaseWorkerInfo[];
-        export type SuccessResponse = APISuccessRes<ResponseData>;
-        export type Response = SuccessResponse | APIErrorRes;
-    }
-
-    /**
-     * 获取指定 Worker 信息
-     */
-    export namespace GetWorkerDetail {
-        export const url = '/worker/detail';
-        export const method = 'GET';
-
-        export type RequestQuery = {
-            key: string;
-        };
-
-        export type ResponseData = BaseWorkerInfo;
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }
@@ -99,40 +83,6 @@ export namespace WorkerApi {
     }
 
     /**
-     * 标记小程序
-     */
-    export namespace MarkWXAppId {
-        export const url = '/worker/markWXAppId';
-        export const method = 'POST';
-
-        export type RequestBody = {
-            key: string;
-            appId: string;
-            mark: boolean;
-        };
-
-        export type ResponseData = void;
-        export type SuccessResponse = APISuccessRes<ResponseData>;
-        export type Response = SuccessResponse | APIErrorRes;
-    }
-
-    /**
-     * 清空该 Worker 下所有小程序标记
-     */
-    export namespace ClearAllMarkWXAppIds {
-        export const url = '/worker/clearAllMarkWXAppIds';
-        export const method = 'POST';
-
-        export type RequestBody = {
-            key: string;
-        };
-
-        export type ResponseData = void;
-        export type SuccessResponse = APISuccessRes<ResponseData>;
-        export type Response = SuccessResponse | APIErrorRes;
-    }
-
-    /**
      * 添加任务
      */
     export namespace AddTask {
@@ -166,25 +116,7 @@ export namespace WorkerApi {
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }
-
-
-    /**
-     * 获取任务信息
-     */
-    export namespace TaskDetail {
-        export const url = '/worker/taskDetail';
-        export const method = 'GET';
-
-        export type RequestQuery = {
-            key: string;
-            taskKey: string;
-        };
-
-        export type ResponseData = BaseTaskInfo;
-        export type SuccessResponse = APISuccessRes<ResponseData>;
-        export type Response = SuccessResponse | APIErrorRes;
-    }
-
+    
     /**
      * 终止任务
      */

@@ -24,6 +24,9 @@ export abstract class BaseTask<
 
     private reports: TaskReport[] = [];
 
+    /** 任务完成/失败时记录的消息 */
+    private completedMessage?: string;
+
     worker: TaskWorker | null = null;
 
     constructor({ options, key }: { options: Options, key?: string }) {
@@ -39,6 +42,7 @@ export abstract class BaseTask<
             createdTime: new Date().toISOString(),
             options: this.options as BaseTaskOptions,
             reports: this.reports,
+            completedMessage: this.completedMessage,
         } as Info;
     }
 
@@ -74,14 +78,14 @@ export abstract class BaseTask<
 
         // 任务创建失败
         this.executorTask.on('error', () => {
-            this.failed();
+            this.failed('子进程启动失败');
         });
         // 任务退出
         this.executorTask.on('close', (code) => {
             if (code === 0) {
-                this.completed();
+                this.completed('进程正常退出');
             } else {
-                this.failed();
+                this.failed(`进程异常退出, 退出码: ${code}`);
             }
         });
 
@@ -92,7 +96,7 @@ export abstract class BaseTask<
     }
 
     abort(): void {
-        this.failed();
+        this.failed('任务被终止');
     }
 
     resetStatus(): void {
@@ -106,19 +110,19 @@ export abstract class BaseTask<
         new BaseTaskExecutor(this.options, context).execute();
     }
 
-    protected completed(): void {
+    protected completed(message?: string): void {
         if (this.status !== TaskStatus.RUNNING) {
             return;
         }
-        console.log(`[${this.type}] completed`);
+        this.completedMessage = message;
         this.setStatus(TaskStatus.COMPLETED);
     }
 
-    protected failed(): void {
+    protected failed(message?: string): void {
         if (this.status !== TaskStatus.RUNNING) {
             return;
         }
-        console.log(`[${this.type}] failed`);
+        this.completedMessage = message;
         this.setStatus(TaskStatus.FAILED);
     }
 
@@ -129,13 +133,13 @@ export abstract class BaseTask<
             case 'COMPLETED': {
                 const _data = data as BaseTaskExecutorMessage['COMPLETED'];
                 if (_data.status === TaskStatus.COMPLETED) {
-                    this.completed();
+                    this.completed(_data.message);
                 } else {
-                    this.failed();
+                    this.failed(_data.message);
                 }
-            }
                 break;
-            case 'REPORT':
+            }
+            case 'REPORT': {
                 const _data = data as BaseTaskExecutorMessage['REPORT'];
                 this.reports.push({
                     ..._data,
@@ -143,6 +147,7 @@ export abstract class BaseTask<
                 });
                 this.worker?.changeDetail();
                 break;
+            }
             default:
                 return;
         }

@@ -66,6 +66,7 @@ export abstract class BaseWorker<
   removeTask(taskKey: string): void {
     const task = this.taskList.find(t => t.getKey() === taskKey);
     if (task) {
+      task.abort();
       task.worker = null;
     }
     this.taskList = this.taskList.filter(t => t.getKey() !== taskKey);

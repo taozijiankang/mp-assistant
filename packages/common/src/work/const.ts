@@ -47,6 +47,13 @@ export enum TaskStatus {
     FAILED = "failed",
 }
 
+export const TaskStatusDict = {
+    [TaskStatus.IDLE]: '空闲',
+    [TaskStatus.RUNNING]: '执行中',
+    [TaskStatus.COMPLETED]: '完成',
+    [TaskStatus.FAILED]: '失败',
+}
+
 export const WXTaskTypeDict = {
     [WXTaskType.WX_LOGIN]: '登录',
     [WXTaskType.WX_INSPECT_VERSION]: '检查版本',

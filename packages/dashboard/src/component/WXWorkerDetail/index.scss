@@ -37,7 +37,24 @@
 
   .detail-body {
     flex: 1;
+    min-height: 0;
+    overflow-y: auto;
     padding-top: 12px;
+
+    .detail-section {
+      margin-bottom: 16px;
+
+      .section-title {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #ebeef5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
 
     .detail-row {
       display: flex;
@@ -49,6 +66,36 @@
         color: #909399;
         font-size: 13px;
         flex-shrink: 0;
+      }
+    }
+
+    .task-section {
+      .task-area {
+        display: flex;
+        gap: 12px;
+        min-height: 200px;
+      }
+
+      .task-left {
+        width: 180px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .task-right {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .task-empty {
+        text-align: center;
+        color: #999;
+        font-size: 13px;
+        padding: 24px 0;
       }
     }
   }

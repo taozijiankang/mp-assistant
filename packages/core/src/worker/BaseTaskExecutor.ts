@@ -6,6 +6,7 @@ export interface BaseTaskExecutorMessage {
     /** 完成任务 */
     COMPLETED: {
         status: TaskStatus.COMPLETED | TaskStatus.FAILED;
+        message?: string;
     };
     /** 运行报告 */
     REPORT: {
@@ -29,7 +30,7 @@ export class BaseTaskExecutor<Options extends BaseTaskOptions = BaseTaskOptions>
     }
 
     async execute() {
-        console.log('execute task');
+        console.log('BaseTaskExecutor execute');
 
         this.completed();
     }
@@ -44,9 +45,10 @@ export class BaseTaskExecutor<Options extends BaseTaskOptions = BaseTaskOptions>
         }
     }
 
-    protected completed(): void {
+    protected completed(message?: string): void {
         this.sendToTaskMessage('COMPLETED', {
             status: TaskStatus.COMPLETED,
+            message,
         });
     }
 
@@ -54,9 +56,10 @@ export class BaseTaskExecutor<Options extends BaseTaskOptions = BaseTaskOptions>
         this.sendToTaskMessage('REPORT', { type, message });
     }
 
-    protected failed(): void {
+    protected failed(message?: string): void {
         this.sendToTaskMessage('COMPLETED', {
             status: TaskStatus.FAILED,
+            message,
         });
     }
 }

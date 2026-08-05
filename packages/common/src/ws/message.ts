@@ -46,32 +46,11 @@ export namespace WSMessage {
             }
         }
 
-        /**
-         * 详情改变
-         */
-        export namespace DetailChange {
-            export const type = 'worker-detail-change';
-
-            export type Data = {
-                key: string;
-            };
-            export interface Message extends WSMessageFormat<Data> {
-                type: typeof type;
-            }
-
-            export function createMessage(data: Data): Message {
-                return {
-                    type,
-                    data,
-                }
-            }
-        }
     }
 
     export interface EventMap {
         [Heartbeat.type]: Heartbeat.Data,
         [Worker.ListChange.type]: Worker.ListChange.Data,
-        [Worker.DetailChange.type]: Worker.DetailChange.Data,
     }
 
     export class Event extends EventEmitter<EventMap> { }

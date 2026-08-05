@@ -1,7 +1,6 @@
 import { TaskStatus, WXTaskType } from "./const.js";
 
 export interface BaseTaskOptions {
-    name: string;
 }
 
 export interface TaskReport {
@@ -19,4 +18,6 @@ export interface BaseTaskInfo {
     createdTime: string;
     options: BaseTaskOptions;
     reports: TaskReport[];
+    /** 完成/失败时记录的消息 */
+    completedMessage?: string;
 }

@@ -1,0 +1,29 @@
+.task-card {
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid #ebeef5;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #409eff;
+  }
+
+  &.active {
+    border-color: #409eff;
+    background: #ecf5ff;
+  }
+
+  .task-name {
+    font-size: 13px;
+    margin-bottom: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .task-meta {
+    display: flex;
+    gap: 6px;
+  }
+}

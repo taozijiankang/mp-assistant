@@ -12,4 +12,4 @@ export function invokeExecuteTask(type: string, options: BaseTaskOptions, debugP
         JSON.stringify(options),
         debugPort.toString()
     ]);
-}   
+}

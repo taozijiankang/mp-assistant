@@ -3,6 +3,7 @@
     <div class="home-left">
       <div class="left-header">
         <span class="left-title">Worker 列表</span>
+        <span v-if="listLoading" class="loading-tip">加载中...</span>
         <el-button type="primary" size="small" @click="addWorkerDialog?.open()">添加</el-button>
       </div>
       <div class="left-list">
@@ -16,9 +17,10 @@
       </div>
     </div>
     <div class="home-right">
-      <WorkerDetail
+      <WXWorkerDetail
+        v-if="selectedWorker?.type === WorkerType.WX"
         :worker="selectedWorker"
-        @update="handleUpdateWorker"
+        @edit="handleEditWorker"
         @toggle-suspend="handleToggleSuspend"
         @remove="handleRemoveWorker"
       />
@@ -30,43 +32,39 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { useApiCall } from "@/hooks/useApiCall";
 import {
   requestGetWorkerList,
   requestRemoveWorker,
-  requestUpdateWorker,
   requestPauseAndRecoverWorker,
 } from "@/api";
-import { useApiCall } from "@/hooks/useApiCall";
 import { WSConnection } from "@/ws/WSConnection";
 import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
-import { WorkerStatus } from "@mp-assistant/common/dist/work/const.js";
-import type { BaseWorkerInfo } from "@mp-assistant/common/dist/work/BaseWorker.js";
+import { WorkerStatus, WorkerType } from "@mp-assistant/common/dist/work/const.js";
 import WorkerCard from "./component/WorkerCard/index.vue";
-import WorkerDetail from "./component/WorkerDetail/index.vue";
-import AddWorkerDialog from "./component/AddWorkerDialog/index.vue";
+import WXWorkerDetail from "@/component/WXWorkerDetail/index.vue";
+import AddWorkerDialog from "@/component/AddWorkerDialog/index.vue";
 
-const workerList = ref<BaseWorkerInfo[]>([]);
 const selectedKey = ref<string | null>(null);
 const addWorkerDialog = ref<InstanceType<typeof AddWorkerDialog> | null>(null);
 
+const { call: fetchList, loading: listLoading, data: workerList } = useApiCall(requestGetWorkerList, {
+  onCallAfter: () => {
+    if (workerList.value && workerList.value.length > 0) {
+      if (!selectedKey.value || !workerList.value.find(w => w.key === selectedKey.value)) {
+        selectedKey.value = workerList.value[0].key;
+      }
+    }
+  },
+});
+
 const selectedWorker = computed(() =>
-  workerList.value.find((w) => w.key === selectedKey.value) ?? null
+  workerList.value?.find((w) => w.key === selectedKey.value) ?? null
 );
 
-const fetchList = async () => {
-  const { data } = await requestGetWorkerList();
-  workerList.value = data;
-};
-
-const { call: updateWorker } = useApiCall(requestUpdateWorker);
-
-const handleUpdateWorker = async (values: { name?: string; weight?: number }) => {
-  if (!selectedKey.value) return;
-  try {
-    await updateWorker({ key: selectedKey.value, ...values });
-    await fetchList();
-    ElMessage.success("更新成功");
-  } catch {}
+const handleEditWorker = () => {
+  if (!selectedWorker.value) return;
+  addWorkerDialog.value?.open(selectedWorker.value);
 };
 
 const { call: toggleSuspend } = useApiCall(requestPauseAndRecoverWorker);
@@ -97,7 +95,7 @@ const handleRemoveWorker = async () => {
 
 onMounted(() => {
   fetchList();
-  WSConnection.instance.on(WSMessage.Worker.DetailChange.type, () => {
+  WSConnection.instance.on(WSMessage.Worker.ListChange.type, () => {
     fetchList();
   });
 });
