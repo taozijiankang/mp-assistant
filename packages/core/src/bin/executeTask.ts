@@ -1,6 +1,6 @@
 import { BaseTaskOptions, WXTaskType } from "@mp-assistant/common/dist/work/index.js";
 import { chromium } from "playwright";
-import { createTask } from "../worker/index.js";
+import { createExecutor } from "../worker/index.js";
 
 /**
  * 子进程入口：根据 taskType 创建对应 Executor 并执行
@@ -19,7 +19,7 @@ async function start(taskType: WXTaskType, options: BaseTaskOptions, debugPort: 
         process.exit(1);
     }
 
-    createTask(taskType, options).execute(browserContext);
+    createExecutor(taskType, options, browserContext).execute();
 }
 
 const taskType = process.argv[2] || '';

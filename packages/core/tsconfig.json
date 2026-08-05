@@ -3,6 +3,7 @@
   "extends": "@mp-assistant/configuration/tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ESNext", "DOM"],
+    "types": ["node"],
     "rootDir": "./src",
     "outDir": "./dist",
     "declarationDir": "./dist",

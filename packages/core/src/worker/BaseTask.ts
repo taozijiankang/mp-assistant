@@ -3,8 +3,8 @@ import { BaseTaskOptions, BaseTaskInfo, TaskReport } from "@mp-assistant/common/
 import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
 import { ChildProcess } from "node:child_process";
 import { invokeExecuteTask } from "../bin/invoke.js";
-import { BaseTaskExecutor, BaseTaskExecutorMessage } from "./BaseTaskExecutor.js";
-import { BrowserContext } from "playwright";
+import { BaseTaskExecutorMessage } from "./BaseTaskExecutor.js";
+import { ExecutorCommonMessage, ExecutorCustomMessage } from "./type.js";
 
 export interface TaskWorker {
     changeDetail(): void;
@@ -12,7 +12,7 @@ export interface TaskWorker {
 
 export abstract class BaseTask<
     Options extends BaseTaskOptions = BaseTaskOptions,
-    Info extends BaseTaskInfo = BaseTaskInfo
+    Info extends BaseTaskInfo = BaseTaskInfo,
 > {
     declare readonly type: string;
     declare readonly key: string;
@@ -20,7 +20,7 @@ export abstract class BaseTask<
 
     protected status: TaskStatus = TaskStatus.IDLE;
 
-    private executorTask: ChildProcess | null = null;
+    private executorCP: ChildProcess | null = null;
 
     private reports: TaskReport[] = [];
 
@@ -58,12 +58,15 @@ export abstract class BaseTask<
         this.status = status;
         this.worker?.changeDetail();
 
-        // 任务完成或失败，杀死任务进程，先移除监听防止旧回调干扰后续 rerun
+        // 任务完成或失败，通知执行器自行退出
         if (this.status === TaskStatus.COMPLETED || this.status === TaskStatus.FAILED) {
-            if (this.executorTask) {
-                this.executorTask.removeAllListeners();
-                this.executorTask.kill();
-                this.executorTask = null;
+            if (this.executorCP) {
+                this.executorCP.removeAllListeners();
+                // 发送自杀命令给执行器
+                if (this.executorCP.exitCode === null) {
+                    this.executorCP.send({ type: 'KILL', data: undefined } as ExecutorCustomMessage<BaseTaskExecutorMessage>);
+                }
+                this.executorCP = null;
             }
         }
     }
@@ -74,14 +77,14 @@ export abstract class BaseTask<
         }
         this.setStatus(TaskStatus.RUNNING);
 
-        this.executorTask = invokeExecuteTask(this.type, this.options, debugPort);
+        this.executorCP = invokeExecuteTask(this.type, this.options, debugPort);
 
         // 任务创建失败
-        this.executorTask.on('error', () => {
+        this.executorCP.on('error', () => {
             this.failed('子进程启动失败');
         });
         // 任务退出
-        this.executorTask.on('close', (code) => {
+        this.executorCP.on('close', (code) => {
             if (code === 0) {
                 this.completed('进程正常退出');
             } else {
@@ -89,9 +92,8 @@ export abstract class BaseTask<
             }
         });
 
-        this.executorTask.on('message', (message_) => {
-            const message = message_ as { type: string, data: any };
-            this.onExecutorMessage(message.type, message.data);
+        this.executorCP.on('message', (message) => {
+            this.onExecutorMessage(message as any);
         });
     }
 
@@ -104,10 +106,6 @@ export abstract class BaseTask<
             return;
         }
         this.setStatus(TaskStatus.IDLE);
-    }
-
-    execute(context: BrowserContext) {
-        new BaseTaskExecutor(this.options, context).execute();
     }
 
     protected completed(message?: string): void {
@@ -126,16 +124,13 @@ export abstract class BaseTask<
         this.setStatus(TaskStatus.FAILED);
     }
 
-    protected onExecutorMessage(type: string, data: any): void {
-        const _type = type as keyof BaseTaskExecutorMessage;
-
-        switch (_type) {
+    protected onExecutorMessage({ type, data }: ExecutorCustomMessage<BaseTaskExecutorMessage>): void {
+        switch (type) {
             case 'COMPLETED': {
-                const _data = data as BaseTaskExecutorMessage['COMPLETED'];
-                if (_data.status === TaskStatus.COMPLETED) {
-                    this.completed(_data.message);
+                if (data.status === TaskStatus.COMPLETED) {
+                    this.completed(data.message);
                 } else {
-                    this.failed(_data.message);
+                    this.failed(data.message);
                 }
                 break;
             }
@@ -153,13 +148,13 @@ export abstract class BaseTask<
         }
     }
 
-    protected sendToExecutorMessage(type: string, data: any): void {
+    protected sendToExecutorMessage(message: ExecutorCommonMessage): void {
         if (
             this.status === TaskStatus.RUNNING &&
-            this.executorTask &&
-            this.executorTask.exitCode === null
+            this.executorCP &&
+            this.executorCP.exitCode === null
         ) {
-            this.executorTask.send({ type, data });
+            this.executorCP.send(message);
         }
     }
 }

@@ -29,6 +29,26 @@
           <span class="label">{{ task.status === TaskStatus.FAILED ? '失败原因' : '完成信息' }}</span>
           <span>{{ task.completedMessage }}</span>
         </div>
+        <div v-if="task.isLogin !== undefined" class="detail-row">
+          <span class="label">登录状态</span>
+          <el-tag :type="task.isLogin ? 'success' : 'warning'" size="small">
+            {{ task.isLogin ? '已登录' : '未登录' }}
+          </el-tag>
+        </div>
+        <div v-if="task.loginQRCode && !task.isLogin" class="detail-row qrcode-row">
+          <span class="label">登录二维码</span>
+          <img :src="task.loginQRCode" class="qrcode-image" />
+        </div>
+
+        <div v-if="wxaList.length > 0" class="wxa-section">
+          <div class="section-title">小程序列表 ({{ wxaList.length }})</div>
+          <div class="wxa-list">
+            <div v-for="item in wxaList" :key="item.appid" class="wxa-item">
+              <img :src="item.app_headimg" class="wxa-avatar" />
+              <span class="wxa-name">{{ item.app_name }}</span>
+            </div>
+          </div>
+        </div>
 
         <div v-if="task.reports.length > 0" class="reports-section">
           <div class="reports-title">报告 ({{ task.reports.length }})</div>
@@ -80,11 +100,13 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import type { BaseTaskInfo } from "@mp-assistant/common/dist/work/BaseTask.js";
-import { TaskStatus, TaskStatusDict, WXTaskTypeDict } from "@mp-assistant/common/dist/work/const.js";
+import type { WXTaskInfo } from "@mp-assistant/common/dist/work/wx/WXTask.js";
+import type { WXLoginTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXLoginTask.js";
+import type { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
+import { TaskStatus, TaskStatusDict, WXTaskTypeDict, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
 
 const props = defineProps<{
-  task: BaseTaskInfo | null;
+  task: WXTaskInfo | null;
 }>();
 
 defineEmits<{
@@ -101,6 +123,13 @@ const statusTagType = computed(() => {
     case TaskStatus.FAILED: return "danger";
     default: return "info";
   }
+});
+
+const isWXLoginTask = computed(() => props.task?.type === WXTaskType.WX_LOGIN);
+
+const wxaList = computed<WXMPItem[]>(() => {
+  if (!isWXLoginTask.value) return [];
+  return (props.task as WXLoginTaskInfo).wxaList ?? [];
 });
 
 const formatTime = (timestamp: number) => {

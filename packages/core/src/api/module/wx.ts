@@ -1,6 +1,6 @@
 import { Page } from "playwright";
-import { WXMP_HOST } from "../../constant/wx.js";
 import { WXMPItem, WXMPVersionItem } from "@mp-assistant/common/dist/types/wx.js";
+import { WXMP_URL } from "../../constant/wx.js";
 
 /**
  * 获取用户的小程序列表
@@ -10,7 +10,7 @@ import { WXMPItem, WXMPVersionItem } from "@mp-assistant/common/dist/types/wx.js
  */
 export async function requestWxaList(page: Page): Promise<WXMPItem[]> {
     const url = new URL(page.url());
-    const response = await page.request.get(`https://${WXMP_HOST}/wxamp/cgi/getWxaList${url.search}&random=${Math.random()}`);
+    const response = await page.request.get(`${WXMP_URL}/wxamp/cgi/getWxaList${url.search}&random=${Math.random()}`);
     if (response.ok()) {
         try {
             const result = await response.json();
@@ -34,7 +34,7 @@ export async function getVersionList(page: Page): Promise<WXMPVersionItem> {
     const urlParams = new URLSearchParams(page.url())
     const queryParams = 'path=' + encodeURIComponent(`/wxopen/wacodepage?action=getcodepage&f=json&token=1268116713&lang=zh_CN`) + `&token=${urlParams.get('token')}&lang=zh_CN&random=${Math.random()}`
 
-    const response = await page.request.get(`https://${WXMP_HOST}/wxamp/cgi/route`, {
+    const response = await page.request.get(`${WXMP_URL}/wxamp/cgi/route`, {
         params: queryParams
     });
     if (response.ok()) {
@@ -60,7 +60,7 @@ export async function cancelReview(page: Page): Promise<WXMPItem[]> {
     const urlParams = new URLSearchParams(page.url())
     const queryParams = 'path=' + encodeURIComponent(`/wxopen/wacodepage?action=undo_expr`) + `&token=${urlParams.get('token')}&lang=zh_CN&random=${Math.random()}`
 
-    const response = await page.request.post(`https://${WXMP_HOST}/wxamp/cgi/route`, {
+    const response = await page.request.post(`${WXMP_URL}/wxamp/cgi/route`, {
         params: queryParams
     });
     if (response.ok()) {
