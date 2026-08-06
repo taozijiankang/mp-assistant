@@ -1,23 +1,27 @@
 .worker-card {
-  padding: 10px 12px;
-  border-radius: 6px;
+  padding: 12px;
+  border-radius: 8px;
   cursor: pointer;
-  border: 1px solid #e4e7ed;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border-left: 3px solid transparent;
   transition: all 0.2s;
 
   &:hover {
-    border-color: #00b240;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   &.active {
-    border-color: #00b240;
-    background: #f0f9eb;
+    border-left-color: #00b240;
+    box-shadow: 0 2px 8px rgba(0, 178, 64, 0.15);
   }
 
   .worker-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-bottom: 6px;
   }
 
   .worker-card-name {
@@ -25,12 +29,6 @@
     font-size: 14px;
   }
 
-  .worker-card-footer {
-    margin-top: 6px;
-
-    .worker-card-key {
-      font-size: 12px;
-      color: #999;
-    }
-  }
-}
+  .worker-card-status {
+    font-size: 12px;
+  }}

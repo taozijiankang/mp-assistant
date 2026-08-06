@@ -2,10 +2,10 @@
   <div class="worker-card" :class="{ active }" @click="$emit('select')">
     <div class="worker-card-header">
       <span class="worker-card-name">{{ info.options.name }}</span>
-      <el-tag :type="statusTagType" size="small">{{ statusLabel }}</el-tag>
+      <el-tag type="info" size="small">{{ WorkerTypeDict[info.type] }}</el-tag>
     </div>
-    <div class="worker-card-footer">
-      <span class="worker-card-key">{{ info.key }}</span>
+    <div class="worker-card-status">
+      <el-tag :type="statusTagType" size="small">{{ statusLabel }}</el-tag>
     </div>
   </div>
 </template>
@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { BaseWorkerInfo } from "@mp-assistant/common/dist/work/BaseWorker.js";
-import { WorkerStatus, WorkerStatusDict } from "@mp-assistant/common/dist/work/const.js";
+import { WorkerStatus, WorkerStatusDict, WorkerTypeDict } from "@mp-assistant/common/dist/work/const.js";
 
 const props = defineProps<{
   info: BaseWorkerInfo;

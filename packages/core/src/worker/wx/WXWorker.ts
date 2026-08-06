@@ -1,7 +1,7 @@
 import { TaskStatus, WorkerType } from "@mp-assistant/common/dist/work/const.js";
 import { BaseWorker } from "../BaseWorker.js";
 import { WXWorkerInfo, WXWorkerOptions, WXWorkerWxaItem } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
-import { isWXLoginTaskInfo, isWXInspectVersionTaskInfo } from "@mp-assistant/common/dist/work/index.js";
+import { isWXLoginTaskInfo, isWXInspectVersionTaskInfo, isWXTaskInfo } from "@mp-assistant/common/dist/work/index.js";
 import type { WXVersionCodeData } from "@mp-assistant/common/dist/types/wx.js";
 
 export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
@@ -18,7 +18,7 @@ export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
     /** 从运行中的登录任务获取二维码（未登录且有码时返回） */
     private getLoginQRCode(): string | undefined {
         for (const task of super.info().taskList) {
-            if (task.status === TaskStatus.RUNNING && isWXLoginTaskInfo(task) && task.loginQRCode) {
+            if (task.status === TaskStatus.RUNNING && isWXTaskInfo(task) && task.loginQRCode) {
                 return task.loginQRCode;
             }
         }

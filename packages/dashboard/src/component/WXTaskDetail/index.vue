@@ -6,7 +6,6 @@
           <span class="detail-name">{{ WXTaskTypeDict[task.type] }}</span>
           <el-tag :type="statusTagType" size="small">{{ TaskStatusDict[task.status] }}</el-tag>
         </div>
-        <span class="detail-key">{{ task.key }}</span>
       </div>
 
       <div class="detail-body">
@@ -22,26 +21,26 @@
           <span class="label">创建时间</span>
           <span>{{ task.createdTime }}</span>
         </div>
+        <div v-if="task.type === WXTaskType.WX_LOGIN" class="detail-row">
+          <span class="label">操作</span>
+          <span :class="(task as any).options.action === 'logout' ? 'text-logout' : 'text-login'">
+            {{ (task as any).options.action === 'logout' ? '退出登录' : '登录' }}
+          </span>
+        </div>
+        <div v-if="task.type === WXTaskType.WX_INSPECT_VERSION" class="detail-row">
+          <span class="label">小程序</span>
+          <template v-if="inspectWxaItem">
+            <img :src="inspectWxaItem.app_headimg" class="detail-app-avatar" />
+            <span>{{ inspectWxaItem.app_name }}</span>
+          </template>
+          <span v-else>{{ (task as any).options.appId }}</span>
+        </div>
         <div
           v-if="task.completedMessage && (task.status === TaskStatus.COMPLETED || task.status === TaskStatus.FAILED)"
           class="detail-row"
         >
           <span class="label">{{ task.status === TaskStatus.FAILED ? '失败原因' : '完成信息' }}</span>
           <span>{{ task.completedMessage }}</span>
-        </div>
-        <div v-if="task.status === TaskStatus.RUNNING && task.loginQRCode" class="detail-row qrcode-row">
-          <span class="label">登录二维码</span>
-          <img :src="task.loginQRCode" class="qrcode-image" />
-        </div>
-
-        <div v-if="wxaList.length > 0" class="wxa-section">
-          <div class="section-title">小程序列表 ({{ wxaList.length }})</div>
-          <div class="wxa-list">
-            <div v-for="item in wxaList" :key="item.appid" class="wxa-item">
-              <img :src="item.app_headimg" class="wxa-avatar" />
-              <span class="wxa-name">{{ item.app_name }}</span>
-            </div>
-          </div>
         </div>
 
         <div v-if="task.reports.length > 0" class="reports-section">
@@ -59,8 +58,23 @@
               </template>
               <template v-else>
                 <span class="report-time">{{ formatTime(report.time) }}</span>
-                <img :src="report.message" class="report-image" />
+                <el-image :src="report.message" :preview-src-list="[report.message]" fit="contain" class="report-image" />
               </template>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="task.status === TaskStatus.RUNNING && task.loginQRCode" class="detail-row qrcode-row">
+          <span class="label">登录二维码</span>
+          <img :src="task.loginQRCode" class="qrcode-image" />
+        </div>
+
+        <div v-if="wxaList.length > 0" class="wxa-section">
+          <div class="section-title">小程序列表 ({{ wxaList.length }})</div>
+          <div class="wxa-list">
+            <div v-for="item in wxaList" :key="item.appid" class="wxa-item">
+              <img :src="item.app_headimg" class="wxa-avatar" />
+              <span class="wxa-name">{{ item.app_name }}</span>
             </div>
           </div>
         </div>
@@ -101,6 +115,7 @@ import { TaskStatus, TaskStatusDict, WXTaskTypeDict, WXTaskType } from "@mp-assi
 
 const props = defineProps<{
   task: WXTaskInfo | null;
+  wxaList?: WXMPItem[];
 }>();
 
 defineEmits<{
@@ -124,6 +139,12 @@ const isWXLoginTask = computed(() => props.task?.type === WXTaskType.WX_LOGIN);
 const wxaList = computed<WXMPItem[]>(() => {
   if (!isWXLoginTask.value) return [];
   return (props.task as WXLoginTaskInfo).wxaList ?? [];
+});
+
+const inspectWxaItem = computed(() => {
+  if (!props.task || props.task.type !== WXTaskType.WX_INSPECT_VERSION) return null;
+  const appId = (props.task.options as any).appId as string;
+  return props.wxaList?.find(item => item.appid === appId) ?? null;
 });
 
 const formatTime = (timestamp: number) => {

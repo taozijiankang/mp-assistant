@@ -2,37 +2,39 @@
   <div class="worker-detail">
     <template v-if="worker">
       <div class="detail-header">
-        <div class="detail-title">
-          <span class="detail-name">{{ worker.options.name }}</span>
-          <el-tag :type="statusTagType" size="small">{{ statusLabel }}</el-tag>
+        <div>
+          <div class="detail-title">
+            <span class="detail-name">{{ worker.options.name }}</span>
+            <el-tag type="info" size="small">{{ WorkerTypeDict[worker.type] }}</el-tag>
+            <el-tag :type="statusTagType" size="small">{{ statusLabel }}</el-tag>
+          </div>
+          <div class="detail-info">
+            <span>权重 {{ worker.options.weight ?? '-' }}</span>
+            <span>并发 {{ worker.options.syncTaskNum }}</span>
+            <span>{{ worker.createdTime }}</span>
+          </div>
         </div>
-        <span class="detail-key">{{ worker.key }}</span>
+        <div class="detail-header-actions">
+          <el-button size="small" @click="$emit('edit')">编辑</el-button>
+          <el-button
+            size="small"
+            :type="worker.status === WorkerStatus.RUNNING ? 'warning' : 'success'"
+            @click="$emit('toggleSuspend')"
+          >
+            {{ worker.status === WorkerStatus.PAUSED ? '恢复' : '暂停' }}
+          </el-button>
+          <el-button size="small" type="danger" @click="$emit('remove')">删除</el-button>
+        </div>
       </div>
 
       <div class="detail-body">
-        <div class="detail-section">
-          <div class="section-title">Worker 信息</div>
-          <div class="detail-row">
-            <span class="label">名称</span>
-            <span>{{ worker.options.name }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="label">权重</span>
-            <span>{{ worker.options.weight ?? '-' }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="label">并发任务数</span>
-            <span>{{ worker.options.syncTaskNum }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="label">创建时间</span>
-            <span>{{ worker.createdTime }}</span>
-          </div>
+        <div class="detail-left">
           <div v-if="worker.loginQRCode" class="detail-row qrcode-row">
             <span class="label">登录二维码</span>
             <img :src="worker.loginQRCode" class="qrcode-image" />
           </div>
-          <div v-if="worker.wxaList && worker.wxaList.length > 0" class="wxa-section">
+
+          <div v-if="worker.wxaList && worker.wxaList.length > 0" class="detail-section">
             <div class="section-title">小程序列表 ({{ worker.wxaList.length }})</div>
             <div class="wxa-list">
               <div v-for="item in worker.wxaList" :key="item.appid" class="wxa-item">
@@ -60,45 +62,35 @@
           </div>
         </div>
 
-        <div class="detail-section task-section">
+        <div class="detail-right">
           <div class="section-title">
             <span>任务列表</span>
             <el-button size="small" type="primary" @click="addTaskDialog?.open(worker.key)">添加任务</el-button>
           </div>
-          <div v-if="worker.taskList.length > 0" class="task-area">
-            <div class="task-left">
-              <WXTaskCard
-                v-for="task in worker.taskList"
-                :key="task.key"
-                :info="task"
-                :active="selectedTaskKey === task.key"
-                @select="selectedTaskKey = task.key"
-              />
-            </div>
-            <div class="task-right">
-              <WXTaskDetail
-                :task="selectedTask"
-                @abort="handleAbortTask"
-                @reset="handleResetTask"
-                @remove="handleRemoveTask"
-              />
-            </div>
+          <div v-if="worker.taskList.length > 0" class="task-list">
+            <WXTaskCard
+              v-for="task in worker.taskList"
+              :key="task.key"
+              :info="task"
+              :active="selectedTaskKey === task.key"
+              :wxa-list="worker.wxaList"
+              @select="openTaskDrawer(task.key)"
+            />
           </div>
           <div v-else class="task-empty">暂无任务</div>
         </div>
       </div>
 
-      <div class="detail-actions">
-        <el-button size="small" @click="$emit('edit')">编辑</el-button>
-        <el-button
-          size="small"
-          :type="worker.status === WorkerStatus.RUNNING ? 'warning' : 'success'"
-          @click="$emit('toggleSuspend')"
-        >
-          {{ worker.status === WorkerStatus.PAUSED ? '恢复' : '暂停' }}
-        </el-button>
-        <el-button size="small" type="danger" @click="$emit('remove')">删除</el-button>
-      </div>
+      <el-drawer v-model="drawerVisible" title="任务详情" size="400px" @close="selectedTaskKey = null">
+        <WXTaskDetail
+          v-if="selectedTask"
+          :task="selectedTask"
+          :wxa-list="worker.wxaList"
+          @abort="handleAbortTask"
+          @reset="handleResetTask"
+          @remove="handleRemoveTask"
+        />
+      </el-drawer>
     </template>
 
     <div v-else class="detail-empty">
@@ -113,7 +105,7 @@
 import { ref, computed, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import type { WXWorkerInfo } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
-import { WorkerStatus, WorkerStatusDict, WXTaskTypeDict } from "@mp-assistant/common/dist/work/const.js";
+import { WorkerStatus, WorkerStatusDict, WorkerTypeDict, WXTaskTypeDict } from "@mp-assistant/common/dist/work/const.js";
 import { requestRemoveTask, requestAbortTask, requestResetTaskStatus } from "@/api";
 import { useApiCall } from "@/hooks/useApiCall";
 import WXTaskCard from "@/component/WXTaskCard/index.vue";
@@ -131,15 +123,22 @@ defineEmits<{
 }>();
 
 const selectedTaskKey = ref<string | null>(null);
+const drawerVisible = ref(false);
 const addTaskDialog = ref<InstanceType<typeof AddWXTaskDialog> | null>(null);
 
 const selectedTask = computed(() =>
   props.worker?.taskList.find((t) => t.key === selectedTaskKey.value) ?? null
 );
 
+const openTaskDrawer = (taskKey: string) => {
+  selectedTaskKey.value = taskKey;
+  drawerVisible.value = true;
+};
+
 // worker 变化时重置任务选中
 watch(() => props.worker?.key, () => {
   selectedTaskKey.value = null;
+  drawerVisible.value = false;
 });
 
 const statusLabel = computed(() => {
@@ -166,6 +165,7 @@ const handleRemoveTask = async () => {
   try {
     await removeTask({ key: props.worker.key, taskKey: selectedTask.value.key });
     selectedTaskKey.value = null;
+    drawerVisible.value = false;
     ElMessage.success("删除成功");
   } catch {}
 };

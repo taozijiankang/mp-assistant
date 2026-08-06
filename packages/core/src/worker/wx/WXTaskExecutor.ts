@@ -109,7 +109,7 @@ export abstract class WXTaskExecutor<
             throw new Error('未找到小程序');
         }
 
-        this.report('text', `切换小程序 ${wxaItem.app_name} - ${wxaItem.username}...`);
+        this.report('text', `切换小程序 ${wxaItem.app_name} - ${wxaItem.appid} - ${wxaItem.username}`);
 
         // 如果侧边栏被隐藏了，则点击侧边栏展开按钮
         const sidebarLocator = page.locator('div.little_menu_button');

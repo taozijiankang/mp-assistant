@@ -29,7 +29,12 @@ export function isWXWorkerInfo(worker: BaseWorkerInfo): worker is WXWorkerInfo {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function isWXTaskInfo(task: BaseTaskInfo): task is WXTaskInfo {
-    return true; // 所有 task 当前都是 WX task，后续有其他类型时再扩展
+    return [
+        WXTaskType.WX_LOGIN,
+        WXTaskType.WX_AUDIT,
+        WXTaskType.WX_INSPECT_VERSION,
+        WXTaskType.WX_PUBLISH
+    ].includes(task.type);
 }
 
 export function isWXLoginTaskInfo(task: BaseTaskInfo): task is WXLoginTaskInfo {

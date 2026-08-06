@@ -8,58 +8,115 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #999;
+    color: #c0c4cc;
     font-size: 14px;
   }
 
   .detail-header {
-    padding-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
     border-bottom: 1px solid #ebeef5;
 
     .detail-title {
       display: flex;
       align-items: center;
+      gap: 10px;
+
+      .detail-name {
+        font-size: 20px;
+        font-weight: 600;
+        color: #303133;
+      }
+    }
+
+    .detail-info {
+      display: flex;
+      gap: 20px;
+      margin-top: 8px;
+      font-size: 13px;
+      color: #909399;
+    }
+
+    .detail-header-actions {
+      display: flex;
       gap: 8px;
-    }
-
-    .detail-name {
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .detail-key {
-      display: block;
-      margin-top: 4px;
-      font-size: 12px;
-      color: #999;
+      flex-shrink: 0;
     }
   }
 
   .detail-body {
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
-    padding-top: 12px;
+    display: flex;
+    gap: 20px;
 
-    .detail-section {
-      margin-bottom: 16px;
+    .detail-left {
+      flex: 1;
+      min-width: 0;
+      overflow-y: auto;
+    }
+
+    .detail-right {
+      width: 260px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid #ebeef5;
+      padding-left: 16px;
 
       .section-title {
         font-size: 13px;
         font-weight: 600;
-        margin-bottom: 8px;
-        padding-bottom: 6px;
+        color: #606266;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
         border-bottom: 1px solid #ebeef5;
         display: flex;
         align-items: center;
         justify-content: space-between;
+      }
+
+      .task-list {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .task-empty {
+        text-align: center;
+        color: #c0c4cc;
+        font-size: 13px;
+        padding: 32px 0;
+      }
+    }
+
+    .detail-section {
+      margin-bottom: 20px;
+      padding: 16px;
+      background: #fafbfc;
+      border-radius: 8px;
+      border: 1px solid #ebeef5;
+
+      .section-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #606266;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ebeef5;
       }
     }
 
     .detail-row {
       display: flex;
       align-items: center;
-      padding: 6px 0;
+      padding: 5px 0;
+      font-size: 14px;
 
       .label {
         width: 80px;
@@ -74,106 +131,58 @@
 
       .qrcode-image {
         width: 160px;
-        border-radius: 4px;
-        border: 1px solid #ebeef5;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
       }
     }
 
-    .wxa-section {
-      margin-top: 16px;
+    .wxa-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
 
-      .section-title {
-        font-size: 13px;
-        font-weight: 600;
-        margin-bottom: 8px;
-        padding-bottom: 6px;
-        border-bottom: 1px solid #ebeef5;
+    .wxa-item {
+      padding: 10px;
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+      .wxa-item-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
       }
 
-      .wxa-list {
+      .wxa-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .wxa-name {
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .wxa-version {
+        margin-top: 8px;
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
         gap: 6px;
       }
 
-      .wxa-item {
-        padding: 8px;
-        background: #f5f7fa;
+      .version-tag {
+        font-size: 12px;
+        padding: 2px 8px;
         border-radius: 4px;
+        font-weight: 500;
 
-        .wxa-item-header {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .wxa-avatar {
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-        }
-
-        .wxa-name {
-          font-size: 13px;
-          font-weight: 500;
-        }
-
-        .wxa-version {
-          margin-top: 6px;
-          display: flex;
-          flex-wrap: wrap;
-          gap: 4px;
-        }
-
-        .version-tag {
-          font-size: 11px;
-          padding: 1px 6px;
-          border-radius: 3px;
-          background: #e6f7ff;
-          color: #1890ff;
-
-          &.online { background: #f6ffed; color: #52c41a; }
-          &.experience { background: #fff7e6; color: #fa8c16; }
-          &.develop { background: #f0f0f0; color: #666; }
-        }
+        &.online { background: #e8f8e0; color: #389e0d; }
+        &.experience { background: #fff3e0; color: #d46b08; }
+        &.develop { background: #f0f0f0; color: #8c8c8c; }
       }
     }
-
-    .task-section {
-      .task-area {
-        display: flex;
-        gap: 12px;
-        min-height: 200px;
-      }
-
-      .task-left {
-        width: 180px;
-        flex-shrink: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        max-height: 400px;
-        overflow-y: auto;
-      }
-
-      .task-right {
-        flex: 1;
-        min-width: 0;
-      }
-
-      .task-empty {
-        text-align: center;
-        color: #999;
-        font-size: 13px;
-        padding: 24px 0;
-      }
-    }
-  }
-
-  .detail-actions {
-    padding-top: 12px;
-    border-top: 1px solid #ebeef5;
-    display: flex;
-    gap: 8px;
   }
 }
