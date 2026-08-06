@@ -3,8 +3,6 @@
     <div class="worker-card-header">
       <span class="worker-card-name">{{ info.options.name }}</span>
       <el-tag type="info" size="small">{{ WorkerTypeDict[info.type] }}</el-tag>
-    </div>
-    <div class="worker-card-status">
       <el-tag :type="statusTagType" size="small">{{ statusLabel }}</el-tag>
     </div>
   </div>

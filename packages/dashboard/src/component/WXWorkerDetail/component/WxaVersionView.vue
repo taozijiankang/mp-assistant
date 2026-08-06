@@ -11,7 +11,7 @@
     </div>
     <div class="wxa-table">
       <el-table :data="filteredList" size="small" height="100%" border :cell-style="{ verticalAlign: 'top' }">
-      <el-table-column label="小程序" width="160" fixed>
+      <el-table-column label="小程序" width="200" fixed>
         <template #default="{ row }">
           <div class="wxa-cell">
             <img :src="row.app_headimg" class="wxa-avatar" />
@@ -19,7 +19,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="线上版本" width="280">
+      <el-table-column label="线上版本" width="200">
         <template #default="{ row }">
           <template v-if="row.versionData?.online_info?.basic_info">
             <div class="version-cell">
@@ -33,7 +33,7 @@
           <span v-else class="text-muted">-</span>
         </template>
       </el-table-column>
-      <el-table-column label="审核版本" width="280">
+      <el-table-column label="审核版本" width="200">
         <template #default="{ row }">
           <template v-if="row.versionData?.experience_info?.basic_info">
             <div class="version-cell">
@@ -47,7 +47,7 @@
           <span v-else class="text-muted">-</span>
         </template>
       </el-table-column>
-      <el-table-column v-for="dev in filteredDevelopers" :key="dev.nick_name" :label="dev.nick_name" width="240">
+      <el-table-column v-for="dev in filteredDevelopers" :key="dev.nick_name" :label="dev.nick_name" width="200">
         <template #default="{ row }">
           <template v-if="getDevInfo(row, dev.nick_name)">
             <div class="version-cell">

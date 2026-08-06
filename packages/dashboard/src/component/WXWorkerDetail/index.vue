@@ -2,11 +2,19 @@
   <div class="worker-detail">
     <template v-if="worker">
       <div class="detail-header">
-        <div>
+        <div class="detail-header-main">
           <div class="detail-title">
             <span class="detail-name">{{ worker.options.name }}</span>
             <el-tag type="info" size="small">{{ WorkerTypeDict[worker.type] }}</el-tag>
             <el-tag :type="statusTagType" size="small">{{ statusLabel }}</el-tag>
+            <span class="title-sep"></span>
+            <span
+              v-for="tab in tabs"
+              :key="tab.key"
+              class="tab-item"
+              :class="{ active: activeTab === tab.key }"
+              @click="activeTab = tab.key"
+            >{{ tab.label }}</span>
           </div>
           <div class="detail-info">
             <span>权重 {{ worker.options.weight ?? '-' }}</span>
@@ -32,16 +40,6 @@
           <div v-if="worker.loginQRCode" class="detail-row qrcode-row">
             <span class="label">登录二维码</span>
             <img :src="worker.loginQRCode" class="qrcode-image" />
-          </div>
-
-          <div class="view-tabs">
-            <span
-              v-for="tab in tabs"
-              :key="tab.key"
-              class="tab-item"
-              :class="{ active: activeTab === tab.key }"
-              @click="activeTab = tab.key"
-            >{{ tab.label }}</span>
           </div>
           <WxaVersionView v-if="activeTab === 'version'" :list="worker.wxaList" />
         </div>

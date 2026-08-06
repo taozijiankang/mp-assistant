@@ -1,12 +1,9 @@
 <template>
   <div class="home">
-    <div class="home-left">
-      <div class="left-header">
-        <span class="left-title">Worker 列表</span>
-        <span v-if="listLoading" class="loading-tip">加载中...</span>
-        <el-button type="primary" size="small" @click="addWorkerDialog?.open()">添加</el-button>
-      </div>
-      <div class="left-list">
+    <div class="home-top">
+      <span class="top-title">Worker</span>
+      <span v-if="listLoading" class="loading-tip">加载中...</span>
+      <div class="top-list">
         <WorkerCard
           v-for="worker in workerList"
           :key="worker.key"
@@ -15,8 +12,9 @@
           @select="selectedKey = worker.key"
         />
       </div>
+      <el-button type="primary" size="small" @click="addWorkerDialog?.open()">添加</el-button>
     </div>
-    <div class="home-right">
+    <div class="home-bottom">
       <WXWorkerDetail
         v-if="selectedWorker?.type === WorkerType.WX"
         :worker="selectedWorker"
