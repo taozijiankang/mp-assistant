@@ -5,4 +5,5 @@ export interface WXPublishTaskOptions extends WXTaskOptions { }
 
 export interface WXPublishTaskInfo extends WXTaskInfo {
     type: WXTaskType.WX_PUBLISH;
+    options: WXPublishTaskOptions;
 }   

@@ -13,11 +13,11 @@ export function debounce(fn: Function, delay: number) {
 }
 
 /**
- * 等待指定时间
+ * 等待指定时间(单位: 毫秒)
  * @param ms - 等待时间（毫秒）
  * @returns 一个 Promise，在指定时间后 resolve
  */
-export function wait(ms: number): Promise<void> {
+export function waitTime(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -36,7 +36,7 @@ export function retry(fn: () => void | Promise<void>, delay: number, count: numb
     Promise.resolve(fn())
       .then(resolve)
       .catch((error) => {
-        wait(delay).then(() => {
+        waitTime(delay).then(() => {
           retry(fn, delay, count - 1, [...errors, error]).then(resolve, reject);
         });
       });

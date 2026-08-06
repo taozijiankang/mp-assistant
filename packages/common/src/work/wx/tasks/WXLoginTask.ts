@@ -9,6 +9,7 @@ export interface WXLoginTaskOptions extends WXTaskOptions {
 
 export interface WXLoginTaskInfo extends WXTaskInfo {
     type: WXTaskType.WX_LOGIN;
+    options: WXLoginTaskOptions;
     /** 微信小程序列表 */
     wxaList?: WXMPItem[];
 }   

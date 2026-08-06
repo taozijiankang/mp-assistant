@@ -23,34 +23,21 @@ export class WXLoginExecutor extends WXTaskExecutor<WXLoginTaskOptions> {
             const page = await this.createPage();
 
             if (this.options.action === 'logout') {
-                this.report('text', '正在退出登录...');
+
                 await this.logout(page);
-                this.report('text', '退出登录成功');
-                this.report('text', '正在更新登录状态...');
-                await this.getLoginStatus(page);
+
                 this.completed('退出登录完成');
                 return;
             }
 
-            this.report('text', '正在检查登录状态...');
-            const isLogin = await this.getLoginStatus(page);
-            if (isLogin) {
-                this.report('text', '已登录');
-            } else {
-                this.report('text', '未登录，需要扫码');
-                await this.login(page);
-                this.report('text', '登录成功');
-            }
+            await this.login(page);
 
-            this.report('text', '正在获取小程序列表...');
-            await this.updateWxaList(page);
-            this.report('text', '小程序列表获取完成');
+            await this.getWxaList(page);
 
             this.completed('登录任务完成');
         } catch (error) {
             this.failed(error instanceof Error ? error.message : '登录失败');
         }
-
     }
 
     async logout(page: Page) {
@@ -61,6 +48,8 @@ export class WXLoginExecutor extends WXTaskExecutor<WXLoginTaskOptions> {
         if (!WXMP_USER_PAGE_PATH_REX.test(url.pathname)) {
             return;
         }
+
+        this.report('text', '正在退出登录...');
 
         // 如果侧边栏被隐藏了，则点击侧边栏展开按钮
         const sidebarLocator = page.locator('div.little_menu_button');
@@ -85,15 +74,20 @@ export class WXLoginExecutor extends WXTaskExecutor<WXLoginTaskOptions> {
         if (url2.pathname !== WXMP_NO_LOGIN_PATH) {
             throw new Error('退出登录失败');
         }
+
+        this.report('text', '退出登录成功');
     }
 
-    async updateWxaList(page: Page) {
+    private async getWxaList(page: Page) {
+        this.report('text', '正在获取小程序列表...');
+
         await page.goto(WXMP_URL);
         const wxaList = await requestWxaList(page);
         this.sendToTaskMessage({
             type: 'UPDATE_WXA_LIST',
             data: { wxaList },
         });
-        await page.close();
+
+        this.report('text', '小程序列表获取完成');
     }
 }

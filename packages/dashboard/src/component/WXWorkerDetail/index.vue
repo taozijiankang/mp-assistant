@@ -36,8 +36,25 @@
             <div class="section-title">小程序列表 ({{ worker.wxaList.length }})</div>
             <div class="wxa-list">
               <div v-for="item in worker.wxaList" :key="item.appid" class="wxa-item">
-                <img :src="item.app_headimg" class="wxa-avatar" />
-                <span class="wxa-name">{{ item.app_name }}</span>
+                <div class="wxa-item-header">
+                  <img :src="item.app_headimg" class="wxa-avatar" />
+                  <span class="wxa-name">{{ item.app_name }}</span>
+                </div>
+                <div v-if="item.versionData" class="wxa-version">
+                  <div v-if="item.versionData.online_info?.basic_info" class="version-tag online">
+                    线上 v{{ item.versionData.online_info.basic_info.version }}
+                  </div>
+                  <div v-if="item.versionData.experience_info?.basic_info" class="version-tag experience">
+                    体验 v{{ item.versionData.experience_info.basic_info.version }}
+                  </div>
+                  <div
+                    v-for="dev in item.versionData.develop_info?.info_list"
+                    :key="dev.basic_info.open_id"
+                    class="version-tag develop"
+                  >
+                    {{ dev.basic_info.nick_name }} v{{ dev.basic_info.version }}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -88,7 +105,7 @@
       <span>请选择一个 Worker</span>
     </div>
 
-    <AddWXTaskDialog ref="addTaskDialog" />
+    <AddWXTaskDialog ref="addTaskDialog" :wxa-list="worker?.wxaList ?? []" />
   </div>
 </template>
 

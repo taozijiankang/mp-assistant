@@ -5,4 +5,5 @@ export interface WXAuditTaskOptions extends WXTaskOptions {}
 
 export interface WXAuditTaskInfo extends WXTaskInfo {
     type: WXTaskType.WX_AUDIT;
+    options: WXAuditTaskOptions;
 }   

@@ -1,4 +1,4 @@
-import { VersionListItem } from "../../types/wx.js";
+import { WXVersionBasicInfo } from "../../types/wx.js";
 
 export enum VersionPositioningType {
     /** 描述 */
@@ -48,7 +48,7 @@ export interface VersionPositioner {
  * @param version 
  * @param positioners 
  */
-export function versionSatisfy(version: VersionListItem, positioners: VersionPositioner[]) {
+export function versionSatisfy(version: WXVersionBasicInfo, positioners: VersionPositioner[]) {
     return positioners.every(item => {
         const value = item.value.trim();
         switch (item.type) {

@@ -1,9 +1,8 @@
 import { TaskStatus, WorkerStatus, WorkerType } from "@mp-assistant/common/dist/work/const.js";
 import { BaseWorkerInfo, BaseWorkerOptions, WorkerEvent } from "@mp-assistant/common/dist/work/BaseWorker.js";
-import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
+import { getUUID, waitTime } from "@mp-assistant/common/dist/utils/index.js";
 import { BrowserContext, chromium, LaunchOptions } from "playwright";
 import path from "node:path";
-import { wait } from "@mp-assistant/common/dist/utils/global.js";
 import { BaseTask } from "./BaseTask.js";
 import { EventEmitter } from "@mp-assistant/common/dist/event/EventEmitter.js";
 import getPort from "get-port";
@@ -177,7 +176,7 @@ export abstract class BaseWorker<
     } catch (error) {
       console.error('[BaseWorker] taskCycle error', error);
     } finally {
-      await wait(0);
+      await waitTime(0);
       this.taskCycle();
     }
   }

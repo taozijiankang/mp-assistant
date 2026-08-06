@@ -7,29 +7,31 @@ export interface WXMPItem {
     username: string;
 }
 
-export interface WXMPVersionItem {
-    code_data?: string
-    ret?: number
-}
-export interface VersionListItem {
-    audit_id?: number;
-    audit_status?: number;
-    avatar?: string;
-    describe?: string;
+export interface WXVersionBasicInfo {
+    open_id: string;
+    version: string;
+    nick_name: string;
+    time: number;
+    describe: string;
+    status: number;
+    avatar: string;
+    warning_api_list: any[];
     fail_reason?: string;
-    reject_reason?: string;
     is_speedup?: number;
-    nick_name?: string;
-    open_id?: string;
-    status?: number;
-    time?: number;
-    version?: string;
-    warning_api_list?: any[];
+    is_plugin_auto_update?: number;
+    inner_version?: number;
+}
+
+export interface WXVersionDevelopItem {
+    basic_info: WXVersionBasicInfo;
     is_exper?: boolean;
 }
 
-export enum WXReviewStatus {
-    FAIL = 3,
-    SUCCESS = 2,
-    REVIEWING = 1,
+/** code_data JSON.parse 后的类型 */
+export interface WXVersionCodeData {
+    online_info: { basic_info: WXVersionBasicInfo };
+    experience_info: { basic_info: WXVersionBasicInfo; qr_path: string };
+    develop_info: { info_list: WXVersionDevelopItem[]; developer_size: number; preview_info_list: any[] };
+    need_finance_audit: number;
+    qr_path: string;
 }

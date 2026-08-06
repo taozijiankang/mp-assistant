@@ -97,12 +97,15 @@
       }
 
       .wxa-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 8px;
+        padding: 8px;
         background: #f5f7fa;
         border-radius: 4px;
+
+        .wxa-item-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
 
         .wxa-avatar {
           width: 28px;
@@ -112,6 +115,26 @@
 
         .wxa-name {
           font-size: 13px;
+          font-weight: 500;
+        }
+
+        .wxa-version {
+          margin-top: 6px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+        }
+
+        .version-tag {
+          font-size: 11px;
+          padding: 1px 6px;
+          border-radius: 3px;
+          background: #e6f7ff;
+          color: #1890ff;
+
+          &.online { background: #f6ffed; color: #52c41a; }
+          &.experience { background: #fff7e6; color: #fa8c16; }
+          &.develop { background: #f0f0f0; color: #666; }
         }
       }
     }

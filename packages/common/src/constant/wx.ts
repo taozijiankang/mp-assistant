@@ -1,4 +1,8 @@
-import { WXReviewStatus } from "../types/wx.js";
+export enum WXReviewStatus {
+    FAIL = 3,
+    SUCCESS = 2,
+    REVIEWING = 1,
+}
 
 export const WXReviewStatusDict = {
     [WXReviewStatus.SUCCESS]: '审核通过待发布',

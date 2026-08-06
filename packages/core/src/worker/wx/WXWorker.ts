@@ -1,7 +1,8 @@
 import { TaskStatus, WorkerType } from "@mp-assistant/common/dist/work/const.js";
 import { BaseWorker } from "../BaseWorker.js";
-import { WXWorkerInfo, WXWorkerOptions } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
-import { isWXLoginTaskInfo } from "@mp-assistant/common/dist/work/index.js";
+import { WXWorkerInfo, WXWorkerOptions, WXWorkerWxaItem } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
+import { isWXLoginTaskInfo, isWXInspectVersionTaskInfo } from "@mp-assistant/common/dist/work/index.js";
+import type { WXVersionCodeData } from "@mp-assistant/common/dist/types/wx.js";
 
 export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
     readonly type = WorkerType.WX;
@@ -23,12 +24,32 @@ export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
         }
     }
 
-    /** 获取最近完成的登录任务的小程序列表 */
-    private getWxaList() {
-        for (const task of super.info().taskList) {
-            if (task.status === TaskStatus.COMPLETED && isWXLoginTaskInfo(task)) {
-                return task.wxaList;
+    /** 获取最近完成的登录任务的小程序列表，并聚合版本信息 */
+    private getWxaList(): WXWorkerWxaItem[] {
+        const taskList = super.info().taskList;
+
+        // 获取原始小程序列表
+        let wxaLis: WXWorkerWxaItem[] = [];
+        for (const task of taskList) {
+            if (task.status === TaskStatus.COMPLETED && isWXLoginTaskInfo(task) && task.wxaList) {
+                wxaLis = task.wxaList as WXWorkerWxaItem[];
             }
         }
+        if (!wxaLis.length) return [];
+
+        // 聚合版本信息
+        const versionMap = new Map<string, WXVersionCodeData>();
+        for (const task of taskList) {
+            if (task.status === TaskStatus.COMPLETED && isWXInspectVersionTaskInfo(task) && task.versionData) {
+                versionMap.set(task.options.appId, task.versionData);
+            }
+        }
+
+        const workerWxaList: WXWorkerWxaItem[] = wxaLis.map(item => ({
+            ...item,
+            versionData: versionMap.get(item.appid),
+        }));
+
+        return workerWxaList;
     }
 }
