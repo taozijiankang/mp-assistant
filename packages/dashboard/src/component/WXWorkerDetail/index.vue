@@ -41,7 +41,7 @@
             <span class="label">登录二维码</span>
             <img :src="worker.loginQRCode" class="qrcode-image" />
           </div>
-          <WxaVersionView v-if="activeTab === 'version'" :list="worker.wxaList" />
+          <WxaVersionView v-if="activeTab === 'version'" :list="worker.wxaList" @fetch-version="handleFetchVersion" />
         </div>
 
         <div class="detail-right">
@@ -87,8 +87,8 @@
 import { ref, computed, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import type { WXWorkerInfo } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
-import { WorkerStatus, WorkerStatusDict, WorkerTypeDict, WXTaskTypeDict } from "@mp-assistant/common/dist/work/const.js";
-import { requestRemoveTask, requestAbortTask, requestResetTaskStatus } from "@/api";
+import { WorkerStatus, WorkerStatusDict, WorkerTypeDict, WXTaskTypeDict, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
+import { requestRemoveTask, requestAbortTask, requestResetTaskStatus, requestAddTask } from "@/api";
 import { useApiCall } from "@/hooks/useApiCall";
 import WXTaskCard from "@/component/WXTaskCard/index.vue";
 import WXTaskDetail from "@/component/WXTaskDetail/index.vue";
@@ -165,6 +165,20 @@ const handleAbortTask = async () => {
   try {
     await abortTask({ key: props.worker.key, taskKey: selectedTask.value.key });
     ElMessage.success("已终止");
+  } catch {}
+};
+
+const { call: addTask } = useApiCall(requestAddTask);
+
+const handleFetchVersion = async (appId: string) => {
+  if (!props.worker) return;
+  try {
+    await addTask({
+      key: props.worker.key,
+      type: WXTaskType.WX_INSPECT_VERSION,
+      options: { appId },
+    });
+    ElMessage.success("版本获取任务已添加");
   } catch {}
 };
 

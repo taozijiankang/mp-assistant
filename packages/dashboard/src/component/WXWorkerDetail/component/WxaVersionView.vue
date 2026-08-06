@@ -60,6 +60,11 @@
           <span v-else class="text-muted">-</span>
         </template>
       </el-table-column>
+      <el-table-column label="操作" width="80" fixed="right">
+        <template #default="{ row }">
+          <el-button size="small" text type="primary" @click="$emit('fetchVersion', row.appid)">获取版本</el-button>
+        </template>
+      </el-table-column>
     </el-table>
     </div>
   </div>
@@ -72,6 +77,10 @@ import type { WXWorkerWxaItem } from "@mp-assistant/common/dist/work/wx/WXWorker
 
 const props = defineProps<{
   list?: WXWorkerWxaItem[];
+}>();
+
+defineEmits<{
+  fetchVersion: [appId: string];
 }>();
 
 const searchText = ref("");
