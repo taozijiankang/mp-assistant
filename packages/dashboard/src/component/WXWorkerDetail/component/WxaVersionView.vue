@@ -60,9 +60,14 @@
           <span v-else class="text-muted">-</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="80" fixed="right">
+      <el-table-column label="操作" width="120" fixed="right">
         <template #default="{ row }">
-          <el-button size="small" text type="primary" @click="$emit('fetchVersion', row.appid)">获取版本</el-button>
+          <template v-if="hasTask(row, WXTaskType.WX_INSPECT_VERSION)">
+            <el-button size="small" text type="warning" @click="$emit('showTask', hasTask(row, WXTaskType.WX_INSPECT_VERSION)!.key)">
+              {{ WXTaskTypeDict[WXTaskType.WX_INSPECT_VERSION] }}进行中
+            </el-button>
+          </template>
+          <el-button v-else size="small" text type="primary" @click="$emit('fetchVersion', row.appid)">获取版本</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -73,6 +78,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import fuzzysort from "fuzzysort";
+import { TaskStatus, WXTaskType, WXTaskTypeDict } from "@mp-assistant/common/dist/work/const.js";
 import type { WXWorkerWxaItem } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
 
 const props = defineProps<{
@@ -81,6 +87,7 @@ const props = defineProps<{
 
 defineEmits<{
   fetchVersion: [appId: string];
+  showTask: [taskKey: string];
 }>();
 
 const searchText = ref("");
@@ -111,6 +118,10 @@ const filteredDevelopers = computed(() => {
   if (!visibleDevs.value.length) return developers.value;
   return developers.value.filter(d => visibleDevs.value.includes(d.nick_name));
 });
+
+const hasTask = (row: WXWorkerWxaItem, type: WXTaskType) => {
+  return row.tasks?.find(t => (t.status === TaskStatus.RUNNING || t.status === TaskStatus.IDLE) && t.type === type) ?? null;
+};
 
 const getDevInfo = (row: WXWorkerWxaItem, nickName: string) => {
   return row.versionData?.develop_info?.info_list?.find(

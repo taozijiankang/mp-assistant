@@ -41,7 +41,7 @@
             <span class="label">登录二维码</span>
             <img :src="worker.loginQRCode" class="qrcode-image" />
           </div>
-          <WxaVersionView v-if="activeTab === 'version'" :list="worker.wxaList" @fetch-version="handleFetchVersion" />
+          <WxaVersionView v-if="activeTab === 'version'" :list="worker.wxaList" @fetch-version="handleFetchVersion" @show-task="openTaskDrawer" />
         </div>
 
         <div class="detail-right">

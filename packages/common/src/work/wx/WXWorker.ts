@@ -1,6 +1,7 @@
 import { BaseWorkerInfo, BaseWorkerOptions } from "../BaseWorker.js";
 import { WorkerType } from "../const.js";
 import { WXMPItem, WXVersionCodeData } from "../../types/wx.js";
+import { WXTaskInfo } from "./WXTask.js";
 
 export interface WXWorkerOptions extends BaseWorkerOptions {
 }
@@ -8,6 +9,8 @@ export interface WXWorkerOptions extends BaseWorkerOptions {
 export interface WXWorkerWxaItem extends WXMPItem {
     /** 版本信息，聚合自检测版本任务 */
     versionData?: WXVersionCodeData;
+    /** 关联的 WX 任务列表 */
+    tasks?: WXTaskInfo[];
 }
 
 export interface WXWorkerInfo extends BaseWorkerInfo {

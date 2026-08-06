@@ -45,9 +45,20 @@ export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
             }
         }
 
+        // 聚合关联任务
+        const taskMap = new Map<string, typeof taskList>();
+        for (const task of taskList) {
+            if (!isWXTaskInfo(task)) continue;
+            const appId = (task.options as any).appId;
+            if (!appId) continue;
+            if (!taskMap.has(appId)) taskMap.set(appId, []);
+            taskMap.get(appId)!.push(task);
+        }
+
         const workerWxaList: WXWorkerWxaItem[] = wxaLis.map(item => ({
             ...item,
             versionData: versionMap.get(item.appid),
+            tasks: taskMap.get(item.appid) ?? [],
         }));
 
         return workerWxaList;
