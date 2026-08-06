@@ -34,32 +34,16 @@
             <img :src="worker.loginQRCode" class="qrcode-image" />
           </div>
 
-          <div v-if="worker.wxaList && worker.wxaList.length > 0" class="detail-section">
-            <div class="section-title">小程序列表 ({{ worker.wxaList.length }})</div>
-            <div class="wxa-list">
-              <div v-for="item in worker.wxaList" :key="item.appid" class="wxa-item">
-                <div class="wxa-item-header">
-                  <img :src="item.app_headimg" class="wxa-avatar" />
-                  <span class="wxa-name">{{ item.app_name }}</span>
-                </div>
-                <div v-if="item.versionData" class="wxa-version">
-                  <div v-if="item.versionData.online_info?.basic_info" class="version-tag online">
-                    线上 v{{ item.versionData.online_info.basic_info.version }}
-                  </div>
-                  <div v-if="item.versionData.experience_info?.basic_info" class="version-tag experience">
-                    体验 v{{ item.versionData.experience_info.basic_info.version }}
-                  </div>
-                  <div
-                    v-for="dev in item.versionData.develop_info?.info_list"
-                    :key="dev.basic_info.open_id"
-                    class="version-tag develop"
-                  >
-                    {{ dev.basic_info.nick_name }} v{{ dev.basic_info.version }}
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="view-tabs">
+            <span
+              v-for="tab in tabs"
+              :key="tab.key"
+              class="tab-item"
+              :class="{ active: activeTab === tab.key }"
+              @click="activeTab = tab.key"
+            >{{ tab.label }}</span>
           </div>
+          <WxaVersionView v-if="activeTab === 'version'" :list="worker.wxaList" />
         </div>
 
         <div class="detail-right">
@@ -110,6 +94,7 @@ import { requestRemoveTask, requestAbortTask, requestResetTaskStatus } from "@/a
 import { useApiCall } from "@/hooks/useApiCall";
 import WXTaskCard from "@/component/WXTaskCard/index.vue";
 import WXTaskDetail from "@/component/WXTaskDetail/index.vue";
+import WxaVersionView from "./component/WxaVersionView.vue";
 import AddWXTaskDialog from "@/component/AddWXTaskDialog/index.vue";
 
 const props = defineProps<{
@@ -122,6 +107,11 @@ defineEmits<{
   remove: [];
 }>();
 
+const tabs = [
+  { key: 'version', label: '版本视图' },
+];
+
+const activeTab = ref('version');
 const selectedTaskKey = ref<string | null>(null);
 const drawerVisible = ref(false);
 const addTaskDialog = ref<InstanceType<typeof AddWXTaskDialog> | null>(null);

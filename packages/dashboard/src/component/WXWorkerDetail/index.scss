@@ -56,7 +56,10 @@
     .detail-left {
       flex: 1;
       min-width: 0;
-      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow: hidden;
     }
 
     .detail-right {
@@ -126,6 +129,32 @@
       }
     }
 
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid #ebeef5;
+      flex-shrink: 0;
+    }
+
+    .tab-item {
+      padding: 8px 16px;
+      font-size: 13px;
+      color: #909399;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #00b240;
+      }
+
+      &.active {
+        color: #00b240;
+        border-bottom-color: #00b240;
+      }
+    }
+
     .qrcode-row {
       align-items: flex-start;
 
@@ -136,53 +165,5 @@
       }
     }
 
-    .wxa-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .wxa-item {
-      padding: 10px;
-      background: #fff;
-      border-radius: 6px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-
-      .wxa-item-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .wxa-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      }
-
-      .wxa-name {
-        font-size: 14px;
-        font-weight: 500;
-      }
-
-      .wxa-version {
-        margin-top: 8px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-
-      .version-tag {
-        font-size: 12px;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-weight: 500;
-
-        &.online { background: #e8f8e0; color: #389e0d; }
-        &.experience { background: #fff3e0; color: #d46b08; }
-        &.develop { background: #f0f0f0; color: #8c8c8c; }
-      }
-    }
   }
 }
