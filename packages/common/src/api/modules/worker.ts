@@ -150,4 +150,21 @@ export namespace WorkerApi {
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }
+
+    /**
+     * 设置小程序分组（仅 WX Worker）
+     */
+    export namespace SetWXCategory {
+        export const url = '/worker/wx/setCategory';
+        export const method = 'POST';
+
+        export type RequestBody = {
+            key: string;
+            categories: { name: string; appIds: string[] }[];
+        };
+
+        export type ResponseData = void;
+        export type SuccessResponse = APISuccessRes<ResponseData>;
+        export type Response = SuccessResponse | APIErrorRes;
+    }
 }

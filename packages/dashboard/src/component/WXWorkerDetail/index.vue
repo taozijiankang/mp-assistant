@@ -25,6 +25,7 @@
           </div>
         </div>
         <div class="detail-header-actions">
+          <el-button size="small" @click="showCatDialog = true">编辑分组</el-button>
           <el-button size="small" @click="$emit('edit')">编辑</el-button>
           <el-button
             size="small"
@@ -87,6 +88,8 @@
     </div>
 
     <AddWXTaskDialog ref="addTaskDialog" :wxa-list="worker?.wxaList ?? []" />
+
+    <CategoryEditDialog v-model="showCatDialog" :worker="worker" />
   </div>
 </template>
 
@@ -105,7 +108,8 @@ import { requestRemoveTask, requestAbortTask, requestResetTaskStatus, requestAdd
 import { useApiCall } from "@/hooks/useApiCall";
 import WXTaskCard from "@/component/WXTaskCard/index.vue";
 import WXTaskDetail from "@/component/WXTaskDetail/index.vue";
-import WxaVersionView from "./component/WxaVersionView.vue";
+import WxaVersionView from "./component/WxaVersionView/index.vue";
+import CategoryEditDialog from "./component/CategoryEditDialog/index.vue";
 import AddWXTaskDialog from "@/component/AddWXTaskDialog/index.vue";
 
 const props = defineProps<{
@@ -119,6 +123,8 @@ defineEmits<{
 }>();
 
 const tabs = [{ key: "version", label: "版本视图" }];
+
+const showCatDialog = ref(false);
 
 const activeTab = ref("version");
 const selectedTaskKey = ref<string | null>(null);

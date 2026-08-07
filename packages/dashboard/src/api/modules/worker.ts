@@ -63,3 +63,10 @@ export function requestResetTaskStatus(body: Api.Worker.ResetTaskStatus.RequestB
         { method: Api.Worker.ResetTaskStatus.method, body }
     );
 }
+
+export function requestSetWXCategory(body: Api.Worker.SetWXCategory.RequestBody) {
+    return request<Api.Worker.SetWXCategory.ResponseData>(
+        Api.Worker.SetWXCategory.url,
+        { method: Api.Worker.SetWXCategory.method, body }
+    );
+}

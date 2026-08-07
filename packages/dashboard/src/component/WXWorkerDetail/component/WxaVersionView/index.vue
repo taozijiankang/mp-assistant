@@ -2,12 +2,18 @@
   <div v-if="sortedList.length > 0" class="wxa-section">
     <div class="wxa-toolbar">
       <el-input v-model="searchText" placeholder="搜索小程序" clearable size="small" style="width: 180px" />
+      <template v-if="categories.length > 0">
+        <el-checkbox-group v-model="visibleCats" size="small">
+          <el-checkbox v-for="cat in categories" :key="cat" :label="cat" :value="cat" />
+        </el-checkbox-group>
+        <el-button v-if="visibleCats.length > 0" size="small" text @click="visibleCats = []">清除</el-button>
+      </template>
     </div>
-    <div class="wxa-dev-filter">
+    <div class="wxa-toolbar">
       <el-checkbox-group v-model="visibleDevs" size="small">
         <el-checkbox v-for="dev in developers" :key="dev.nick_name" :label="dev.nick_name" :value="dev.nick_name" />
       </el-checkbox-group>
-      <el-button v-if="visibleDevs.length > 0" size="small" text @click="visibleDevs = []">清除筛选</el-button>
+      <el-button v-if="visibleDevs.length > 0" size="small" text @click="visibleDevs = []">清除</el-button>
     </div>
     <div class="wxa-table">
       <el-table :data="filteredList" size="small" height="100%" border stripe :cell-style="{ verticalAlign: 'top' }">
@@ -130,12 +136,27 @@ defineEmits<{
 
 const searchText = ref("");
 const visibleDevs = ref<string[]>([]);
+const visibleCats = ref<string[]>([]);
 
 const sortedList = computed(() => [...(props.list ?? [])].sort((a, b) => a.app_name.localeCompare(b.app_name)));
 
 const filteredList = computed(() => {
-  if (!searchText.value) return sortedList.value;
-  return fuzzysort.go(searchText.value, sortedList.value, { keys: ["app_name", "appid"] }).map(r => r.obj);
+  let list = sortedList.value;
+  if (searchText.value) {
+    list = fuzzysort.go(searchText.value, list, { keys: ["app_name", "appid"] }).map(r => r.obj);
+  }
+  if (visibleCats.value.length) {
+    list = list.filter(item => item.category && visibleCats.value.includes(item.category));
+  }
+  return list;
+});
+
+const categories = computed(() => {
+  const set = new Set<string>();
+  for (const item of props.list ?? []) {
+    if (item.category) set.add(item.category);
+  }
+  return [...set].sort();
 });
 
 const developers = computed(() => {

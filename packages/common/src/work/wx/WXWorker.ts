@@ -3,7 +3,16 @@ import { WorkerType } from "../const.js";
 import { WXMPItem, WXVersionCodeData } from "../../types/wx.js";
 import { WXTaskInfo } from "./WXTask.js";
 
+export interface WXWorkerCategory {
+    /** 分组名称 */
+    name: string;
+    /** 该分组下的小程序 appId 列表 */
+    appIds: string[];
+}
+
 export interface WXWorkerOptions extends BaseWorkerOptions {
+    /** 分组列表 */
+    categories?: WXWorkerCategory[];
 }
 
 export interface WXWorkerWxaItem extends WXMPItem {
@@ -11,6 +20,8 @@ export interface WXWorkerWxaItem extends WXMPItem {
     versionData?: WXVersionCodeData;
     /** 关联的 WX 任务列表 */
     tasks?: WXTaskInfo[];
+    /** 所属分组 */
+    category?: string;
 }
 
 export interface WXWorkerInfo extends BaseWorkerInfo {
