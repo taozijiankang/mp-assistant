@@ -2,16 +2,16 @@
   <div class="home">
     <div class="home-top">
       <span class="top-title">Worker</span>
-      <span v-if="listLoading" class="loading-tip">加载中...</span>
       <div class="top-list">
         <WorkerCard
-          v-for="worker in workerList"
+          v-for="worker in sortedWorkerList"
           :key="worker.key"
           :info="worker"
           :active="selectedKey === worker.key"
           @select="selectedKey = worker.key"
         />
       </div>
+      <span v-if="listLoading" class="loading-tip">加载中...</span>
       <el-button type="primary" size="small" @click="addWorkerDialog?.open()">添加</el-button>
     </div>
     <div class="home-bottom">
@@ -48,16 +48,20 @@ const addWorkerDialog = ref<InstanceType<typeof AddWorkerDialog> | null>(null);
 
 const { call: fetchList, loading: listLoading, data: workerList } = useApiCall(requestGetWorkerList, {
   onCallAfter: () => {
-    if (workerList.value && workerList.value.length > 0) {
-      if (!selectedKey.value || !workerList.value.find(w => w.key === selectedKey.value)) {
-        selectedKey.value = workerList.value[0].key;
+    if (sortedWorkerList.value.length > 0) {
+      if (!selectedKey.value || !sortedWorkerList.value.find(w => w.key === selectedKey.value)) {
+        selectedKey.value = sortedWorkerList.value[0].key;
       }
     }
   },
 });
 
+const sortedWorkerList = computed(() =>
+  [...(workerList.value ?? [])].sort((a, b) => (b.options.weight ?? 0) - (a.options.weight ?? 0))
+);
+
 const selectedWorker = computed(() =>
-  workerList.value?.find((w) => w.key === selectedKey.value) ?? null
+  sortedWorkerList.value?.find((w) => w.key === selectedKey.value) ?? null
 );
 
 const handleEditWorker = () => {
