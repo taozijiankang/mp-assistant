@@ -13,10 +13,15 @@ export interface WXVersionBasicInfo {
     nick_name: string;
     time: number;
     describe: string;
-    status: number;
     avatar: string;
     warning_api_list: any[];
+    audit_id?: number;
+    audit_status?: number;
+    status?: number;
+    /** 审核失败原因 */
     fail_reason?: string;
+    /** 审核拒绝原因 */
+    reject_reason?: string;
     is_speedup?: number;
     is_plugin_auto_update?: number;
     inner_version?: number;
@@ -27,7 +32,6 @@ export interface WXVersionDevelopItem {
     is_exper?: boolean;
 }
 
-/** code_data JSON.parse 后的类型 */
 export interface WXVersionCodeData {
     online_info: { basic_info: WXVersionBasicInfo };
     experience_info: { basic_info: WXVersionBasicInfo; qr_path: string };

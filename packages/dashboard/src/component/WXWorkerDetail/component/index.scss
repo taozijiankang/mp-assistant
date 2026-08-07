@@ -58,24 +58,113 @@
 
     &.online {
       color: #303133;
-      .vnum { background: #e8f8e0; color: #389e0d; }
+      .vnum {
+        color: #909399;
+      }
     }
     &.experience {
       color: #303133;
-      .vnum { background: #fff3e0; color: #d46b08; }
+      .vnum {
+        background: #f0f0f0;
+        color: #8c8c8c;
+      }
+
+      &.audit-1 .vnum {
+        background: #fdf6ec;
+        color: #e6a23c;
+      }
+      &.audit-2 .vnum {
+        background: #e8f8e0;
+        color: #67c23a;
+      }
+      &.audit-3 .vnum {
+        background: #fef0f0;
+        color: #f56c6c;
+      }
     }
     &.develop {
       color: #303133;
-      .vnum { background: #f0f0f0; color: #8c8c8c; }
+      .vnum {
+        color: #909399;
+      }
+    }
+
+    .released-tag {
+      font-size: 11px;
+      padding: 0 6px;
+      border-radius: 3px;
+      background: #f0f0f0;
+      color: #909399;
+      font-weight: 400;
+    }
+
+    .audit-tag {
+      font-size: 11px;
+      padding: 0 6px;
+      border-radius: 3px;
+      font-weight: 400;
+
+      &.audit-1 {
+        background: #fdf6ec;
+        color: #e6a23c;
+      }
+      &.audit-2 {
+        background: #e8f8e0;
+        color: #67c23a;
+      }
+      &.audit-3 {
+        background: #fef0f0;
+        color: #f56c6c;
+      }
     }
   }
 
-  .version-desc {
+  .version-status {
     font-size: 12px;
-    color: #606266;
-    line-height: 1.5;
+    margin-top: 4px;
+
+    &.audit-1 {
+      color: #e6a23c;
+    }
+    &.audit-2 {
+      color: #67c23a;
+    }
+    &.audit-3 {
+      color: #f56c6c;
+    }
+  }
+}
+
+.audit-fail-detail {
+  font-size: 13px;
+
+  .audit-fail-block {
+    & + .audit-fail-block {
+      margin-top: 12px;
+    }
+  }
+
+  .audit-fail-label {
+    font-weight: 600;
+    color: #303133;
+    margin-bottom: 6px;
+  }
+
+  .audit-fail-text {
+    padding: 8px 10px;
+    background: #fef0f0;
+    border-radius: 6px;
+    color: #f56c6c;
+    line-height: 1.6;
     word-break: break-all;
   }
+}
+
+.version-desc {
+  font-size: 12px;
+  color: #606266;
+  line-height: 1.5;
+  word-break: break-all;
 }
 
 .develop-list {

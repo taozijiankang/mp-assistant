@@ -14,10 +14,12 @@
               class="tab-item"
               :class="{ active: activeTab === tab.key }"
               @click="activeTab = tab.key"
-            >{{ tab.label }}</span>
+            >
+              {{ tab.label }}
+            </span>
           </div>
           <div class="detail-info">
-            <span>权重 {{ worker.options.weight ?? '-' }}</span>
+            <span>权重 {{ worker.options.weight ?? "-" }}</span>
             <span>并发 {{ worker.options.syncTaskNum }}</span>
             <span>{{ worker.createdTime }}</span>
           </div>
@@ -29,7 +31,7 @@
             :type="worker.status === WorkerStatus.RUNNING ? 'warning' : 'success'"
             @click="$emit('toggleSuspend')"
           >
-            {{ worker.status === WorkerStatus.PAUSED ? '恢复' : '暂停' }}
+            {{ worker.status === WorkerStatus.PAUSED ? "恢复" : "暂停" }}
           </el-button>
           <el-button size="small" type="danger" @click="$emit('remove')">删除</el-button>
         </div>
@@ -41,7 +43,12 @@
             <span class="label">登录二维码</span>
             <img :src="worker.loginQRCode" class="qrcode-image" />
           </div>
-          <WxaVersionView v-if="activeTab === 'version'" :list="worker.wxaList" @fetch-version="handleFetchVersion" @show-task="openTaskDrawer" />
+          <WxaVersionView
+            v-if="activeTab === 'version'"
+            :list="worker.wxaList"
+            @fetch-version="handleFetchVersion"
+            @show-task="openTaskDrawer"
+          />
         </div>
 
         <div class="detail-right">
@@ -87,7 +94,13 @@
 import { ref, computed, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import type { WXWorkerInfo } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
-import { WorkerStatus, WorkerStatusDict, WorkerTypeDict, WXTaskTypeDict, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
+import {
+  WorkerStatus,
+  WorkerStatusDict,
+  WorkerTypeDict,
+  WXTaskTypeDict,
+  WXTaskType
+} from "@mp-assistant/common/dist/work/const.js";
 import { requestRemoveTask, requestAbortTask, requestResetTaskStatus, requestAddTask } from "@/api";
 import { useApiCall } from "@/hooks/useApiCall";
 import WXTaskCard from "@/component/WXTaskCard/index.vue";
@@ -105,18 +118,14 @@ defineEmits<{
   remove: [];
 }>();
 
-const tabs = [
-  { key: 'version', label: '版本视图' },
-];
+const tabs = [{ key: "version", label: "版本视图" }];
 
-const activeTab = ref('version');
+const activeTab = ref("version");
 const selectedTaskKey = ref<string | null>(null);
 const drawerVisible = ref(false);
 const addTaskDialog = ref<InstanceType<typeof AddWXTaskDialog> | null>(null);
 
-const selectedTask = computed(() =>
-  props.worker?.taskList.find((t) => t.key === selectedTaskKey.value) ?? null
-);
+const selectedTask = computed(() => props.worker?.taskList.find(t => t.key === selectedTaskKey.value) ?? null);
 
 const openTaskDrawer = (taskKey: string) => {
   selectedTaskKey.value = taskKey;
@@ -124,10 +133,13 @@ const openTaskDrawer = (taskKey: string) => {
 };
 
 // worker 变化时重置任务选中
-watch(() => props.worker?.key, () => {
-  selectedTaskKey.value = null;
-  drawerVisible.value = false;
-});
+watch(
+  () => props.worker?.key,
+  () => {
+    selectedTaskKey.value = null;
+    drawerVisible.value = false;
+  }
+);
 
 const statusLabel = computed(() => {
   if (!props.worker) return "";
@@ -137,9 +149,12 @@ const statusLabel = computed(() => {
 const statusTagType = computed(() => {
   if (!props.worker) return "info";
   switch (props.worker.status) {
-    case WorkerStatus.RUNNING: return "success";
-    case WorkerStatus.PAUSED: return "warning";
-    default: return "info";
+    case WorkerStatus.RUNNING:
+      return "success";
+    case WorkerStatus.PAUSED:
+      return "warning";
+    default:
+      return "info";
   }
 });
 
@@ -148,7 +163,7 @@ const { call: removeTask } = useApiCall(requestRemoveTask);
 const handleRemoveTask = async () => {
   if (!props.worker || !selectedTask.value) return;
   await ElMessageBox.confirm(`确定删除 "${WXTaskTypeDict[selectedTask.value.type]}" 吗？`, "删除确认", {
-    type: "warning",
+    type: "warning"
   });
   try {
     await removeTask({ key: props.worker.key, taskKey: selectedTask.value.key });
@@ -176,7 +191,7 @@ const handleFetchVersion = async (appId: string) => {
     await addTask({
       key: props.worker.key,
       type: WXTaskType.WX_INSPECT_VERSION,
-      options: { appId },
+      options: { appId }
     });
     ElMessage.success("版本获取任务已添加");
   } catch {}
