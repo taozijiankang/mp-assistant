@@ -9,7 +9,15 @@ export const getBaseWsURL = () => {
     return new URL(WSUrl, import.meta.env.VITE_BASE_API_URL || location.origin).href;
 };
 
-export class WSConnection extends WSMessage.Event {
+export enum WSMessageEvent {
+    connect = 'connect',
+}
+
+interface WSMessageEventMap extends WSMessage.EventMap {
+    [WSMessageEvent.connect]: void;
+}
+
+export class WSConnection extends WSMessage.Event<WSMessageEventMap> {
     private static instance_: WSConnection | null = null;
     public static get instance() {
         return this.instance_ ?? (this.instance_ = new WSConnection());
@@ -29,6 +37,8 @@ export class WSConnection extends WSMessage.Event {
 
         this.ws.addEventListener('open', () => {
             console.log('WebSocket 连接已打开');
+
+            this.emit(WSMessageEvent.connect);
 
             this.activeTime = Date.now();
 

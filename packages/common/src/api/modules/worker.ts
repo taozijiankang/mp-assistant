@@ -91,7 +91,7 @@ export namespace WorkerApi {
 
         export type RequestBody = {
             key: string;
-            type: WXTaskType;
+            type: string;
             options: any;
         };
 

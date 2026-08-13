@@ -17,7 +17,7 @@
     </div>
     <div class="wxa-table">
       <el-table :data="filteredList" size="small" height="100%" border stripe :cell-style="{ verticalAlign: 'top' }">
-        <el-table-column :resizable="false" label="小程序" width="200" fixed>
+        <el-table-column :resizable="false" label="小程序" min-width="200" fixed>
           <template #default="{ row }: { row: WXWorkerWxaItem }">
             <div class="wxa-cell">
               <img :src="row.app_headimg" class="wxa-avatar" />
@@ -43,11 +43,11 @@
           <template #default="{ row }: { row: WXWorkerWxaItem }">
             <template v-if="row.versionData?.experience_info?.basic_info?.audit_status !== undefined">
               <div class="version-cell">
-                <div class="version-tag experience" :class="`audit-${row.versionData.experience_info.basic_info.audit_status}`">
+                <div class="version-tag experience" :class="auditStatusClass(row.versionData.experience_info.basic_info.audit_status)">
                   <span>{{ row.versionData.experience_info.basic_info.nick_name }}</span>
                   <span class="vnum">v{{ row.versionData.experience_info.basic_info.version }}</span>
                 </div>
-                <div class="version-status" :class="`audit-${row.versionData.experience_info.basic_info.audit_status}`">
+                <div class="version-status" :class="auditStatusClass(row.versionData.experience_info.basic_info.audit_status)">
                   <template v-if="row.versionData.experience_info.basic_info.audit_status === WXAuditStatus.FAIL">
                     <el-popover placement="top" :width="300" trigger="hover">
                       <template #reference>
@@ -88,7 +88,7 @@
                 <div class="version-tag develop">
                   <span class="vnum">v{{ getDevInfo(row, dev.nick_name)!.version }}</span>
                   <span v-if="isDevReleased(row, dev.nick_name)" class="released-tag">已上线</span>
-                  <span v-else-if="isDevAuditing(row, dev.nick_name)" class="audit-tag" :class="`audit-${row.versionData!.experience_info!.basic_info!.audit_status}`">
+                  <span v-else-if="isDevAuditing(row, dev.nick_name)" class="audit-tag" :class="auditStatusClass(row.versionData!.experience_info!.basic_info!.audit_status)">
                     {{ devAuditLabel(row) }}
                   </span>
                 </div>
@@ -98,7 +98,7 @@
             <span v-else class="text-muted">-</span>
           </template>
         </el-table-column>
-        <el-table-column :resizable="false" label="操作" width="120" fixed="right">
+        <el-table-column :resizable="false" label="操作" width="150" fixed="right">
           <template #default="{ row }: { row: WXWorkerWxaItem }">
             <template v-if="hasTask(row, WXTaskType.WX_INSPECT_VERSION)">
               <el-button
@@ -202,6 +202,19 @@ const devAuditLabel = (row: WXWorkerWxaItem) => {
   if (status === WXAuditStatus.SUCCESS) return '待发布';
   if (status === WXAuditStatus.FAIL) return '审核失败';
   return '';
+};
+
+const auditStatusClass = (status?: number) => {
+  switch (status) {
+    case WXAuditStatus.REVIEWING:
+      return "audit-reviewing";
+    case WXAuditStatus.SUCCESS:
+      return "audit-success";
+    case WXAuditStatus.FAIL:
+      return "audit-fail";
+    default:
+      return "";
+  }
 };
 
 const getDevInfo = (row: WXWorkerWxaItem, nickName: string) => {

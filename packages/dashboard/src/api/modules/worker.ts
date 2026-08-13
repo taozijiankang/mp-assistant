@@ -1,4 +1,11 @@
 import { Api } from "@mp-assistant/common/dist/api/index.js";
+import { WXTaskType } from "@mp-assistant/common/dist/work/const.js";
+import type {
+    WXLoginTaskOptions,
+    WXAuditTaskOptions,
+    WXInspectVersionTaskOptions,
+    WXPublishTaskOptions,
+} from "@mp-assistant/common/dist/work/index.js";
 import { request } from "../request";
 
 export function requestGetWorkerList() {
@@ -36,6 +43,27 @@ export function requestUpdateWorker(body: Api.Worker.UpdateWorker.RequestBody) {
     );
 }
 
+export function requestAddTask(body: {
+    key: string;
+    type: WXTaskType.WX_LOGIN;
+    options: WXLoginTaskOptions;
+}): Promise<Api.Worker.AddTask.SuccessResponse>;
+export function requestAddTask(body: {
+    key: string;
+    type: WXTaskType.WX_INSPECT_VERSION;
+    options: WXInspectVersionTaskOptions;
+}): Promise<Api.Worker.AddTask.SuccessResponse>;
+export function requestAddTask(body: {
+    key: string;
+    type: WXTaskType.WX_AUDIT;
+    options: WXAuditTaskOptions;
+}): Promise<Api.Worker.AddTask.SuccessResponse>;
+export function requestAddTask(body: {
+    key: string;
+    type: WXTaskType.WX_PUBLISH;
+    options: WXPublishTaskOptions;
+}): Promise<Api.Worker.AddTask.SuccessResponse>;
+export function requestAddTask(body: Api.Worker.AddTask.RequestBody): Promise<Api.Worker.AddTask.SuccessResponse>;
 export function requestAddTask(body: Api.Worker.AddTask.RequestBody) {
     return request<Api.Worker.AddTask.ResponseData>(
         Api.Worker.AddTask.url,

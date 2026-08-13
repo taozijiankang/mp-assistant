@@ -16,53 +16,58 @@
     </div>
     <div class="home-bottom">
       <WXWorkerDetail
-        v-if="selectedWorker?.type === WorkerType.WX"
+        v-if="selectedWorker && isWXWorkerInfo(selectedWorker)"
         :worker="selectedWorker"
         @edit="handleEditWorker"
         @toggle-suspend="handleToggleSuspend"
         @remove="handleRemoveWorker"
       />
+      <div v-else-if="showEmpty" class="home-empty">
+        <el-empty description="暂无 Worker，请点击右上角「添加」创建" />
+      </div>
     </div>
     <AddWorkerDialog ref="addWorkerDialog" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useApiCall } from "@/hooks/useApiCall";
-import {
-  requestGetWorkerList,
-  requestRemoveWorker,
-  requestPauseAndRecoverWorker,
-} from "@/api";
+import { requestGetWorkerList, requestRemoveWorker, requestPauseAndRecoverWorker } from "@/api";
 import { WSConnection } from "@/ws/WSConnection";
 import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
-import { WorkerStatus, WorkerType } from "@mp-assistant/common/dist/work/const.js";
+import { WorkerStatus } from "@mp-assistant/common/dist/work/const.js";
+import { isWXWorkerInfo } from "@mp-assistant/common/dist/work/index.js";
 import WorkerCard from "./component/WorkerCard/index.vue";
 import WXWorkerDetail from "@/component/WXWorkerDetail/index.vue";
 import AddWorkerDialog from "@/component/AddWorkerDialog/index.vue";
+import { WSMessageEvent } from "@/ws/WSConnection";
 
 const selectedKey = ref<string | null>(null);
 const addWorkerDialog = ref<InstanceType<typeof AddWorkerDialog> | null>(null);
 
-const { call: fetchList, loading: listLoading, data: workerList } = useApiCall(requestGetWorkerList, {
+const {
+  call: fetchList,
+  loading: listLoading,
+  data: workerList
+} = useApiCall(requestGetWorkerList, {
   onCallAfter: () => {
     if (sortedWorkerList.value.length > 0) {
       if (!selectedKey.value || !sortedWorkerList.value.find(w => w.key === selectedKey.value)) {
         selectedKey.value = sortedWorkerList.value[0].key;
       }
     }
-  },
+  }
 });
 
 const sortedWorkerList = computed(() =>
   [...(workerList.value ?? [])].sort((a, b) => (b.options.weight ?? 0) - (a.options.weight ?? 0))
 );
 
-const selectedWorker = computed(() =>
-  sortedWorkerList.value?.find((w) => w.key === selectedKey.value) ?? null
-);
+const selectedWorker = computed(() => sortedWorkerList.value.find(w => w.key === selectedKey.value) ?? null);
+
+const showEmpty = computed(() => !listLoading.value && workerList.value !== null);
 
 const handleEditWorker = () => {
   if (!selectedWorker.value) return;
@@ -85,7 +90,7 @@ const { call: removeWorker } = useApiCall(requestRemoveWorker);
 const handleRemoveWorker = async () => {
   if (!selectedWorker.value) return;
   await ElMessageBox.confirm(`确定删除 "${selectedWorker.value.options.name}" 吗？`, "删除确认", {
-    type: "warning",
+    type: "warning"
   });
   try {
     await removeWorker({ key: selectedWorker.value.key });
@@ -97,9 +102,13 @@ const handleRemoveWorker = async () => {
 
 onMounted(() => {
   fetchList();
-  WSConnection.instance.on(WSMessage.Worker.ListChange.type, () => {
-    fetchList();
-  });
+  WSConnection.instance.on(WSMessage.Worker.ListChange.type, fetchList);
+  WSConnection.instance.on(WSMessageEvent.connect, fetchList);
+});
+
+onUnmounted(() => {
+  WSConnection.instance.off(WSMessage.Worker.ListChange.type, fetchList);
+  WSConnection.instance.off(WSMessageEvent.connect, fetchList);
 });
 </script>
 

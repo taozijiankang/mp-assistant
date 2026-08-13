@@ -61,15 +61,15 @@
         color: #8c8c8c;
       }
 
-      &.audit-1 .vnum {
+      &.audit-reviewing .vnum {
         background: #fdf6ec;
         color: #e6a23c;
       }
-      &.audit-2 .vnum {
+      &.audit-success .vnum {
         background: #e8f8e0;
         color: #67c23a;
       }
-      &.audit-3 .vnum {
+      &.audit-fail .vnum {
         background: #fef0f0;
         color: #f56c6c;
       }
@@ -96,15 +96,15 @@
       border-radius: 3px;
       font-weight: 400;
 
-      &.audit-1 {
+      &.audit-reviewing {
         background: #fdf6ec;
         color: #e6a23c;
       }
-      &.audit-2 {
+      &.audit-success {
         background: #e8f8e0;
         color: #67c23a;
       }
-      &.audit-3 {
+      &.audit-fail {
         background: #fef0f0;
         color: #f56c6c;
       }
@@ -115,13 +115,13 @@
     font-size: 12px;
     margin-top: 4px;
 
-    &.audit-1 {
+    &.audit-reviewing {
       color: #e6a23c;
     }
-    &.audit-2 {
+    &.audit-success {
       color: #67c23a;
     }
-    &.audit-3 {
+    &.audit-fail {
       color: #f56c6c;
     }
   }

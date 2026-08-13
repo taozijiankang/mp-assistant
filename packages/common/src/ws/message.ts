@@ -53,5 +53,5 @@ export namespace WSMessage {
         [Worker.ListChange.type]: Worker.ListChange.Data,
     }
 
-    export class Event extends EventEmitter<EventMap> { }
+    export class Event<T extends EventMap = EventMap> extends EventEmitter<T> { }
 }
