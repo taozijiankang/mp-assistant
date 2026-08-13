@@ -4,6 +4,8 @@ import { BrowserContext, Page } from "playwright";
 import { ExecutorCommonMessage, ExecutorCustomMessage } from "./type.js";
 
 export interface BaseTaskExecutorMessage {
+    /** 初始化 */
+    INIT: undefined;
     /** 自杀命令，executor 收到后自行退出 */
     KILL: undefined;
     /** 完成任务 */
@@ -34,6 +36,11 @@ export class BaseTaskExecutor<
         process.on('message', (message) => {
             this.onTaskMessage(message as any);
         });
+
+        this.sendToTaskMessage({
+            type: 'INIT',
+            data: undefined,
+        } as ExecutorCustomMessage<BaseTaskExecutorMessage>);
     }
 
     async execute() {
@@ -76,14 +83,14 @@ export class BaseTaskExecutor<
                 status: TaskStatus.COMPLETED,
                 message,
             },
-        });
+        } as ExecutorCustomMessage<BaseTaskExecutorMessage>);
     }
 
     protected report(type: 'text' | 'image', message: string): void {
         this.sendToTaskMessage({
             type: 'REPORT',
             data: { type, message },
-        });
+        } as ExecutorCustomMessage<BaseTaskExecutorMessage>);
     }
 
     protected failed(message?: string): void {
@@ -93,6 +100,6 @@ export class BaseTaskExecutor<
                 status: TaskStatus.FAILED,
                 message,
             },
-        });
+        } as ExecutorCustomMessage<BaseTaskExecutorMessage>);
     }
 }

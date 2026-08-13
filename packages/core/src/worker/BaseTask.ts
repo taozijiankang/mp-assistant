@@ -77,6 +77,12 @@ export abstract class BaseTask<
         }
         this.setStatus(TaskStatus.RUNNING);
 
+        this.reports.push({
+            type: 'text',
+            message: `创建任务子进程...`,
+            time: Date.now(),
+        });
+
         this.executorCP = invokeExecuteTask(this.type, this.options, debugPort);
 
         // 任务创建失败
@@ -142,6 +148,14 @@ export abstract class BaseTask<
 
     protected onExecutorMessage({ type, data }: ExecutorCustomMessage<BaseTaskExecutorMessage>): void {
         switch (type) {
+            case 'INIT': {
+                this.reports.push({
+                    type: 'text',
+                    message: '任务子进程初始化完成',
+                    time: Date.now(),
+                });
+                break;
+            }
             case 'COMPLETED': {
                 if (data.status === TaskStatus.COMPLETED) {
                     this.completed(data.message);
