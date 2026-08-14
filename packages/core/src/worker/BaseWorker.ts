@@ -52,6 +52,7 @@ export abstract class BaseWorker<
       type: this.type,
       status: this.status,
       createdTime: this.createdTime,
+      debugPort: this.debugPort,
       options: this.options as BaseWorkerOptions,
       taskList: this.taskList.map(t => t.getInfo()),
     } as Info;

@@ -18,6 +18,7 @@
           </span>
         </div>
         <div class="detail-info">
+          <span>调试端口 {{ worker.debugPort ?? "-" }}</span>
           <span>权重 {{ worker.options.weight ?? "-" }}</span>
           <span>并发 {{ worker.options.syncTaskNum }}</span>
           <span>{{ worker.createdTime }}</span>

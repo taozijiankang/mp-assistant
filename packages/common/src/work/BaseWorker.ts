@@ -13,6 +13,7 @@ export interface BaseWorkerInfo {
     key: string;
     type: WorkerType;
     status: WorkerStatus;
+    debugPort: number;
     createdTime: string;
     options: BaseWorkerOptions;
     taskList: BaseTaskInfo[];
