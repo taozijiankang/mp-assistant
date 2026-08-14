@@ -1,9 +1,8 @@
-import { WXTaskType } from "@mp-assistant/common/dist/work/const.js";
+import { TaskStatus, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
 import { WXTask } from "../../WXTask.js";
 import { WXInspectVersionTaskInfo, WXInspectVersionTaskOptions } from "@mp-assistant/common/dist/work/index.js";
 import { WXVersionCodeData } from "@mp-assistant/common/dist/types/wx.js";
-import { WXInspectVersionExecutorMessage } from "./executor.js";
-import { ExecutorCustomMessage } from "../../../type.js";
+import { getVersionList } from "../../../../api/index.js";
 
 export class WXInspectVersionTask extends WXTask<WXInspectVersionTaskOptions, WXInspectVersionTaskInfo> {
     readonly type = WXTaskType.WX_INSPECT_VERSION;
@@ -22,12 +21,26 @@ export class WXInspectVersionTask extends WXTask<WXInspectVersionTaskOptions, WX
         this.versionData = undefined;
     }
 
-    protected onExecutorMessage(message: ExecutorCustomMessage<WXInspectVersionExecutorMessage>): void {
-        if (message.type === 'UPDATE_VERSION_LIST') {
-            this.versionData = message.data.versionData;
-            this.worker?.changeDetail();
-            return;
+    protected setAVersionData(versionData: WXVersionCodeData): void {
+        this.setAProperty('versionData', versionData);
+    }
+
+    async execute(): Promise<void> {
+        try {
+            const page = await this.createPage();
+
+            await this.switchMP(page, this.options.appId);
+
+            this.report('text', '正在获取版本列表...');
+            const versionData = await getVersionList(page);
+
+            this.setAVersionData(versionData);
+
+            this.report('text', '版本列表获取完成');
+
+            this.end(TaskStatus.COMPLETED, '登录任务完成');
+        } catch (error) {
+            this.end(TaskStatus.FAILED, error instanceof Error ? error.message : '登录失败');
         }
-        super.onExecutorMessage(message);
     }
 }

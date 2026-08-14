@@ -1,6 +1,6 @@
-import { BaseTaskOptions, WXTaskType } from "@mp-assistant/common/dist/work/index.js";
+import { BaseTaskInfo, BaseTaskOptions, WXTaskType } from "@mp-assistant/common/dist/work/index.js";
 import { chromium } from "playwright";
-import { createExecutor } from "../worker/index.js";
+import { createTask } from "../worker/index.js";
 
 /**
  * 子进程入口：根据 taskType 创建对应 Executor 并执行
@@ -10,7 +10,7 @@ import { createExecutor } from "../worker/index.js";
  * - debugPort: 调试端口
  */
 
-async function start(taskType: WXTaskType, options: BaseTaskOptions, debugPort: number) {
+async function start(taskType: WXTaskType, options: BaseTaskOptions, info: BaseTaskInfo, debugPort: number) {
     const browser = await chromium.connectOverCDP(`http://localhost:${debugPort}`);
     const browserContext = browser.contexts()[0];
 
@@ -19,12 +19,13 @@ async function start(taskType: WXTaskType, options: BaseTaskOptions, debugPort: 
         process.exit(1);
     }
 
-    createExecutor(taskType, options, browserContext).execute();
+    createTask(taskType, options, info, browserContext).execute();
 }
 
 const taskType = process.argv[2] || '';
 const options = process.argv[3] ? JSON.parse(process.argv[3]) : {};
-const debugPort = process.argv[4] ? parseInt(process.argv[4]) : undefined;
+const info = process.argv[4] ? JSON.parse(process.argv[4]) : {};
+const debugPort = process.argv[5] ? parseInt(process.argv[5]) : undefined;
 
 if (!taskType) {
     console.error('Task type is required');
@@ -35,4 +36,4 @@ if (!debugPort) {
     process.exit(1);
 }
 
-start(taskType as WXTaskType, options as BaseTaskOptions, debugPort);
+start(taskType as WXTaskType, options as BaseTaskOptions, info as BaseTaskInfo, debugPort);

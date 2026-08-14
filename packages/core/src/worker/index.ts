@@ -6,11 +6,6 @@ import { WXAuditTask } from "./wx/task/wxAuditTask/index.js";
 import { WXLoginTask } from "./wx/task/wxLoginTask/index.js";
 import { WXInspectVersionTask } from "./wx/task/wxInspectVersionTask/index.js";
 import { WXPublishTask } from "./wx/task/wxPublishTask/index.js";
-import { WXAuditExecutor } from "./wx/task/wxAuditTask/executor.js";
-import { WXLoginExecutor } from "./wx/task/wxLoginTask/executor.js";
-import { WXInspectVersionExecutor } from "./wx/task/wxInspectVersionTask/executor.js";
-import { WXPublishExecutor } from "./wx/task/wxPublishTask/executor.js";
-import { WXTaskExecutor } from "./wx/WXTaskExecutor.js";
 import {
     WorkerType,
     WXTaskType,
@@ -20,7 +15,12 @@ import {
     WXLoginTaskOptions,
     WXInspectVersionTaskOptions,
     WXPublishTaskOptions,
-    WXWorkerOptions
+    WXWorkerOptions,
+    WXPublishTaskInfo,
+    WXLoginTaskInfo,
+    WXAuditTaskInfo,
+    WXInspectVersionTaskInfo,
+    BaseTaskInfo,
 } from "@mp-assistant/common/dist/work/index.js";
 
 export function createWorker(type: WorkerType.WX, options: WXWorkerOptions, key?: string): WXWorker;
@@ -37,44 +37,37 @@ export function createWorker(type: WorkerType, options: BaseWorkerOptions, key?:
     }
 }
 
-export function createTask(type: WXTaskType.WX_AUDIT, options: WXAuditTaskOptions): WXAuditTask;
-export function createTask(type: WXTaskType.WX_LOGIN, options: WXLoginTaskOptions): WXLoginTask;
-export function createTask(type: WXTaskType.WX_INSPECT_VERSION, options: WXInspectVersionTaskOptions): WXInspectVersionTask;
-export function createTask(type: WXTaskType.WX_PUBLISH, options: WXPublishTaskOptions): WXPublishTask;
-export function createTask(type: WXTaskType, options: BaseTaskOptions): BaseTask;
-export function createTask(type: WXTaskType, options: BaseTaskOptions): BaseTask {
+export function createTask(type: WXTaskType.WX_AUDIT, options: WXAuditTaskOptions, info?: Omit<Partial<WXAuditTaskInfo>, 'options'>, browserContent?: BrowserContext): WXAuditTask;
+export function createTask(type: WXTaskType.WX_LOGIN, options: WXLoginTaskOptions, info?: Omit<Partial<WXLoginTaskInfo>, 'options'>, browserContent?: BrowserContext): WXLoginTask;
+export function createTask(type: WXTaskType.WX_INSPECT_VERSION, options: WXInspectVersionTaskOptions, info?: Omit<Partial<WXInspectVersionTaskInfo>, 'options'>, browserContent?: BrowserContext): WXInspectVersionTask;
+export function createTask(type: WXTaskType.WX_PUBLISH, options: WXPublishTaskOptions, info?: Omit<Partial<WXPublishTaskInfo>, 'options'>, browserContent?: BrowserContext): WXPublishTask;
+export function createTask(type: WXTaskType, options: BaseTaskOptions, info?: Omit<Partial<BaseTaskInfo>, 'options'>, browserContent?: BrowserContext): BaseTask;
+export function createTask(type: WXTaskType, options: BaseTaskOptions, info?: Omit<Partial<BaseTaskInfo>, 'options'>, browserContent?: BrowserContext): BaseTask {
     switch (type) {
         case WXTaskType.WX_AUDIT:
             return new WXAuditTask({
                 options: options as WXAuditTaskOptions,
+                info: info as Omit<Partial<WXAuditTaskInfo>, 'options'>,
+                browserContent,
             });
         case WXTaskType.WX_LOGIN:
             return new WXLoginTask({
                 options: options as WXLoginTaskOptions,
+                info: info as Omit<Partial<WXLoginTaskInfo>, 'options'>,
+                browserContent,
             });
         case WXTaskType.WX_INSPECT_VERSION:
             return new WXInspectVersionTask({
                 options: options as WXInspectVersionTaskOptions,
+                info: info as Omit<Partial<WXInspectVersionTaskInfo>, 'options'>,
+                browserContent,
             });
         case WXTaskType.WX_PUBLISH:
             return new WXPublishTask({
                 options: options as WXPublishTaskOptions,
+                info: info as Omit<Partial<WXPublishTaskInfo>, 'options'>,
+                browserContent,
             });
-        default:
-            throw new Error(`Unsupported task type: ${type}`);
-    }
-}
-
-export function createExecutor(type: WXTaskType, options: BaseTaskOptions, browserContent: BrowserContext): WXTaskExecutor {
-    switch (type) {
-        case WXTaskType.WX_AUDIT:
-            return new WXAuditExecutor(options as WXAuditTaskOptions, browserContent);
-        case WXTaskType.WX_LOGIN:
-            return new WXLoginExecutor(options as WXLoginTaskOptions, browserContent);
-        case WXTaskType.WX_INSPECT_VERSION:
-            return new WXInspectVersionExecutor(options as WXInspectVersionTaskOptions, browserContent);
-        case WXTaskType.WX_PUBLISH:
-            return new WXPublishExecutor(options as WXPublishTaskOptions, browserContent);
         default:
             throw new Error(`Unsupported task type: ${type}`);
     }

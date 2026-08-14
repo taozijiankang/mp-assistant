@@ -59,22 +59,22 @@ export abstract class BaseWorker<
   }
 
   getTask(taskKey: string): BaseTask | undefined {
-    return this.taskList.find(t => t.getKey() === taskKey);
+    return this.taskList.find(t => t.getInfo().key === taskKey);
   }
 
   addTask(task: BaseTask): void {
-    task.worker = this;
+    task.setWorker(this);
     this.taskList.push(task);
     this.changeDetail();
   }
 
   removeTask(taskKey: string): void {
-    const task = this.taskList.find(t => t.getKey() === taskKey);
+    const task = this.taskList.find(t => t.getInfo().key === taskKey);
     if (task) {
       task.abort();
-      task.worker = null;
+      task.setWorker(null);
     }
-    this.taskList = this.taskList.filter(t => t.getKey() !== taskKey);
+    this.taskList = this.taskList.filter(t => t.getInfo().key !== taskKey);
     this.changeDetail();
   }
 
@@ -95,7 +95,7 @@ export abstract class BaseWorker<
   destroy(): void {
     this.destroyed = true;
     this.taskList.forEach(t => {
-      t.worker = null;
+      t.setWorker(null);
       t.abort();
     });
     if (this.browserContent) {
@@ -113,7 +113,7 @@ export abstract class BaseWorker<
       this.status = WorkerStatus.PAUSED;
       // 终止所有正在运行的任务并重置，恢复后可继续运行
       this.taskList.forEach(t => {
-        if (t.getStatus() === TaskStatus.RUNNING) {
+        if (t.getInfo().status === TaskStatus.RUNNING) {
           t.abort();
           t.resetStatus();
         }
@@ -167,9 +167,9 @@ export abstract class BaseWorker<
     if (this.destroyed) return;
     try {
       if (this.status === WorkerStatus.RUNNING) {
-        const onRunningTaskNum = this.taskList.filter(task => task.getStatus() === TaskStatus.RUNNING).length;
+        const onRunningTaskNum = this.taskList.filter(task => task.getInfo().status === TaskStatus.RUNNING).length;
         const syncTaskNum = Math.max(0, this.options.syncTaskNum - onRunningTaskNum);
-        const idleTask = this.taskList.filter(task => task.getStatus() === TaskStatus.IDLE).slice(0, syncTaskNum);
+        const idleTask = this.taskList.filter(task => task.getInfo().status === TaskStatus.IDLE).slice(0, syncTaskNum);
         idleTask.forEach(task => {
           task.run(this.debugPort!);
         });
