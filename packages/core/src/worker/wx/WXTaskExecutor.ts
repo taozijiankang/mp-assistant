@@ -100,7 +100,9 @@ export abstract class WXTaskExecutor<
     protected async switchMP(page: Page, appId: string) {
         await this.login(page);
 
-        await page.goto(WXMP_URL);
+        if (!page.url().startsWith(WXMP_URL)) {
+            await page.goto(WXMP_URL);
+        }
 
         const wxaList = await requestWxaList(page);
         const wxaItem = wxaList.find(item => item.appid === appId);

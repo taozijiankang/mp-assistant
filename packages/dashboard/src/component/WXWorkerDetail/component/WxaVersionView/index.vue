@@ -43,7 +43,10 @@
           <template #default="{ row }: { row: WXWorkerWxaItem }">
             <template v-if="row.versionData?.experience_info?.basic_info?.audit_status !== undefined">
               <div class="version-cell">
-                <div class="version-tag experience" :class="auditStatusClass(row.versionData.experience_info.basic_info.audit_status)">
+                <div
+                  class="version-tag experience"
+                  :class="auditStatusClass(row.versionData.experience_info.basic_info.audit_status)"
+                >
                   <span>{{ row.versionData.experience_info.basic_info.nick_name }}</span>
                   <span class="vnum">v{{ row.versionData.experience_info.basic_info.version }}</span>
                 </div>
@@ -88,7 +91,11 @@
                 <div class="version-tag develop">
                   <span class="vnum">v{{ getDevInfo(row, dev.nick_name)!.version }}</span>
                   <span v-if="isDevReleased(row, dev.nick_name)" class="released-tag">已上线</span>
-                  <span v-else-if="isDevAuditing(row, dev.nick_name)" class="audit-tag" :class="auditStatusClass(row.versionData!.experience_info!.basic_info!.audit_status)">
+                  <span
+                    v-else-if="isDevAuditing(row, dev.nick_name)"
+                    class="audit-tag"
+                    :class="auditStatusClass(row.versionData!.experience_info!.basic_info!.audit_status)"
+                  >
                     {{ devAuditLabel(row) }}
                   </span>
                 </div>
@@ -164,9 +171,9 @@ const developers = computed(() => {
   const list: { nick_name: string }[] = [];
   for (const item of props.list ?? []) {
     for (const dev of item.versionData?.develop_info?.info_list ?? []) {
-      if (!set.has(dev.basic_info.nick_name)) {
-        set.add(dev.basic_info.nick_name);
-        list.push({ nick_name: dev.basic_info.nick_name });
+      if (dev.basic_info?.nick_name && !set.has(dev.basic_info?.nick_name)) {
+        set.add(dev.basic_info?.nick_name);
+        list.push({ nick_name: dev.basic_info?.nick_name });
       }
     }
   }
@@ -198,10 +205,10 @@ const isDevAuditing = (row: WXWorkerWxaItem, nickName: string) => {
 
 const devAuditLabel = (row: WXWorkerWxaItem) => {
   const status = row.versionData?.experience_info?.basic_info?.audit_status;
-  if (status === WXAuditStatus.REVIEWING) return '待审核';
-  if (status === WXAuditStatus.SUCCESS) return '待发布';
-  if (status === WXAuditStatus.FAIL) return '审核失败';
-  return '';
+  if (status === WXAuditStatus.REVIEWING) return "待审核";
+  if (status === WXAuditStatus.SUCCESS) return "待发布";
+  if (status === WXAuditStatus.FAIL) return "审核失败";
+  return "";
 };
 
 const auditStatusClass = (status?: number) => {
@@ -218,7 +225,7 @@ const auditStatusClass = (status?: number) => {
 };
 
 const getDevInfo = (row: WXWorkerWxaItem, nickName: string) => {
-  return row.versionData?.develop_info?.info_list?.find(d => d.basic_info.nick_name === nickName)?.basic_info ?? null;
+  return row.versionData?.develop_info?.info_list?.find(d => d.basic_info?.nick_name === nickName)?.basic_info ?? null;
 };
 </script>
 

@@ -24,7 +24,7 @@ export class BaseTaskExecutor<
     Options extends BaseTaskOptions = BaseTaskOptions,
 > {
     protected options: Options;
-    private browserContent: BrowserContext;
+    protected browserContent: BrowserContext;
 
     /** 执行器创建的页面，KILL 时统一关闭 */
     private pages: Page[] = [];

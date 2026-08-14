@@ -1,6 +1,9 @@
 export enum WXAuditStatus {
+    /** 审核失败 */
     FAIL = 3,
+    /** 审核通过待发布 */
     SUCCESS = 2,
+    /** 审核中 */
     REVIEWING = 1,
 }
 
