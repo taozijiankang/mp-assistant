@@ -1,13 +1,12 @@
 import { BaseTaskInfo, BaseTaskOptions, WXTaskType } from "@mp-assistant/common/dist/work/index.js";
 import { chromium } from "playwright";
 import { createTask } from "../worker/index.js";
+import fs from "node:fs";
 
 /**
- * 子进程入口：根据 taskType 创建对应 Executor 并执行
+ * 子进程入口：从临时文件读取任务参数并执行
  * 参数：
- * - taskType: 任务类型
- * - options: 任务选项
- * - debugPort: 调试端口
+ * - tmpFilePath: 存放任务参数（type/options/info/debugPort）的临时文件路径
  */
 
 async function start(taskType: WXTaskType, options: BaseTaskOptions, info: BaseTaskInfo, debugPort: number) {
@@ -22,10 +21,30 @@ async function start(taskType: WXTaskType, options: BaseTaskOptions, info: BaseT
     createTask(taskType, options, info, browserContext).execute();
 }
 
-const taskType = process.argv[2] || '';
-const options = process.argv[3] ? JSON.parse(process.argv[3]) : {};
-const info = process.argv[4] ? JSON.parse(process.argv[4]) : {};
-const debugPort = process.argv[5] ? parseInt(process.argv[5]) : undefined;
+const tmpFilePath = process.argv[2] || '';
+
+if (!tmpFilePath) {
+    console.error('Task param file path is required');
+    process.exit(1);
+}
+
+let taskType = '' as WXTaskType;
+let options: BaseTaskOptions = {};
+let info = {} as BaseTaskInfo;
+let debugPort = 0;
+
+try {
+    const content = fs.readFileSync(tmpFilePath, 'utf-8');
+    fs.rmSync(tmpFilePath, { force: true });  // 读取后立即删除临时文件
+    const data = JSON.parse(content);
+    taskType = data.type;
+    options = data.options ?? {};
+    info = data.info ?? {};
+    debugPort = data.debugPort;
+} catch (error) {
+    console.error('读取任务参数失败:', error);
+    process.exit(1);
+}
 
 if (!taskType) {
     console.error('Task type is required');
@@ -36,4 +55,4 @@ if (!debugPort) {
     process.exit(1);
 }
 
-start(taskType as WXTaskType, options as BaseTaskOptions, info as BaseTaskInfo, debugPort);
+start(taskType, options, info, debugPort);
