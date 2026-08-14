@@ -6,9 +6,28 @@ import { versionSatisfy } from "@mp-assistant/common/dist/utils/index.js";
 import { WXAuditStatus } from "@mp-assistant/common/dist/constant/wx.js";
 import { WXMP_AUDIT_PAGE_URL, WXMP_URL, WXMP_VERSION_MANAGEMENT_URL } from "../../../../constant/wx.js";
 import { expect } from "playwright/test";
+import { WXVersionCodeData } from "@mp-assistant/common/dist/types/wx.js";
 
 export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
     readonly type = WXTaskType.WX_AUDIT;
+
+    private versionData?: WXVersionCodeData;
+
+    getInfo(): WXAuditTaskInfo {
+        return {
+            ...super.getInfo(),
+            versionData: this.versionData,
+        } as WXAuditTaskInfo;
+    }
+
+    protected onReset(): void {
+        super.onReset();
+        this.versionData = undefined;
+    }
+
+    protected setAVersionData(versionData: WXVersionCodeData): void {
+        this.setAProperty('versionData', versionData);
+    }
 
     async execute(): Promise<void> {
         try {
@@ -16,8 +35,11 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
 
             await this.switchMP(page, this.options.appId);
 
+            this.report('text', `开始获取版本列表`);
+
             // 先找到可提审的版本
             const versionData = await getVersionList(page);
+            this.setAVersionData(versionData);
             const versionInfo = versionData.develop_info
                 ?.info_list
                 ?.map(item => item.basic_info)
@@ -27,33 +49,17 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                 throw new Error('未找到可提审的版本');
             }
 
-            // 判断当前版本是否已提审
-            const onAuditVersionInfo = versionData.experience_info?.basic_info;
-            if (onAuditVersionInfo && onAuditVersionInfo.audit_status !== undefined) {
-                // 如果是当前版本
-                if (
-                    onAuditVersionInfo.version === versionInfo.version
-                    && onAuditVersionInfo.nick_name === versionInfo.nick_name
-                    && onAuditVersionInfo.describe === versionInfo.describe
-                ) {
-                    if (onAuditVersionInfo.audit_status === WXAuditStatus.SUCCESS) {
-                        // 走发布逻辑
-                        return;
-                    }
-                    if (onAuditVersionInfo.audit_status === WXAuditStatus.FAIL) {
-                        // 走失败逻辑
-                        return;
-                    }
-                    if (onAuditVersionInfo.audit_status === WXAuditStatus.REVIEWING) {
-                        // 走审核中逻辑
-                        return;
-                    }
-                }
-                // 如果不是当前版本且在审核中，则直接取消审核
-                else if (onAuditVersionInfo.audit_status === WXAuditStatus.REVIEWING) {
-                    // 走取消审核逻辑
-                    return;
-                }
+            this.report('text', `找到可提审的版本: ${versionInfo.version}, ${versionInfo.nick_name}, ${versionInfo.describe}`);
+
+            // 判断当前版本是否已发布
+            const onReleaseVersionInfo = versionData.online_info?.basic_info;
+            if (
+                onReleaseVersionInfo
+                && onReleaseVersionInfo.version === versionInfo.version
+                && onReleaseVersionInfo.nick_name === versionInfo.nick_name
+                && onReleaseVersionInfo.describe === versionInfo.describe
+            ) {
+                throw new Error('当前版本已发布');
             }
 
             // 如果当前页面不是MP主页，则跳转到MP主页 获取 searchParams
@@ -62,6 +68,52 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
             }
 
             await page.goto(`${WXMP_VERSION_MANAGEMENT_URL}${new URL(page.url()).search}`);
+
+            // 判断是否有正在审核的版本，将取消审核
+            const onAuditVersionInfo = versionData.experience_info?.basic_info;
+            if (
+                onAuditVersionInfo
+                && onAuditVersionInfo.audit_status === WXAuditStatus.REVIEWING
+            ) {
+                // 如果正在审核的版本是当前版本，则直接取消审核
+                if (
+                    onAuditVersionInfo.version === versionInfo.version
+                    && onAuditVersionInfo.nick_name === versionInfo.nick_name
+                    && onAuditVersionInfo.describe === versionInfo.describe
+                ) {
+                    throw new Error('当前版本正在审核中');
+                }
+
+                this.report('text', `有版本正在审核中，开始撤回审核`);
+
+                // 如果不是当前版本，则取消审核
+                // 审核版本盒子定位器
+                const developVersionBoxLocator = page.locator('.code_mod.mod_default_box.code_version_test', {
+                    has: page.locator('.mod_default_hd', { hasText: '审核版本' })
+                });
+                await expect(developVersionBoxLocator).toBeVisible({
+                    timeout: 30 * 1000
+                });
+
+                await developVersionBoxLocator.locator('.code_version_log_ft .weui-desktop-operation-group button').click();
+                await developVersionBoxLocator.locator('.code_version_log_ft li[data-component="mp-dropdown-item"]', {
+                    hasText: '撤回审核'
+                }).click();
+
+                // 撤销审核弹窗
+                const cancelAuditModalLocator = page.locator('.weui-desktop-dialog', {
+                    has: page.locator('.weui-desktop-dialog__title', { hasText: '撤回审核' })
+                });
+                await expect(cancelAuditModalLocator).toBeVisible({ timeout: 30 * 1000 })
+                await cancelAuditModalLocator.locator('.weui-desktop-dialog__ft button', { hasText: '确认撤回' }).click();
+
+                this.report('text', `撤回审核成功`);
+
+                const versionData = await getVersionList(page);
+                this.setAVersionData(versionData);
+
+                await page.reload();
+            }
 
             // 开发版本盒子定位器
             const developVersionBoxLocator = page.locator('.code_mod.mod_default_box.code_version_dev', {
@@ -108,6 +160,8 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                 predicate: page => page.url().startsWith(WXMP_AUDIT_PAGE_URL),
                 timeout: 30 * 1000
             });
+
+            this.pages.push(auditPage);
 
             /**
              * 填写表单
@@ -228,6 +282,9 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
 
                 await submitFormBoxLocator.locator('.tool_bar a', { hasText: '提交审核' }).click();
             });
+
+            const versionData2 = await getVersionList(page);
+            this.setAVersionData(versionData2);
 
             this.end(TaskStatus.COMPLETED, '提审任务完成');
         } catch (error) {

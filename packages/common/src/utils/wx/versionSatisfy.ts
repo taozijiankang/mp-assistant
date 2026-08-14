@@ -49,23 +49,24 @@ export interface VersionPositioner {
  * @param positioners 
  */
 export function versionSatisfy(version: WXVersionBasicInfo, positioners: VersionPositioner[]) {
+    if (!positioners.length) return false;
     return positioners.every(item => {
         const value = item.value.trim();
         switch (item.type) {
             case VersionPositioningType.Describe:
                 return {
                     [VersionPositioningCriteria.Equal]: version.describe === value,
-                    [VersionPositioningCriteria.Inclusion]: version.describe?.includes(value),
+                    [VersionPositioningCriteria.Inclusion]: value ? version.describe?.includes(value) : false,
                 }[item.criteria]
             case VersionPositioningType.NickName:
                 return {
                     [VersionPositioningCriteria.Equal]: version.nick_name === value,
-                    [VersionPositioningCriteria.Inclusion]: version.nick_name?.includes(value),
+                    [VersionPositioningCriteria.Inclusion]: value ? version.nick_name?.includes(value) : false,
                 }[item.criteria]
             case VersionPositioningType.Version:
                 return {
                     [VersionPositioningCriteria.Equal]: version.version === value,
-                    [VersionPositioningCriteria.Inclusion]: version.version?.includes(value),
+                    [VersionPositioningCriteria.Inclusion]: value ? version.version?.includes(value) : false,
                 }[item.criteria]
         }
     });

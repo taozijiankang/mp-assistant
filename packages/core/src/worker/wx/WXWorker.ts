@@ -1,7 +1,7 @@
 import { TaskStatus, WorkerType } from "@mp-assistant/common/dist/work/const.js";
 import { BaseWorker } from "../BaseWorker.js";
 import { WXWorkerInfo, WXWorkerOptions, WXWorkerWxaItem } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
-import { isWXLoginTaskInfo, isWXInspectVersionTaskInfo, isWXTaskInfo } from "@mp-assistant/common/dist/work/index.js";
+import { isWXLoginTaskInfo, isWXInspectVersionTaskInfo, isWXAuditTaskInfo, isWXTaskInfo, isWXPublishTaskInfo } from "@mp-assistant/common/dist/work/index.js";
 import type { WXVersionCodeData } from "@mp-assistant/common/dist/types/wx.js";
 
 export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
@@ -43,10 +43,16 @@ export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
         }
         if (!wxaLis.length) return [];
 
+        // 按创建时间升序，最新的任务最后遍历，Map.set 覆盖后取到最新版本
+        taskList.sort((a, b) => a.createdTime.localeCompare(b.createdTime));
+
         // 聚合版本信息
         const versionMap = new Map<string, WXVersionCodeData>();
         for (const task of taskList) {
-            if (task.status === TaskStatus.COMPLETED && isWXInspectVersionTaskInfo(task) && task.versionData) {
+            if (
+                (isWXInspectVersionTaskInfo(task) || isWXAuditTaskInfo(task) || isWXPublishTaskInfo(task))
+                && task.versionData
+            ) {
                 versionMap.set(task.options.appId, task.versionData);
             }
         }

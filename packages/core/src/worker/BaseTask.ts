@@ -59,7 +59,7 @@ export abstract class BaseTask<
     /** 任务完成/失败时记录的消息 */
     protected completedMessage: string;
 
-    private pages: Page[] = [];
+    protected pages: Page[] = [];
 
     constructor({ options, info, browserContent }: { options: Options, info?: Omit<Partial<Info>, 'options'>, browserContent?: BrowserContext }) {
         this.options = options;
