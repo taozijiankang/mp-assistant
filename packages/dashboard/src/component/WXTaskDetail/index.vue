@@ -37,10 +37,10 @@
         </div>
         <div
           v-if="task.completedMessage && (task.status === TaskStatus.COMPLETED || task.status === TaskStatus.FAILED)"
-          class="detail-row"
+          class="detail-row detail-msg-row"
         >
           <span class="label">{{ task.status === TaskStatus.FAILED ? '失败原因' : '完成信息' }}</span>
-          <span>{{ task.completedMessage }}</span>
+          <span class="detail-value">{{ task.completedMessage }}</span>
         </div>
 
         <div v-if="task.reports.length > 0" class="reports-section">

@@ -113,9 +113,6 @@
     color: #f56c6c;
     line-height: 1.4;
     word-break: break-all;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
+    white-space: pre-wrap;
   }
 }
