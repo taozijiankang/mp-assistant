@@ -2,9 +2,11 @@
   <el-dialog v-model="visible" title="添加任务" width="560px" @close="resetForm">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
       <el-form-item label="类型" prop="type">
-        <el-select v-model="form.type" style="width: 100%">
-          <el-option v-for="opt in WXTaskTypeOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-        </el-select>
+        <el-radio-group v-model="form.type">
+          <el-radio-button v-for="opt in WXTaskTypeOptions" :key="opt.value" :value="opt.value">
+            {{ opt.label }}
+          </el-radio-button>
+        </el-radio-group>
       </el-form-item>
       <el-form-item v-if="form.type === WXTaskType.WX_LOGIN" label="操作" prop="action">
         <el-radio-group v-model="form.action">
@@ -18,8 +20,8 @@
         </el-select>
       </el-form-item>
 
-      <template v-if="form.type === WXTaskType.WX_AUDIT">
-        <el-form-item label="筛选条件">
+      <template v-if="isPositionerRequired">
+        <el-form-item label="筛选条件" prop="positioners">
           <div class="positioner-list">
             <div v-for="(p, i) in form.positioners" :key="i" class="positioner-item">
               <el-select v-model="p.type" class="positioner-type">
@@ -46,8 +48,10 @@
             <el-button class="positioner-add" plain @click="addPositioner">添加条件</el-button>
           </div>
         </el-form-item>
+      </template>
 
-        <el-form-item label="版本描述">
+      <template v-if="form.type === WXTaskType.WX_AUDIT">
+        <el-form-item label="版本描述" prop="versionDescription">
           <el-input v-model="form.versionDescription" type="textarea" :rows="3" placeholder="请输入版本描述" />
         </el-form-item>
 
@@ -79,6 +83,7 @@ import type {
   WXLoginTaskOptions,
   WXInspectVersionTaskOptions,
   WXAuditTaskOptions,
+  WXPublishTaskOptions,
 } from "@mp-assistant/common/dist/work/index.js";
 import {
   VersionPositioningType,
@@ -111,12 +116,17 @@ const form = reactive({
 });
 
 const isAppIdRequired = computed(() =>
-  form.type === WXTaskType.WX_INSPECT_VERSION || form.type === WXTaskType.WX_AUDIT
+  form.type === WXTaskType.WX_INSPECT_VERSION || form.type === WXTaskType.WX_AUDIT || form.type === WXTaskType.WX_PUBLISH
+);
+
+const isPositionerRequired = computed(() =>
+  form.type === WXTaskType.WX_AUDIT || form.type === WXTaskType.WX_PUBLISH
 );
 
 const rules: FormRules = {
   type: [{ required: true, message: "请选择任务类型", trigger: "change" }],
   appId: [{
+    required: true,
     validator: (_rule, _value, callback) => {
       if (isAppIdRequired.value && !form.appId) {
         callback(new Error("请选择小程序"));
@@ -125,6 +135,28 @@ const rules: FormRules = {
       }
     },
     trigger: "change",
+  }],
+  positioners: [{
+    required: true,
+    validator: (_rule, _value, callback) => {
+      if (isPositionerRequired.value && !form.positioners.some(p => p.value.trim())) {
+        callback(new Error("请至少添加一个筛选条件"));
+      } else {
+        callback();
+      }
+    },
+    trigger: "change",
+  }],
+  versionDescription: [{
+    required: true,
+    validator: (_rule, _value, callback) => {
+      if (!form.versionDescription.trim()) {
+        callback(new Error("请输入版本描述"));
+      } else {
+        callback();
+      }
+    },
+    trigger: "blur",
   }],
 };
 
@@ -148,18 +180,26 @@ const addPositioner = () => {
   });
 };
 
+// 过滤掉匹配值为空的条件
+const buildPositioners = () => form.positioners.filter(p => p.value.trim());
+
 const buildAuditOptions = (): WXAuditTaskOptions => {
-  // 过滤掉匹配值为空的条件
-  const positioners = form.positioners.filter(p => p.value.trim());
-  // 仅携带已填写的字段，避免提交空对象
-  const populateData: NonNullable<WXAuditTaskOptions["populateData"]> = {};
-  if (form.versionDescription.trim()) populateData.versionDescription = form.versionDescription.trim();
+  const populateData: WXAuditTaskOptions["populateData"] = {
+    versionDescription: form.versionDescription.trim(),
+  };
   if (form.imagePreviews.length) populateData.imagePreviews = form.imagePreviews;
   if (form.videoPreviews[0]) populateData.videoPreview = form.videoPreviews[0];
   return {
     appId: form.appId,
-    ...(positioners.length ? { positioner: positioners } : {}),
-    ...(Object.keys(populateData).length ? { populateData } : {}),
+    positioner: buildPositioners(),
+    populateData,
+  };
+};
+
+const buildPublishOptions = (): WXPublishTaskOptions => {
+  return {
+    appId: form.appId,
+    positioner: buildPositioners(),
   };
 };
 
@@ -167,13 +207,15 @@ const handleSubmit = async () => {
   if (!formRef.value) return;
   await formRef.value.validate();
   const type = form.type as WXTaskType;
-  let options: WXLoginTaskOptions | WXInspectVersionTaskOptions | WXAuditTaskOptions | {};
+  let options: WXLoginTaskOptions | WXInspectVersionTaskOptions | WXAuditTaskOptions | WXPublishTaskOptions | {};
   if (type === WXTaskType.WX_LOGIN) {
     options = { action: form.action } as WXLoginTaskOptions;
   } else if (type === WXTaskType.WX_INSPECT_VERSION) {
     options = { appId: form.appId } as WXInspectVersionTaskOptions;
   } else if (type === WXTaskType.WX_AUDIT) {
     options = buildAuditOptions();
+  } else if (type === WXTaskType.WX_PUBLISH) {
+    options = buildPublishOptions();
   } else {
     options = {};
   }

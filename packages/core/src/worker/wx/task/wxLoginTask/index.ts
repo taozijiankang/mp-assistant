@@ -31,7 +31,7 @@ export class WXLoginTask extends WXTask<WXLoginTaskOptions, WXLoginTaskInfo> {
 
     async execute(): Promise<void> {
         try {
-            const page = await this.createPage();
+            const page = await this.browserContent!.newPage();
 
             if (this.options.action === 'logout') {
                 await this.logout(page);

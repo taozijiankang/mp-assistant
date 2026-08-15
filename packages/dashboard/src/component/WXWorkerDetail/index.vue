@@ -71,6 +71,8 @@
               :active="selectedTaskKey === task.key"
               :wxa-list="worker.wxaList"
               @select="openTaskDrawer(task.key)"
+              @abort="handleAbortTask(task.key)"
+              @reset="handleResetTask(task.key)"
             />
           </div>
         </div>
@@ -178,10 +180,11 @@ const handleRemoveTask = async () => {
 
 const { call: abortTask } = useApiCall(requestAbortTask);
 
-const handleAbortTask = async () => {
-  if (!selectedTask.value) return;
+const handleAbortTask = async (taskKey?: string) => {
+  const key = taskKey ?? selectedTask.value?.key;
+  if (!key) return;
   try {
-    await abortTask({ key: props.worker.key, taskKey: selectedTask.value.key });
+    await abortTask({ key: props.worker.key, taskKey: key });
     ElMessage.success("已终止");
   } catch {}
 };
@@ -210,10 +213,11 @@ const handleFetchVersion = async (appId: string) => {
 
 const { call: resetTask } = useApiCall(requestResetTaskStatus);
 
-const handleResetTask = async () => {
-  if (!selectedTask.value) return;
+const handleResetTask = async (taskKey?: string) => {
+  const key = taskKey ?? selectedTask.value?.key;
+  if (!key) return;
   try {
-    await resetTask({ key: props.worker.key, taskKey: selectedTask.value.key });
+    await resetTask({ key: props.worker.key, taskKey: key });
     ElMessage.success("已重置");
   } catch {}
 };

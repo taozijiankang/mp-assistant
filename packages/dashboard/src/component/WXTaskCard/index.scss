@@ -22,6 +22,13 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 4px;
+
+    .task-card-header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
   }
 
   .task-name {
@@ -50,5 +57,65 @@
       height: 18px;
       border-radius: 50%;
     }
+  }
+
+  .task-publish {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin-top: 6px;
+
+    .task-publish-qrcode {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 4px;
+      border: 1px solid #ebeef5;
+    }
+
+    .task-publish-countdown {
+      font-size: 12px;
+      color: #e6a23c;
+      font-family: monospace;
+      font-weight: 600;
+      text-align: center;
+    }
+  }
+
+  .task-latest-report {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #303133;
+    line-height: 1.4;
+
+    .task-latest-report-text {
+      display: block;
+      padding: 6px 8px;
+      word-break: break-all;
+      white-space: pre-wrap;
+      background: #f5f7fa;
+      border-radius: 4px;
+    }
+
+    .task-latest-report-image {
+      display: block;
+      width: 100%;
+      max-height: 160px;
+      border-radius: 4px;
+      border: 1px solid #ebeef5;
+    }
+  }
+
+  .task-fail-reason {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #f56c6c;
+    line-height: 1.4;
+    word-break: break-all;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
   }
 }

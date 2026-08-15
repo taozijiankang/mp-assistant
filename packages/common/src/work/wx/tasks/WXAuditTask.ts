@@ -5,10 +5,10 @@ import { WXTaskInfo, WXTaskOptions } from "../WXTask.js";
 
 export interface WXAuditTaskOptions extends WXTaskOptions {
     appId: string;
-    positioner?: VersionPositioner[]
-    populateData?: {
+    positioner: VersionPositioner[]
+    populateData: {
         // 版本描述
-        versionDescription?: string
+        versionDescription: string
         // 图片预览
         imagePreviews?: string[]
         // 视频预览

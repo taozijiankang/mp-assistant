@@ -31,7 +31,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
 
     async execute(): Promise<void> {
         try {
-            const page = await this.createPage();
+            const page = await this.browserContent!.newPage();
 
             await this.switchMP(page, this.options.appId);
 
@@ -160,8 +160,6 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                 predicate: page => page.url().startsWith(WXMP_AUDIT_PAGE_URL),
                 timeout: 30 * 1000
             });
-
-            this.pages.push(auditPage);
 
             /**
              * 填写表单

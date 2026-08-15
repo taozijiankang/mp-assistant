@@ -59,7 +59,7 @@ export abstract class BaseTask<
     /** 任务完成/失败时记录的消息 */
     protected completedMessage: string;
 
-    protected pages: Page[] = [];
+    private pages: Page[] = [];
 
     constructor({ options, info, browserContent }: { options: Options, info?: Omit<Partial<Info>, 'options'>, browserContent?: BrowserContext }) {
         this.options = options;
@@ -74,6 +74,9 @@ export abstract class BaseTask<
         this.browserContent = browserContent ?? null;
         this.installType = this.browserContent ? 'B' : 'A';
         if (this.browserContent) {
+            this.browserContent.on('page', (page) => {
+                this.pages.push(page);
+            });
             process.on('message', (message) => {
                 this.onAMessage(message as any);
             });
@@ -229,18 +232,6 @@ export abstract class BaseTask<
                 break;
             }
         }
-    }
-
-    /**
-     * 创建页面并纳入管理，KILL 时自动关闭
-     */
-    protected async createPage(): Promise<Page> {
-        if (!this.browserContent) {
-            throw new Error('浏览器上下文不存在');
-        }
-        const page = await this.browserContent.newPage();
-        this.pages.push(page);
-        return page;
     }
 
     protected onBMessage({ type, data }: ExecutorCustomMessage<BaseTaskExecutorMessage>): void {

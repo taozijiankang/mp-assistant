@@ -69,6 +69,19 @@
           <img :src="task.loginQRCode" class="qrcode-image" />
         </div>
 
+        <div
+          v-if="publishInfo && task.status === TaskStatus.RUNNING && publishInfo.publishQRCode"
+          class="detail-row qrcode-row"
+        >
+          <span class="label">发布二维码</span>
+          <div class="publish-qrcode-wrap">
+            <img :src="publishInfo.publishQRCode" class="qrcode-image" />
+            <span v-if="publishInfo.publishCountdown != null" class="publish-countdown">
+              {{ formatCountdown(publishInfo.publishCountdown) }}
+            </span>
+          </div>
+        </div>
+
         <div v-if="wxaList.length > 0" class="wxa-section">
           <div class="section-title">小程序列表 ({{ wxaList.length }})</div>
           <div class="wxa-list">
@@ -110,6 +123,7 @@
 import { computed } from "vue";
 import type { WXTaskInfo } from "@mp-assistant/common/dist/work/wx/WXTask.js";
 import type { WXLoginTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXLoginTask.js";
+import type { WXPublishTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXPublishTask.js";
 import type { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
 import { TaskStatus, TaskStatusDict, WXTaskTypeDict, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
 
@@ -147,10 +161,20 @@ const inspectWxaItem = computed(() => {
   return props.wxaList?.find(item => item.appid === appId) ?? null;
 });
 
+const publishInfo = computed<WXPublishTaskInfo | null>(() =>
+  props.task?.type === WXTaskType.WX_PUBLISH ? (props.task as WXPublishTaskInfo) : null
+);
+
 const formatTime = (timestamp: number) => {
   const d = new Date(timestamp);
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+};
+
+const formatCountdown = (seconds: number) => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 };
 </script>
 

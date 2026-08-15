@@ -27,7 +27,7 @@ export class WXInspectVersionTask extends WXTask<WXInspectVersionTaskOptions, WX
 
     async execute(): Promise<void> {
         try {
-            const page = await this.createPage();
+            const page = await this.browserContent!.newPage();
 
             await this.switchMP(page, this.options.appId);
 
