@@ -5,64 +5,100 @@
   padding: 8px 12px;
   gap: 8px;
 
-  .overview-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  .overview-toolbar {
     flex-shrink: 0;
-
-    .overview-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #303133;
-    }
-
-    .overview-summary {
-      font-size: 12px;
-      color: #909399;
-    }
-
-    .loading-tip {
-      font-size: 12px;
-      color: #c0c4cc;
-    }
-
-    .overview-selected {
-      margin-left: auto;
-      font-size: 12px;
-      color: #409eff;
-    }
-  }
-
-  .overview-search {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 
-    .search-keywords {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .search-group {
+    .overview-header {
       display: flex;
       align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
+      gap: 12px;
 
-      .search-label {
+      .overview-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #303133;
+      }
+
+      .overview-summary {
         font-size: 12px;
         color: #909399;
-        white-space: nowrap;
+      }
+
+      .loading-tip {
+        font-size: 12px;
+        color: #c0c4cc;
       }
     }
-  }
 
-  .search-unmatched {
-    flex-shrink: 0;
-    font-size: 12px;
-    color: #e6a23c;
+    .overview-search {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .search-keywords {
+        width: 100%;
+      }
+
+      .search-options {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .search-clear {
+          margin-left: auto;
+        }
+      }
+
+      .search-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+
+        .search-label {
+          font-size: 12px;
+          color: #909399;
+          white-space: nowrap;
+        }
+      }
+    }
+
+    .overview-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .overview-selected {
+        flex-shrink: 0;
+        white-space: nowrap;
+        font-size: 12px;
+        color: #409eff;
+
+        .selected-hidden {
+          color: #e6a23c;
+        }
+      }
+
+      .el-button {
+        flex-shrink: 0;
+      }
+
+      .search-unmatched {
+        flex: 1;
+        min-width: 0;
+        white-space: normal;
+        word-break: break-all;
+        font-size: 12px;
+        color: #e6a23c;
+      }
+    }
   }
 
   .overview-main {

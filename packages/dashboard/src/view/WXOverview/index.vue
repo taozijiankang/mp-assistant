@@ -1,41 +1,50 @@
 <template>
   <div class="wx-overview">
-    <div class="overview-header">
-      <span class="overview-title">微信小程序总览</span>
-      <span class="overview-summary">{{ wxWorkers.length }} 个 Worker · {{ filteredRows.length }} / {{ rows.length }} 个小程序</span>
-      <span v-if="listLoading" class="loading-tip">加载中...</span>
-      <span class="overview-selected">已选 {{ selectedCells.length }} 个</span>
-      <el-button v-if="selectedCells.length" size="small" plain @click="clearSelection">清空选择</el-button>
-    </div>
-
-    <div class="overview-search">
-      <el-input
-        v-model="searchKeywords"
-        type="textarea"
-        :autosize="{ minRows: 1, maxRows: 4 }"
-        class="search-keywords"
-        placeholder="批量搜索，用 , 或 ; 分隔关键字"
-        clearable
-      />
-      <div class="search-group">
-        <span class="search-label">字段</span>
-        <el-radio-group v-model="searchField" size="small">
-          <el-radio-button value="appName">小程序名字</el-radio-button>
-          <el-radio-button value="appid">appid</el-radio-button>
-        </el-radio-group>
+    <div class="overview-toolbar">
+      <div class="overview-header">
+        <span class="overview-title">微信小程序总览</span>
+        <span class="overview-summary">{{ wxWorkers.length }} 个 Worker · {{ filteredRows.length }} / {{ rows.length }} 个小程序</span>
+        <span v-if="listLoading" class="loading-tip">加载中...</span>
       </div>
-      <div class="search-group">
-        <span class="search-label">匹配</span>
-        <el-radio-group v-model="searchType" size="small">
-          <el-radio-button value="fuzzy">模糊</el-radio-button>
-          <el-radio-button value="exact">全匹配</el-radio-button>
-        </el-radio-group>
-      </div>
-      <el-button size="small" @click="clearSearch">清空</el-button>
-    </div>
 
-    <div v-if="unmatchedKeywords.length" class="search-unmatched">
-      未匹配到的关键字：{{ unmatchedKeywords.join("、") }}
+      <div class="overview-search">
+        <el-input
+          v-model="searchKeywords"
+          type="textarea"
+          :autosize="{ minRows: 1, maxRows: 4 }"
+          class="search-keywords"
+          placeholder="批量搜索，用 , 或 ; 分隔关键字"
+          clearable
+        />
+        <div class="search-options">
+          <div class="search-group">
+            <span class="search-label">字段</span>
+            <el-radio-group v-model="searchField" size="small">
+              <el-radio-button value="appName">小程序名字</el-radio-button>
+              <el-radio-button value="appid">appid</el-radio-button>
+            </el-radio-group>
+          </div>
+          <div class="search-group">
+            <span class="search-label">匹配</span>
+            <el-radio-group v-model="searchType" size="small">
+              <el-radio-button value="fuzzy">模糊</el-radio-button>
+              <el-radio-button value="exact">全匹配</el-radio-button>
+            </el-radio-group>
+          </div>
+          <el-button size="small" class="search-clear" @click="clearSearch">清空</el-button>
+        </div>
+      </div>
+
+      <div class="overview-meta">
+        <span class="overview-selected">
+          已选 {{ selectedCells.length }} 个
+          <span v-if="selectedHiddenCount" class="selected-hidden">（{{ selectedHiddenCount }} 个未显示）</span>
+        </span>
+        <el-button v-if="selectedCells.length" size="small" plain @click="clearSelection">清空选择</el-button>
+        <span v-if="unmatchedKeywords.length" class="search-unmatched">
+          未匹配到的关键字：{{ unmatchedKeywords.join(", ") }}
+        </span>
+      </div>
     </div>
 
     <div class="overview-main">
@@ -181,6 +190,15 @@ const isSelectedCell = (appid: string, workerKey: string) =>
 const clearSelection = () => {
   selectedCells.value = [];
 };
+
+const selectedHiddenCount = computed(() => {
+  const visibleAppids = new Set(filteredRows.value.map(r => r.appid));
+  const hidden = new Set<string>();
+  for (const cell of selectedCells.value) {
+    if (!visibleAppids.has(cell.appid)) hidden.add(cell.appid);
+  }
+  return hidden.size;
+});
 
 onMounted(() => {
   fetchList();

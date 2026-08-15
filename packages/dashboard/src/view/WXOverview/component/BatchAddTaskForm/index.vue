@@ -1,7 +1,6 @@
 <template>
   <div class="batch-form">
     <div class="batch-form-title">批量添加任务</div>
-    <div class="batch-form-selected">已选 {{ selectedCells.length }} 个（小程序 × Worker）</div>
 
     <el-form ref="formRef" :model="form" :rules="rules" label-width="80px" size="small">
       <el-form-item label="类型" prop="type">
