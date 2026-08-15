@@ -1,32 +1,54 @@
 <template>
-    <div class="files-upload-container">
-        <div class="files-container">
-            <div class="files-item" v-for="(filePath, index) in files" :key="index">
-                <img class="file-image" v-if="/\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(filePath)"
-                    :src="getFileUrl(filePath)" />
-                <video class="file-video" v-else-if="/\.(mp4|webm|ogg|flv|avi|mov|wmv|mkv)$/i.test(filePath)"
-                    :src="getFileUrl(filePath)" controls />
-                <span class="file-name" v-else>{{ filePath }}</span>
-                <el-button class="file-remove-button" type="danger" @click="handleRemoveFile(index)" circle>
-                    <el-icon>
-                        <Delete />
-                    </el-icon>
-                </el-button>
-            </div>
-            <Empty v-if="files.length === 0" description="暂无文件" />
+  <div class="files-upload">
+    <div class="files-grid">
+      <div v-for="(filePath, index) in files" :key="index" class="file-card">
+        <el-image
+          v-if="isImage(filePath)"
+          :src="getFileUrl(filePath)"
+          :preview-src-list="imageSrcs"
+          :initial-index="imageIndex(filePath)"
+          preview-teleported
+          fit="cover"
+          class="file-thumb"
+        />
+        <div v-else-if="isVideo(filePath)" class="file-thumb video-thumb" @click.stop="openVideoPreview(filePath)">
+          <video :src="getFileUrl(filePath)" preload="metadata" muted />
+          <span class="video-play"></span>
         </div>
-        <div class="files-upload-add" v-if="multiple ? files.length < max : files.length <= 0">
-            <el-button plain @click="handleAddFile">添加文件</el-button>
+        <div v-else class="file-other">
+          <el-icon class="file-other-icon"><Document /></el-icon>
+          <span class="file-other-name">{{ fileName(filePath) }}</span>
         </div>
+        <span class="file-remove" @click.stop="handleRemoveFile(index)">
+          <el-icon><Close /></el-icon>
+        </span>
+      </div>
+
+      <div v-if="canAdd" class="file-add" @click="handleAddFile">
+        <el-icon class="file-add-icon"><Plus /></el-icon>
+      </div>
     </div>
+
+    <div v-if="files.length === 0" class="files-empty">暂无文件，点击 + 上传</div>
+
+    <el-dialog
+      v-model="videoPreviewVisible"
+      title="视频预览"
+      width="640px"
+      append-to-body
+      :z-index="3000"
+      destroy-on-close
+    >
+      <video v-if="previewVideo" :src="previewVideo" controls autoplay class="video-preview-player" />
+    </el-dialog>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { getFileUrl, requestUploadFile } from '@/api';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { ElMessage } from 'element-plus';
-import { Delete } from '@element-plus/icons-vue';
-import Empty from '../../baseComponent/Empty/index.vue';
+import { Plus, Close, Document } from '@element-plus/icons-vue';
+import { getFileUrl, requestUploadFile } from '@/api';
 
 const props = withDefaults(defineProps<{
     files: string[];
@@ -42,9 +64,28 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
     (e: 'update:files', value: string[]): void
-}>()
+}>();
 
 const uploadLoading = ref(false);
+
+const isImage = (path: string) => /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(path);
+const isVideo = (path: string) => /\.(mp4|webm|ogg|flv|avi|mov|wmv|mkv)$/i.test(path);
+const fileName = (path: string) => path.split('/').pop() ?? path;
+
+const canAdd = computed(() =>
+    props.multiple ? props.files.length < props.max : props.files.length <= 0
+);
+
+const imageSrcs = computed(() => props.files.filter(isImage).map(f => getFileUrl(f)));
+const imageIndex = (filePath: string) => props.files.filter(isImage).indexOf(filePath);
+
+const videoPreviewVisible = ref(false);
+const previewVideo = ref<string | null>(null);
+
+const openVideoPreview = (filePath: string) => {
+    previewVideo.value = getFileUrl(filePath);
+    videoPreviewVisible.value = true;
+};
 
 const handleAddFile = () => {
     const input = document.createElement('input');
@@ -58,7 +99,7 @@ const handleAddFile = () => {
         input.remove();
     };
     input.click();
-}
+};
 
 const handleFileChange = async (event: Event) => {
     const files = (event.target as HTMLInputElement).files || [];
@@ -75,11 +116,11 @@ const handleFileChange = async (event: Event) => {
     } finally {
         uploadLoading.value = false;
     }
-}
+};
 
 const handleRemoveFile = (index: number) => {
-    emit('update:files', props.files.filter((_, i) => i !== index))
-}
+    emit('update:files', props.files.filter((_, i) => i !== index));
+};
 </script>
 
 <style scoped lang="scss">

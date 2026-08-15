@@ -1,0 +1,53 @@
+.batch-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+
+  .batch-form-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .batch-form-selected {
+    font-size: 12px;
+    color: #909399;
+  }
+
+  .positioner-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .positioner-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+
+    .positioner-type {
+      width: 96px;
+      flex-shrink: 0;
+    }
+
+    .positioner-criteria {
+      width: 84px;
+      flex-shrink: 0;
+    }
+
+    .el-input {
+      flex: 1;
+    }
+  }
+
+  .positioner-add {
+    align-self: flex-start;
+  }
+
+  .batch-submit {
+    width: 100%;
+  }
+}

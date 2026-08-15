@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-rou
 
 export const menuRoutes: { path: string; label: string }[] = [
   { path: '/', label: '首页' },
+  { path: '/wx-overview', label: '微信小程序总览' },
 ];
 
 const routes: RouteRecordRaw[] = [
@@ -10,6 +11,12 @@ const routes: RouteRecordRaw[] = [
     name: 'home',
     component: () => import('@/view/home/index.vue'),
     meta: { title: '首页' },
+  },
+  {
+    path: '/wx-overview',
+    name: 'wxOverview',
+    component: () => import('@/view/WXOverview/index.vue'),
+    meta: { title: '微信小程序总览' },
   },
 ];
 
