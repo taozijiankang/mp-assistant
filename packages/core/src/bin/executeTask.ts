@@ -18,7 +18,7 @@ async function start(taskType: WXTaskType, options: BaseTaskOptions, info: BaseT
         process.exit(1);
     }
 
-    createTask(taskType, options, info, browserContext).execute();
+    await createTask(taskType, options, info, browserContext).execute();
 }
 
 const tmpFilePath = process.argv[2] || '';
@@ -55,4 +55,7 @@ if (!debugPort) {
     process.exit(1);
 }
 
-start(taskType, options, info, debugPort);
+start(taskType, options, info, debugPort).catch((error) => {
+    console.error('执行任务失败:', error);
+    process.exit(1);
+});

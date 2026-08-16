@@ -33,11 +33,12 @@ export abstract class WXTask<
         await new Promise<void>((resolve, reject) => {
             page.goto(WXMP_URL);
 
-            setTimeout(() => {
+            const loginTimeout = setTimeout(() => {
                 reject(new Error('登录超时'));
             }, 3 * 60 * 1000);
 
-            const complete = () => {
+            const complete = (error?: any) => {
+                clearTimeout(loginTimeout);
                 this.report('text', '已登录');
 
                 page.off('close', onClose);
@@ -45,7 +46,11 @@ export abstract class WXTask<
 
                 this.setLoginQRCode('');
 
-                resolve();
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
             }
 
             const onLoad = async () => {
@@ -84,7 +89,7 @@ export abstract class WXTask<
                             const base64 = buffer.toString('base64');
                             const imageSrc = `data:image/png;base64,${base64}`;
                             this.report('text', '二维码已生成，请扫码登录');
-                            
+
                             this.setLoginQRCode(imageSrc);
                         } else {
                             throw new Error('登录二维码获取失败');
@@ -92,11 +97,13 @@ export abstract class WXTask<
                     }
                 }
                 catch (error) {
-                    reject(error);
+                    clearTimeout(loginTimeout);
+                    complete(error);
                 }
             }
             const onClose = async () => {
-                reject(new Error('页面关闭'));
+                clearTimeout(loginTimeout);
+                complete(new Error('页面关闭'));
             }
 
             page.on('close', onClose);

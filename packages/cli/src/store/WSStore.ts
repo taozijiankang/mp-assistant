@@ -77,6 +77,8 @@ export class WSStore extends WSMessage.Event {
                         }
                         res();
                     });
+                } else {
+                    res();
                 }
             });
         }));

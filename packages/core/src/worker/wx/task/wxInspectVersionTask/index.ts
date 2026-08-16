@@ -38,9 +38,9 @@ export class WXInspectVersionTask extends WXTask<WXInspectVersionTaskOptions, WX
 
             this.report('text', '版本列表获取完成');
 
-            this.end(TaskStatus.COMPLETED, '登录任务完成');
+            this.end(TaskStatus.COMPLETED, '检查版本任务完成');
         } catch (error) {
-            this.end(TaskStatus.FAILED, error instanceof Error ? error.message : '登录失败');
+            this.end(TaskStatus.FAILED, error instanceof Error ? error.message : '检查版本失败');
         }
     }
 }

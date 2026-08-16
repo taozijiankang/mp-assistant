@@ -123,7 +123,7 @@ export class WXPublishTask extends WXTask<WXPublishTaskOptions, WXPublishTaskInf
                 }
                 const interval = setInterval(async () => {
                     const versionData = await getVersionList(page);
-                    this.setAVersionData(versionData2);
+                    this.setAVersionData(versionData);
 
                     const onReleaseVersionInfo = versionData.online_info?.basic_info;
                     if (

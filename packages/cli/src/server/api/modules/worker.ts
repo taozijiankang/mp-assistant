@@ -27,7 +27,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
             syncTaskNum,
             weight,
         });
-        worker.launch({
+        await worker.launch({
             headless: ConfigStore.instance.config.headless,
         }, getChromeUserDataDir());
 

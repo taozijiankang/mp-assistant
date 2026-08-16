@@ -20,25 +20,3 @@ export function debounce(fn: Function, delay: number) {
 export function waitTime(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
-/**
- * 重试函数
- * @param fn - 需要重试的函数
- * @param delay - 重试间隔
- * @param count - 重试次数
- * @returns 重试后的函数
- */
-export function retry(fn: () => void | Promise<void>, delay: number, count: number, errors: Error[] = []) {
-  return new Promise((resolve, reject) => {
-    if (count <= 0) {
-      throw errors;
-    }
-    Promise.resolve(fn())
-      .then(resolve)
-      .catch((error) => {
-        waitTime(delay).then(() => {
-          retry(fn, delay, count - 1, [...errors, error]).then(resolve, reject);
-        });
-      });
-  });
-}

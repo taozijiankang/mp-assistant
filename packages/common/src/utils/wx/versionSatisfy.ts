@@ -68,6 +68,8 @@ export function versionSatisfy(version: WXVersionBasicInfo, positioners: Version
                     [VersionPositioningCriteria.Equal]: version.version === value,
                     [VersionPositioningCriteria.Inclusion]: value ? version.version?.includes(value) : false,
                 }[item.criteria]
+            default:
+                return false;
         }
     });
 }

@@ -195,7 +195,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                         if (cont === images.length) {
                             complete();
                         }
-                    });
+                    }, 500);
                     const complete = (error?: any) => {
                         clearTimeout(timeout);
                         clearInterval(interval);
@@ -217,7 +217,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                     }
                 }) : Promise.resolve(),
                 // 传视频
-                videos ? await new Promise<void>(async (resolve, reject) => {
+                videos ? new Promise<void>(async (resolve, reject) => {
                     this.report('text', `开始上传视频`);
                     const timeout = setTimeout(() => {
                         complete(new Error('上传视频超时'));
@@ -229,7 +229,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                         if (cont === 1) {
                             complete();
                         }
-                    });
+                    }, 500);
                     const complete = (error?: any) => {
                         clearTimeout(timeout);
                         clearInterval(interval);
@@ -266,7 +266,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                             complete();
                         }
                     });
-                });
+                }, 500);
 
                 const complete = (error?: any) => {
                     clearTimeout(timeout);
