@@ -55,6 +55,8 @@
             :list="worker.wxaList"
             @fetch-version="handleFetchVersion"
             @show-task="openTaskDrawer"
+            @audit="handleAudit"
+            @publish="handlePublish"
           />
         </div>
 
@@ -108,6 +110,7 @@ import {
   WXTaskType
 } from "@mp-assistant/common/dist/work/const.js";
 import { requestRemoveTask, requestAbortTask, requestResetTaskStatus, requestAddTask } from "@/api";
+import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
 import { useApiCall } from "@/hooks/useApiCall";
 import WXTaskCard from "@/component/WXTaskCard/index.vue";
 import WXTaskDetail from "@/component/WXTaskDetail/index.vue";
@@ -208,6 +211,32 @@ const handleFetchVersion = async (appId: string) => {
       options: { appId }
     });
     ElMessage.success("版本获取任务已添加");
+  } catch {}
+};
+
+const handleAudit = async (payload: { appId: string; positioner: VersionPositioner[]; versionDescription: string }) => {
+  try {
+    await requestAddTask({
+      key: props.worker.key,
+      type: WXTaskType.WX_AUDIT,
+      options: {
+        appId: payload.appId,
+        positioner: payload.positioner,
+        populateData: { versionDescription: payload.versionDescription },
+      },
+    });
+    ElMessage.success("审核任务已添加");
+  } catch {}
+};
+
+const handlePublish = async (payload: { appId: string; positioner: VersionPositioner[] }) => {
+  try {
+    await requestAddTask({
+      key: props.worker.key,
+      type: WXTaskType.WX_PUBLISH,
+      options: { appId: payload.appId, positioner: payload.positioner },
+    });
+    ElMessage.success("发布任务已添加");
   } catch {}
 };
 

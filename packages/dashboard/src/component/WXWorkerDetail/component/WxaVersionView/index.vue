@@ -49,6 +49,15 @@
                 >
                   <span>{{ row.versionData.experience_info.basic_info.nick_name }}</span>
                   <span class="vnum">v{{ row.versionData.experience_info.basic_info.version }}</span>
+                  <el-button
+                    v-if="row.versionData.experience_info.basic_info.audit_status === WXAuditStatus.SUCCESS"
+                    size="small"
+                    text
+                    type="primary"
+                    @click="handlePublish(row)"
+                  >
+                    去发布
+                  </el-button>
                 </div>
                 <div class="version-status" :class="auditStatusClass(row.versionData.experience_info.basic_info.audit_status)">
                   <template v-if="row.versionData.experience_info.basic_info.audit_status === WXAuditStatus.FAIL">
@@ -98,6 +107,9 @@
                   >
                     {{ devAuditLabel(row) }}
                   </span>
+                  <el-button v-if="canAudit(row, dev.nick_name)" size="small" text type="primary" @click="handleAudit(row, dev.nick_name)">
+                    去审核
+                  </el-button>
                 </div>
                 <div class="version-desc">{{ getDevInfo(row, dev.nick_name)!.describe }}</div>
               </div>
@@ -131,14 +143,19 @@ import fuzzysort from "fuzzysort";
 import { TaskStatus, WXTaskType, WXTaskTypeDict } from "@mp-assistant/common/dist/work/const.js";
 import { WXAuditStatus, WXAuditStatusDict } from "@mp-assistant/common/dist/constant/wx.js";
 import type { WXWorkerWxaItem } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
+import type { WXVersionBasicInfo } from "@mp-assistant/common/dist/types/wx.js";
+import { VersionPositioningType, VersionPositioningCriteria } from "@mp-assistant/common/dist/utils/index.js";
+import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
 
 const props = defineProps<{
   list?: WXWorkerWxaItem[];
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   fetchVersion: [appId: string];
   showTask: [taskKey: string];
+  audit: [payload: { appId: string; positioner: VersionPositioner[]; versionDescription: string }];
+  publish: [payload: { appId: string; positioner: VersionPositioner[] }];
 }>();
 
 const searchText = ref("");
@@ -226,6 +243,33 @@ const auditStatusClass = (status?: number) => {
 
 const getDevInfo = (row: WXWorkerWxaItem, nickName: string) => {
   return row.versionData?.develop_info?.info_list?.find(d => d.basic_info?.nick_name === nickName)?.basic_info ?? null;
+};
+
+const buildPositioner = (info: WXVersionBasicInfo): VersionPositioner[] => [
+  { type: VersionPositioningType.Version, criteria: VersionPositioningCriteria.Equal, value: info.version },
+  { type: VersionPositioningType.NickName, criteria: VersionPositioningCriteria.Equal, value: info.nick_name },
+  { type: VersionPositioningType.Describe, criteria: VersionPositioningCriteria.Equal, value: info.describe },
+];
+
+const canAudit = (row: WXWorkerWxaItem, nickName: string) => {
+  if (isDevReleased(row, nickName)) return false;
+  if (isDevAuditing(row, nickName)) {
+    const status = row.versionData?.experience_info?.basic_info?.audit_status;
+    if (status === WXAuditStatus.REVIEWING || status === WXAuditStatus.SUCCESS) return false;
+  }
+  return true;
+};
+
+const handleAudit = (row: WXWorkerWxaItem, nickName: string) => {
+  const info = getDevInfo(row, nickName);
+  if (!info) return;
+  emit("audit", { appId: row.appid, positioner: buildPositioner(info), versionDescription: info.describe });
+};
+
+const handlePublish = (row: WXWorkerWxaItem) => {
+  const info = row.versionData?.experience_info?.basic_info;
+  if (!info) return;
+  emit("publish", { appId: row.appid, positioner: buildPositioner(info) });
 };
 </script>
 
