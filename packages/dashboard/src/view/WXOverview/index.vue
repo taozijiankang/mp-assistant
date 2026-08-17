@@ -93,12 +93,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { computed } from "vue";
+import { storeToRefs } from "pinia";
 import { isWXWorkerInfo } from "@mp-assistant/common/dist/work/index.js";
 import { useWorkerStore } from "@/stores/worker";
+import { usePanelStore } from "@/stores/panel";
 import PlanBadge from "@/component/PlanBadge/index.vue";
 import BatchAddTaskForm from "./component/BatchAddTaskForm/index.vue";
-import type { SelectedCell } from "./index";
 
 interface OverviewRow {
   appid: string;
@@ -135,9 +136,12 @@ const rows = computed<OverviewRow[]>(() => {
   return [...map.values()].sort((a, b) => a.appName.localeCompare(b.appName));
 });
 
-const searchKeywords = ref("");
-const searchField = ref<"appName" | "appid">("appName");
-const searchType = ref<"fuzzy" | "exact">("fuzzy");
+const {
+  overviewSearchKeywords: searchKeywords,
+  overviewSearchField: searchField,
+  overviewSearchType: searchType,
+  overviewSelectedCells: selectedCells,
+} = storeToRefs(usePanelStore());
 
 const keywordList = computed(() =>
   searchKeywords.value
@@ -171,8 +175,6 @@ const unmatchedKeywords = computed(() => {
 const clearSearch = () => {
   searchKeywords.value = "";
 };
-
-const selectedCells = ref<SelectedCell[]>([]);
 
 const toggleCell = (appid: string, workerKey: string) => {
   const index = selectedCells.value.findIndex(c => c.appid === appid && c.workerKey === workerKey);

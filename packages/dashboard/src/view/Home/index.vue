@@ -32,17 +32,19 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
+import { storeToRefs } from "pinia";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useApiCall } from "@/hooks/useApiCall";
 import { requestRemoveWorker, requestPauseAndRecoverWorker } from "@/api";
 import { WorkerStatus } from "@mp-assistant/common/dist/work/const.js";
 import { isWXWorkerInfo } from "@mp-assistant/common/dist/work/index.js";
 import { useWorkerStore } from "@/stores/worker";
+import { usePanelStore } from "@/stores/panel";
 import WorkerCard from "./component/WorkerCard/index.vue";
 import WXWorkerDetail from "@/component/WXWorkerDetail/index.vue";
 import AddWorkerDialog from "@/component/AddWorkerDialog/index.vue";
 
-const selectedKey = ref<string | null>(null);
+const { selectedWorkerKey: selectedKey } = storeToRefs(usePanelStore());
 const addWorkerDialog = ref<InstanceType<typeof AddWorkerDialog> | null>(null);
 
 const workerStore = useWorkerStore();
