@@ -19,22 +19,31 @@
 
   .positioner-item {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 6px;
     width: 100%;
+    padding: 8px;
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: 6px;
 
-    .positioner-type {
-      width: 96px;
-      flex-shrink: 0;
-    }
+    .positioner-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
 
-    .positioner-criteria {
-      width: 84px;
-      flex-shrink: 0;
-    }
+      .positioner-type {
+        width: 96px;
+        flex-shrink: 0;
+      }
 
-    .el-input {
-      flex: 1;
+      .positioner-criteria {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .el-button {
+        flex-shrink: 0;
+      }
     }
   }
 

@@ -15,26 +15,28 @@
         <el-form-item label="筛选条件" prop="positioners">
           <div class="positioner-list">
             <div v-for="(p, i) in form.positioners" :key="i" class="positioner-item">
-              <el-select v-model="p.type" class="positioner-type">
-                <el-option
-                  v-for="opt in VersionPositioningTypeOptions"
-                  :key="opt.value"
-                  :label="opt.label"
-                  :value="opt.value"
-                />
-              </el-select>
-              <el-select v-model="p.criteria" class="positioner-criteria">
-                <el-option
-                  v-for="opt in VersionPositioningCriteriaOptions"
-                  :key="opt.value"
-                  :label="opt.label"
-                  :value="opt.value"
-                />
-              </el-select>
+              <div class="positioner-row">
+                <el-select v-model="p.type" class="positioner-type">
+                  <el-option
+                    v-for="opt in VersionPositioningTypeOptions"
+                    :key="opt.value"
+                    :label="opt.label"
+                    :value="opt.value"
+                  />
+                </el-select>
+                <el-select v-model="p.criteria" class="positioner-criteria">
+                  <el-option
+                    v-for="opt in VersionPositioningCriteriaOptions"
+                    :key="opt.value"
+                    :label="opt.label"
+                    :value="opt.value"
+                  />
+                </el-select>
+                <el-button type="danger" circle plain @click="form.positioners.splice(i, 1)">
+                  <el-icon><Delete /></el-icon>
+                </el-button>
+              </div>
               <el-input v-model="p.value" placeholder="匹配值" />
-              <el-button type="danger" circle plain @click="form.positioners.splice(i, 1)">
-                <el-icon><Delete /></el-icon>
-              </el-button>
             </div>
             <el-button class="positioner-add" plain @click="addPositioner">添加条件</el-button>
           </div>
