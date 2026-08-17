@@ -44,6 +44,15 @@
       </template>
 
       <template v-if="form.type === WXTaskType.WX_AUDIT">
+        <el-form-item label="审核模板">
+          <div style="display: flex; flex-wrap: wrap; gap: 8px">
+            <el-button v-for="(t, i) in templateList" :key="i" size="small" plain @click="fillFromTemplate(t)">
+              {{ t.name }}
+            </el-button>
+            <span v-if="!templateList.length" style="color: var(--el-text-color-secondary); font-size: 12px">暂无模板</span>
+          </div>
+        </el-form-item>
+
         <el-form-item label="版本描述" prop="versionDescription">
           <el-input v-model="form.versionDescription" type="textarea" :rows="3" placeholder="请输入版本描述" />
         </el-form-item>
@@ -80,6 +89,8 @@ import {
 import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
 import type { WXAuditTaskOptions } from "@mp-assistant/common/dist/work/index.js";
 import FilesUpload from "@/component/FilesUpload/index.vue";
+import { useReviewTemplateStore } from "@/stores/reviewTemplate";
+import type { ReviewTemplate } from "@mp-assistant/common/dist/types/reviewTemplate.js";
 import type { SelectedCell } from "../../index";
 
 const props = defineProps<{
@@ -92,6 +103,8 @@ const emit = defineEmits<{
 
 const formRef = ref<FormInstance>();
 const submitting = ref(false);
+const reviewTemplateStore = useReviewTemplateStore();
+const templateList = computed(() => reviewTemplateStore.reviewTemplateList ?? []);
 
 const typeOptions = WXTaskTypeOptions.filter(opt => opt.value !== WXTaskType.WX_LOGIN);
 
@@ -139,6 +152,13 @@ const addPositioner = () => {
     criteria: VersionPositioningCriteria.Inclusion,
     value: "",
   });
+};
+
+// 从审核模板填充审核内容
+const fillFromTemplate = (tpl: ReviewTemplate) => {
+  form.versionDescription = tpl.versionDescription;
+  form.imagePreviews = [...tpl.imagePreviews];
+  form.videoPreviews = tpl.videoPreview ? [tpl.videoPreview] : [];
 };
 
 const buildPositioners = () => form.positioners.filter(p => p.value.trim());

@@ -51,6 +51,15 @@
       </template>
 
       <template v-if="form.type === WXTaskType.WX_AUDIT">
+        <el-form-item label="审核模板">
+          <div style="display: flex; flex-wrap: wrap; gap: 8px">
+            <el-button v-for="(t, i) in templateList" :key="i" size="small" plain @click="fillFromTemplate(t)">
+              {{ t.name }}
+            </el-button>
+            <span v-if="!templateList.length" style="color: var(--el-text-color-secondary); font-size: 12px">暂无模板</span>
+          </div>
+        </el-form-item>
+
         <el-form-item label="版本描述" prop="versionDescription">
           <el-input v-model="form.versionDescription" type="textarea" :rows="3" placeholder="请输入版本描述" />
         </el-form-item>
@@ -93,7 +102,9 @@ import {
 } from "@mp-assistant/common/dist/utils/index.js";
 import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
 import type { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
+import type { ReviewTemplate } from "@mp-assistant/common/dist/types/reviewTemplate.js";
 import FilesUpload from "@/component/FilesUpload/index.vue";
+import { useReviewTemplateStore } from "@/stores/reviewTemplate";
 
 const { call: callAdd, loading: addLoading } = useApiCall(requestAddTask);
 
@@ -104,6 +115,8 @@ const props = defineProps<{
 const visible = ref(false);
 const formRef = ref<FormInstance>();
 const currentWorkerKey = ref("");
+const reviewTemplateStore = useReviewTemplateStore();
+const templateList = computed(() => reviewTemplateStore.reviewTemplateList ?? []);
 
 const form = reactive({
   type: WXTaskType.WX_LOGIN as string,
@@ -178,6 +191,13 @@ const addPositioner = () => {
     criteria: VersionPositioningCriteria.Inclusion,
     value: '',
   });
+};
+
+// 从审核模板填充审核内容
+const fillFromTemplate = (tpl: ReviewTemplate) => {
+  form.versionDescription = tpl.versionDescription;
+  form.imagePreviews = [...tpl.imagePreviews];
+  form.videoPreviews = tpl.videoPreview ? [tpl.videoPreview] : [];
 };
 
 // 过滤掉匹配值为空的条件

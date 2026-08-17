@@ -14,6 +14,7 @@
             </el-menu-item>
           </el-menu>
           <el-button size="small" @click="planEditDialog?.open()">计划</el-button>
+          <el-button size="small" @click="reviewTemplateEditDialog?.open()">审核模板</el-button>
         </div>
       </div>
     </div>
@@ -25,6 +26,7 @@
       </router-view>
     </div>
     <PlanEditDialog ref="planEditDialog" />
+    <ReviewTemplateEditDialog ref="reviewTemplateEditDialog" />
   </div>
 </template>
 
@@ -33,6 +35,7 @@ import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { menuRoutes } from "@/router";
 import PlanEditDialog from "@/component/PlanEditDialog/index.vue";
+import ReviewTemplateEditDialog from "@/component/ReviewTemplateEditDialog/index.vue";
 
 const packageInfo = __PACKAGE_INFO__;
 const route = useRoute();
@@ -41,6 +44,7 @@ const router = useRouter();
 const activeMenu = computed(() => route.path);
 
 const planEditDialog = ref<InstanceType<typeof PlanEditDialog> | null>(null);
+const reviewTemplateEditDialog = ref<InstanceType<typeof ReviewTemplateEditDialog> | null>(null);
 
 const handleMenuSelect = (index: string) => {
   if (index !== route.path) {
