@@ -64,6 +64,13 @@
         }
       }
     }
+
+    .header-menu-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 100%;
+    }
   }
 
   .page-content {

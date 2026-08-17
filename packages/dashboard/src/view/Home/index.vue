@@ -11,7 +11,7 @@
           @select="selectedKey = worker.key"
         />
       </div>
-      <span v-if="listLoading" class="loading-tip">加载中...</span>
+      <span v-if="workerStore.loading" class="loading-tip">加载中...</span>
       <el-button type="primary" size="small" @click="addWorkerDialog?.open()">添加</el-button>
     </div>
     <div class="home-bottom">
@@ -31,43 +31,39 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useApiCall } from "@/hooks/useApiCall";
-import { requestGetWorkerList, requestRemoveWorker, requestPauseAndRecoverWorker } from "@/api";
-import { WSConnection } from "@/ws/WSConnection";
-import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
+import { requestRemoveWorker, requestPauseAndRecoverWorker } from "@/api";
 import { WorkerStatus } from "@mp-assistant/common/dist/work/const.js";
 import { isWXWorkerInfo } from "@mp-assistant/common/dist/work/index.js";
+import { useWorkerStore } from "@/stores/worker";
 import WorkerCard from "./component/WorkerCard/index.vue";
 import WXWorkerDetail from "@/component/WXWorkerDetail/index.vue";
 import AddWorkerDialog from "@/component/AddWorkerDialog/index.vue";
-import { WSMessageEvent } from "@/ws/WSConnection";
 
 const selectedKey = ref<string | null>(null);
 const addWorkerDialog = ref<InstanceType<typeof AddWorkerDialog> | null>(null);
 
-const {
-  call: fetchList,
-  loading: listLoading,
-  data: workerList
-} = useApiCall(requestGetWorkerList, {
-  onCallAfter: () => {
-    if (sortedWorkerList.value.length > 0) {
-      if (!selectedKey.value || !sortedWorkerList.value.find(w => w.key === selectedKey.value)) {
-        selectedKey.value = sortedWorkerList.value[0].key;
-      }
-    }
-  }
-});
+const workerStore = useWorkerStore();
 
 const sortedWorkerList = computed(() =>
-  [...(workerList.value ?? [])].sort((a, b) => (b.options.weight ?? 0) - (a.options.weight ?? 0))
+  [...(workerStore.workerList ?? [])].sort((a, b) => (b.options.weight ?? 0) - (a.options.weight ?? 0))
 );
 
 const selectedWorker = computed(() => sortedWorkerList.value.find(w => w.key === selectedKey.value) ?? null);
 
-const showEmpty = computed(() => !listLoading.value && workerList.value !== null);
+const showEmpty = computed(() => !workerStore.loading && workerStore.workerList !== null);
+
+// 列表变化后，若当前选中失效则自动选中第一个
+watch(
+  () => workerStore.workerList,
+  () => {
+    if (sortedWorkerList.value.length > 0 && (!selectedKey.value || !sortedWorkerList.value.find(w => w.key === selectedKey.value))) {
+      selectedKey.value = sortedWorkerList.value[0].key;
+    }
+  }
+);
 
 const handleEditWorker = () => {
   if (!selectedWorker.value) return;
@@ -81,7 +77,6 @@ const handleToggleSuspend = async () => {
   const suspend = selectedWorker.value.status === WorkerStatus.RUNNING;
   try {
     await toggleSuspend({ key: selectedWorker.value.key, suspend });
-    await fetchList();
   } catch {}
 };
 
@@ -95,21 +90,10 @@ const handleRemoveWorker = async () => {
   try {
     await removeWorker({ key: selectedWorker.value.key });
     selectedKey.value = null;
-    await fetchList();
     ElMessage.success("删除成功");
   } catch {}
 };
 
-onMounted(() => {
-  fetchList();
-  WSConnection.instance.on(WSMessage.Worker.ListChange.type, fetchList);
-  WSConnection.instance.on(WSMessageEvent.connect, fetchList);
-});
-
-onUnmounted(() => {
-  WSConnection.instance.off(WSMessage.Worker.ListChange.type, fetchList);
-  WSConnection.instance.off(WSMessageEvent.connect, fetchList);
-});
 </script>
 
 <style scoped lang="scss">

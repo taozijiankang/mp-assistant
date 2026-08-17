@@ -149,5 +149,4 @@ export namespace WorkerApi {
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }
-
 }

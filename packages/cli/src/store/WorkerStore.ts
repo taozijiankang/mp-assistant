@@ -34,7 +34,8 @@ export class WorkerStore {
 
     private bindWorkerEvent(worker: BaseWorker): void {
         worker.on('detailChange', () => {
-            WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
+            WSStore.instance.broadcast(WSMessage.ContentChanged.createMessage());
+            this.saveData();
         });
     }
 

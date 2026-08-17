@@ -15,7 +15,10 @@
           <template #default="{ row }: { row: WXWorkerWxaItem }">
             <div class="wxa-cell">
               <img :src="row.app_headimg" class="wxa-avatar" />
-              <span>{{ row.app_name }}</span>
+              <div class="wxa-info">
+                <span>{{ row.app_name }}</span>
+                <PlanBadge :appid="row.appid" />
+              </div>
             </div>
           </template>
         </el-table-column>
@@ -140,6 +143,7 @@ import type { WXWorkerWxaItem } from "@mp-assistant/common/dist/work/wx/WXWorker
 import type { WXVersionBasicInfo } from "@mp-assistant/common/dist/types/wx.js";
 import { VersionPositioningType, VersionPositioningCriteria } from "@mp-assistant/common/dist/utils/index.js";
 import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
+import PlanBadge from "@/component/PlanBadge/index.vue";
 
 const props = defineProps<{
   list?: WXWorkerWxaItem[];

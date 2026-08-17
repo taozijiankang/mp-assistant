@@ -4,7 +4,7 @@
       <div class="overview-header">
         <span class="overview-title">微信小程序总览</span>
         <span class="overview-summary">{{ wxWorkers.length }} 个 Worker · {{ filteredRows.length }} / {{ rows.length }} 个小程序</span>
-        <span v-if="listLoading" class="loading-tip">加载中...</span>
+        <span v-if="workerStore.loading" class="loading-tip">加载中...</span>
       </div>
 
       <div class="overview-search">
@@ -74,6 +74,7 @@
                 <img :src="row.appHeadimg" class="app-avatar" />
                 <div class="app-info">
                   <div class="app-name">{{ row.appName }}</div>
+                  <PlanBadge :appid="row.appid" />
                   <div class="app-id">{{ row.appid }}</div>
                 </div>
                 <img v-if="isSelectedCell(row.appid, worker.key)" src="@/assets/check.png" class="cell-check" />
@@ -82,7 +83,7 @@
             </template>
           </el-table-column>
         </el-table>
-        <el-empty v-else-if="!listLoading" description="暂无小程序数据" />
+        <el-empty v-else-if="!workerStore.loading" description="暂无小程序数据" />
       </div>
       <div class="overview-side">
         <BatchAddTaskForm :selected-cells="selectedCells" @done="clearSelection" />
@@ -92,12 +93,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
-import { useApiCall } from "@/hooks/useApiCall";
-import { requestGetWorkerList } from "@/api";
-import { WSConnection, WSMessageEvent } from "@/ws/WSConnection";
-import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
+import { ref, computed } from "vue";
 import { isWXWorkerInfo } from "@mp-assistant/common/dist/work/index.js";
+import { useWorkerStore } from "@/stores/worker";
+import PlanBadge from "@/component/PlanBadge/index.vue";
 import BatchAddTaskForm from "./component/BatchAddTaskForm/index.vue";
 import type { SelectedCell } from "./index";
 
@@ -108,10 +107,10 @@ interface OverviewRow {
   workers: Set<string>;
 }
 
-const { call: fetchList, loading: listLoading, data: workerList } = useApiCall(requestGetWorkerList);
+const workerStore = useWorkerStore();
 
 const wxWorkers = computed(() =>
-  [...(workerList.value ?? [])]
+  [...(workerStore.workerList ?? [])]
     .filter(isWXWorkerInfo)
     .sort((a, b) => (b.options.weight ?? 0) - (a.options.weight ?? 0))
 );
@@ -200,16 +199,6 @@ const selectedHiddenCount = computed(() => {
   return hidden.size;
 });
 
-onMounted(() => {
-  fetchList();
-  WSConnection.instance.on(WSMessage.Worker.ListChange.type, fetchList);
-  WSConnection.instance.on(WSMessageEvent.connect, fetchList);
-});
-
-onUnmounted(() => {
-  WSConnection.instance.off(WSMessage.Worker.ListChange.type, fetchList);
-  WSConnection.instance.off(WSMessageEvent.connect, fetchList);
-});
 </script>
 
 <style scoped lang="scss">

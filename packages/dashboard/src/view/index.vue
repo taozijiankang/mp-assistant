@@ -7,11 +7,14 @@
           <span class="header-title-text">小程序助手 控制台</span>
           <span class="header-title-version">v{{ packageInfo.version }}</span>
         </div>
-        <el-menu class="header-menu" mode="horizontal" :default-active="activeMenu" :ellipsis="false" @select="handleMenuSelect">
-          <el-menu-item v-for="item in menuRoutes" :key="item.path" :index="item.path">
-            {{ item.label }}
-          </el-menu-item>
-        </el-menu>
+        <div class="header-menu-group">
+          <el-menu class="header-menu" mode="horizontal" :default-active="activeMenu" :ellipsis="false" @select="handleMenuSelect">
+            <el-menu-item v-for="item in menuRoutes" :key="item.path" :index="item.path">
+              {{ item.label }}
+            </el-menu-item>
+          </el-menu>
+          <el-button size="small" @click="planEditDialog?.open()">计划</el-button>
+        </div>
       </div>
     </div>
     <div class="page-content">
@@ -21,19 +24,23 @@
         </keep-alive>
       </router-view>
     </div>
+    <PlanEditDialog ref="planEditDialog" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { menuRoutes } from "@/router";
+import PlanEditDialog from "@/component/PlanEditDialog/index.vue";
 
 const packageInfo = __PACKAGE_INFO__;
 const route = useRoute();
 const router = useRouter();
 
 const activeMenu = computed(() => route.path);
+
+const planEditDialog = ref<InstanceType<typeof PlanEditDialog> | null>(null);
 
 const handleMenuSelect = (index: string) => {
   if (index !== route.path) {

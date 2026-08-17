@@ -33,7 +33,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
 
         WorkerStore.instance.addWorker(worker);
 
-        WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
+        WSStore.instance.broadcast(WSMessage.ContentChanged.createMessage());
 
         return getSuccessApiResponse(worker.info());
     });
@@ -61,7 +61,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         worker.destroy();
         WorkerStore.instance.removeWorker(worker);
 
-        WSStore.instance.broadcast(WSMessage.Worker.ListChange.createMessage());
+        WSStore.instance.broadcast(WSMessage.ContentChanged.createMessage());
 
         return getSuccessApiResponse(undefined, '删除Worker成功');
     });

@@ -26,31 +26,28 @@ export namespace WSMessage {
         }
     }
 
-    export namespace Worker {
-        /**
-         * worker 列表改变
-         */
-        export namespace ListChange {
-            export const type = 'worker-list-change';
+    /**
+     * 内容改变：worker 或 plan 数据发生变化时广播
+     */
+    export namespace ContentChanged {
+        export const type = 'content-change';
 
-            export type Data = void;
-            export interface Message extends WSMessageFormat<Data> {
-                type: typeof type;
-            }
-
-            export function createMessage(): Message {
-                return {
-                    type,
-                    data: undefined,
-                }
-            }
+        export type Data = void;
+        export interface Message extends WSMessageFormat<Data> {
+            type: typeof type;
         }
 
+        export function createMessage(): Message {
+            return {
+                type,
+                data: undefined,
+            }
+        }
     }
 
     export interface EventMap {
         [Heartbeat.type]: Heartbeat.Data,
-        [Worker.ListChange.type]: Worker.ListChange.Data,
+        [ContentChanged.type]: ContentChanged.Data,
     }
 
     export class Event<T extends EventMap = EventMap> extends EventEmitter<T> { }
