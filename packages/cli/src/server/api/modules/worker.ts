@@ -5,7 +5,7 @@ import { getSuccessApiResponse, getErrorApiResponse } from "@mp-assistant/common
 import { WSStore } from "../../../store/WSStore.js";
 import { WSMessage } from "@mp-assistant/common/dist/ws/message.js";
 import { WorkerType, WXTaskType } from "@mp-assistant/common/dist/work/index.js";
-import { createTask, createWorker, isWXWorker } from "@mp-assistant/core/dist/worker/index.js";
+import { createTask, createWorker } from "@mp-assistant/core/dist/worker/index.js";
 import { ConfigStore } from "../../../store/ConfigStore.js";
 import { getChromeUserDataDir } from "../../../pathManage.js";
 
@@ -80,8 +80,6 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         return getSuccessApiResponse(worker.info());
     });
 
-
-
     fastify.post(Api.Worker.AddTask.url, async (request, reply): Promise<Api.Worker.AddTask.Response> => {
         const { key, type, options } = request.body as Api.Worker.AddTask.RequestBody;
 
@@ -143,18 +141,5 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         task.resetStatus();
 
         return getSuccessApiResponse(task.getInfo(), '重置任务状态成功');
-    });
-
-    fastify.post(Api.Worker.SetWXCategory.url, async (request, reply): Promise<Api.Worker.SetWXCategory.Response> => {
-        const { key, categories } = request.body as Api.Worker.SetWXCategory.RequestBody;
-        const worker = WorkerStore.instance.workerList.find(item => item.key === key);
-        if (!worker) {
-            return getErrorApiResponse('Worker not found', 404);
-        }
-        if (!isWXWorker(worker)) {
-            return getErrorApiResponse('Worker is not WX type', 400);
-        }
-        worker.setCategory(categories);
-        return getSuccessApiResponse(undefined, '设置分组成功');
     });
 }

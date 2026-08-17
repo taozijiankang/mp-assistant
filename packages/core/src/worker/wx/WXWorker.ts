@@ -15,12 +15,6 @@ export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
         } as WXWorkerInfo;
     }
 
-    /** 设置小程序分组 */
-    setCategory(categories: WXWorkerOptions['categories']) {
-        this.options.categories = categories;
-        this.changeDetail();
-    }
-
     /** 从运行中的登录任务获取二维码（未登录且有码时返回） */
     private getLoginQRCode(): string | undefined {
         for (const task of super.info().taskList) {
@@ -71,7 +65,6 @@ export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
             ...item,
             versionData: versionMap.get(item.appid),
             tasks: taskMap.get(item.appid) ?? [],
-            category: this.options.categories?.find(g => g.appIds.includes(item.appid))?.name,
         }));
 
         return workerWxaList;
