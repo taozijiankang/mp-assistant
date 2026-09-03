@@ -1,96 +1,89 @@
 <template>
-    <el-dialog v-model="visible" :title="isEditMode ? '修改 Worker' : '添加 Worker'" width="500px">
-        <el-form ref="elFormRef" :model="form" label-width="120px" :rules="rules">
-            <el-form-item label="类型" prop="type">
-                <el-select v-model="form.type" :disabled="isEditMode">
-                    <el-option v-for="item in WorkerTypeOptions" :key="item.value" :label="item.label"
-                        :value="item.value" />
-                </el-select>
-            </el-form-item>
-            <el-form-item label="名称" prop="name">
-                <el-input v-model="form.name" clearable />
-            </el-form-item>
-            <el-form-item v-if="isEditMode" label="权重" prop="weight">
-                <el-input-number v-model="form.weight" :step="1" :precision="0" controls-position="right" />
-                <span class="form-tip">数值越大越靠前</span>
-            </el-form-item>
-            <el-form-item>
-                <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
-                    {{ isEditMode ? '修改' : '添加' }}</el-button>
-                <el-button @click="visible = false">取消</el-button>
-            </el-form-item>
-        </el-form>
-    </el-dialog>
+  <el-dialog v-model="visible" :title="editKey ? '编辑 Worker' : '添加 Worker'" width="420px" @close="resetForm">
+    <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+      <el-form-item label="类型" prop="type">
+        <el-select v-model="form.type" :disabled="!!editKey" style="width: 100%">
+          <el-option v-for="opt in WorkerTypeOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="名称" prop="name">
+        <el-input v-model="form.name" placeholder="请输入名称" />
+      </el-form-item>
+      <el-form-item label="权重" prop="weight">
+        <el-input-number v-model="form.weight" :min="0" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="visible = false">取消</el-button>
+      <el-button type="primary" @click="handleSubmit" :loading="addLoading || updateLoading">确定</el-button>
+    </template>
+  </el-dialog>
 </template>
-<script setup lang="ts">
-import { ref } from 'vue';
-import { WorkerTypeOptions } from '@mp-assistant/common/dist/work/index.js';
-import { requestAddWorker, requestUpdateWorker } from '@/api';
-import { WorkerType } from '@mp-assistant/common/dist/work/index.js';
-import type { Api } from '@mp-assistant/common/dist/api/index.js';
-import { ElMessage } from 'element-plus';
-import type { FormRules } from 'element-plus';
-import type { ElForm } from 'element-plus';
-import { useApiCall } from '@/hooks/useApiCall';
-import { getSuccessApiResponse } from '@mp-assistant/common/dist/api/utils';
 
-const elFormRef = ref<InstanceType<typeof ElForm>>();
+<script setup lang="ts">
+import { ref, reactive } from "vue";
+import { ElMessage } from "element-plus";
+import type { FormInstance, FormRules } from "element-plus";
+import { requestAddWXWorker, requestUpdateWorker } from "@/api";
+import { useApiCall } from "@/hooks/useApiCall";
+import { WorkerTypeOptions, WorkerType } from "@mp-assistant/common/dist/work/const.js";
+import type { BaseWorkerInfo } from "@mp-assistant/common/dist/work/BaseWorker.js";
+
+const { call: callAdd, loading: addLoading } = useApiCall(requestAddWXWorker);
+const { call: callUpdate, loading: updateLoading } = useApiCall(requestUpdateWorker);
 
 const visible = ref(false);
+const formRef = ref<FormInstance>();
+const editKey = ref<string | null>(null);
 
-const isEditMode = ref(false);
-const workerKey = ref('');
-
-const form = ref<Api.Worker.AddWorker.RequestBody & { weight: number }>({
-    type: WorkerType.WX,
-    name: '',
-    weight: 0,
+const form = reactive({
+  type: WorkerType.WX as string,
+  name: "",
+  weight: 0
 });
 
-const rules = ref<FormRules>({
-    name: [
-        { required: true, message: 'Please input name', trigger: 'blur' },
-    ],
-    type: [
-        { required: true, message: 'Please select type', trigger: 'change' },
-    ],
-});
-
-const { loading: submitLoading, call: handleSubmit } = useApiCall(async () => {
-    if (!(await elFormRef.value?.validate().catch(() => false))) {
-        return getSuccessApiResponse(null);
-    }
-
-    if (isEditMode.value) {
-        await requestUpdateWorker(workerKey.value, {
-            name: form.value.name,
-            weight: form.value.weight,
-        });
-        ElMessage.success('修改 Worker 成功');
-    } else {
-        await requestAddWorker({ type: form.value.type, name: form.value.name });
-        ElMessage.success('添加 Worker 成功');
-    }
-    visible.value = false;
-    return getSuccessApiResponse(null);
-});
-
-const open = (editMode = false, key = '', name = '', type = WorkerType.WX, weight = 0) => {
-    isEditMode.value = editMode;
-    workerKey.value = key;
-    form.value = {
-        type,
-        name,
-        weight,
-    };
-    visible.value = true;
+const rules: FormRules = {
+  name: [{ required: true, message: "请输入名称", trigger: "blur" }]
 };
 
-defineExpose({
-    open,
-});
+const resetForm = () => {
+  form.type = WorkerType.WX;
+  form.name = "";
+  form.weight = 0;
+  editKey.value = null;
+  formRef.value?.resetFields();
+};
 
+const handleSubmit = async () => {
+  if (!formRef.value) return;
+  await formRef.value.validate();
+  try {
+    if (editKey.value) {
+      await callUpdate({ key: editKey.value, ...form });
+      ElMessage.success("更新成功");
+    } else {
+      await callAdd({ ...form, syncTaskNum: 1 });
+      ElMessage.success("添加成功");
+    }
+    visible.value = false;
+  } catch {
+    // 错误已在 request 中处理
+  }
+};
+
+const open = (worker?: BaseWorkerInfo) => {
+  resetForm();
+  if (worker) {
+    editKey.value = worker.key;
+    form.name = worker.options.name;
+    form.weight = worker.options.weight ?? 0;
+  }
+  visible.value = true;
+};
+
+defineExpose({ open });
 </script>
+
 <style scoped lang="scss">
 @use "./index.scss";
 </style>

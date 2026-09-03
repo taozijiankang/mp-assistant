@@ -1,0 +1,33 @@
+.worker-card {
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &.active {
+    border-bottom-color: #00b240;
+    box-shadow: 0 2px 8px rgba(0, 178, 64, 0.15);
+  }
+
+  .worker-card-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .worker-card-name {
+    font-weight: 500;
+    font-size: 13px;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }}

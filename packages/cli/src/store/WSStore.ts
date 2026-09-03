@@ -1,14 +1,8 @@
 import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
 import { WebSocket } from "ws";
-import { EventEmitter } from "@mp-assistant/common/dist/event/EventEmitter.js";
 import { WSMessage, WSMessageFormat } from "@mp-assistant/common/dist/ws/index.js";
 
-export interface EventMap {
-    /** 收到ws消息 */
-    message: WSMessageFormat<any>;
-}
-
-export class WSStore extends EventEmitter<EventMap> {
+export class WSStore extends WSMessage.Event {
     private static __instance: WSStore | null = null
     public static get instance() {
         return this.__instance ?? (this.__instance = new WSStore());
@@ -50,10 +44,8 @@ export class WSStore extends EventEmitter<EventMap> {
         ws.on('message', (data) => {
             try {
                 const message: WSMessageFormat<any> = JSON.parse(data.toString());
-                // 只处理非心跳消息。
-                if (message.type !== WSMessage.Heartbeat.type) {
-                    this.emit('message', message);
-                }
+                this.emit(message.type as any, message.data);
+                
                 // 更新活跃时间
                 const currentWs = this.__connectionWsList.find(item => item.key === key);
                 if (currentWs) {
@@ -85,6 +77,8 @@ export class WSStore extends EventEmitter<EventMap> {
                         }
                         res();
                     });
+                } else {
+                    res();
                 }
             });
         }));

@@ -1,63 +1,54 @@
-import { WXMPItem } from "../types/wx.js";
-import { WSMessage } from "../ws/message.js";
-import { WorkerType } from "./const.js";
-import { BaseTaskInfo } from "./task/index.js";
-
 export * from "./const.js"
 
-export interface BaseWorkerOptions {
-    key?: string;
-    name?: string;
-    weight?: number;
-    wsMessageEventHandler: WSMessage.Event;
+export * from "./BaseTask.js";
+export * from "./BaseWorker.js";
+export * from "./wx/WXTask.js";
+export * from "./wx/tasks/WXAuditTask.js";
+export * from "./wx/tasks/WXInspectVersionTask.js";
+export * from "./wx/tasks/WXLoginTask.js";
+export * from "./wx/tasks/WXPublishTask.js";
+export * from "./wx/WXWorker.js";
+
+import type { BaseWorkerInfo } from "./BaseWorker.js";
+import type { BaseTaskInfo } from "./BaseTask.js";
+import type { WXWorkerInfo } from "./wx/WXWorker.js";
+import type { WXTaskInfo } from "./wx/WXTask.js";
+import type { WXLoginTaskInfo } from "./wx/tasks/WXLoginTask.js";
+import type { WXAuditTaskInfo } from "./wx/tasks/WXAuditTask.js";
+import type { WXInspectVersionTaskInfo } from "./wx/tasks/WXInspectVersionTask.js";
+import type { WXPublishTaskInfo } from "./wx/tasks/WXPublishTask.js";
+import { WorkerType, WXTaskType } from "./const.js";
+
+// Worker type guards
+
+export function isWXWorkerInfo(worker: BaseWorkerInfo): worker is WXWorkerInfo {
+    return worker.type === WorkerType.WX;
 }
 
-export interface BaseWorkInfo {
-    name: string;
-    type: WorkerType;
-    key: string;
-    /** 排序权重，数值越大越靠前 */
-    weight: number;
-    taskList: BaseTaskInfo[];
-    status: WorkerStatus;
-    loadings: string[];
+// Task type guards
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function isWXTaskInfo(task: BaseTaskInfo): task is WXTaskInfo {
+    return [
+        WXTaskType.WX_LOGIN,
+        WXTaskType.WX_AUDIT,
+        WXTaskType.WX_INSPECT_VERSION,
+        WXTaskType.WX_PUBLISH
+    ].includes(task.type);
 }
 
-export enum WorkerStatus {
-    PAUSED = "paused",
-    DELETED = "deleted",
-    RUNNING = "running",
+export function isWXLoginTaskInfo(task: BaseTaskInfo): task is WXLoginTaskInfo {
+    return task.type === WXTaskType.WX_LOGIN;
 }
 
-export const WorkerStatusDict = {
-    [WorkerStatus.PAUSED]: '暂停',
-    [WorkerStatus.DELETED]: '删除',
-    [WorkerStatus.RUNNING]: '运行',
+export function isWXAuditTaskInfo(task: BaseTaskInfo): task is WXAuditTaskInfo {
+    return task.type === WXTaskType.WX_AUDIT;
 }
 
-export namespace WXWorkerN {
-    export interface WXWorkInfo extends BaseWorkInfo {
-        type: WorkerType.WX;
-        isLogin: boolean;
-        loginQRCodeFilePath: string;
-        wxaList: WXMPItem[];
-        markWXAppIds: string[];
-    }
-
-    export enum LoadingType {
-        /** 登录 */
-        login = 'login',
-        /** 更新微信小程序列表 */
-        updateWxaListWxaList = 'updateWxaListWxaList',
-        /** 登出 */
-        logout = 'logout',
-        /** 删除用户数据目录 */
-        deleteUserDataDir = 'deleteUserDataDir',
-    }
-
-    export const isWXWorkerInfo = (info: BaseWorkInfo): info is WXWorkInfo => {
-        return info.type === WorkerType.WX;
-    }
+export function isWXInspectVersionTaskInfo(task: BaseTaskInfo): task is WXInspectVersionTaskInfo {
+    return task.type === WXTaskType.WX_INSPECT_VERSION;
 }
 
-
+export function isWXPublishTaskInfo(task: BaseTaskInfo): task is WXPublishTaskInfo {
+    return task.type === WXTaskType.WX_PUBLISH;
+}

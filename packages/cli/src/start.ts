@@ -13,9 +13,9 @@ import fastifyCors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import chalk from "chalk"
 import os from 'os';
-import { getRootDir } from './pathManage.js';
+import { getChromeUserDataDir, getRootDir } from './pathManage.js';
 import fs from 'fs';
-import { init } from '@mp-assistant/core/dist/init.js';
+import { installChromium } from '@mp-assistant/core/dist/installChromium.js';
 
 const require = createRequire(import.meta.url);
 
@@ -25,16 +25,16 @@ const rootPackageJson = JSON.parse(fs.readFileSync(path.join(getRootDir(), 'pack
  * Run the server!
  */
 export async function start() {
-    await init();
+    await installChromium();
     await startServer();
 
     /**
      * 初始化worker
      */
     for (const worker of WorkerStore.instance.workerList) {
-        await worker.init({
+        await worker.launch({
             headless: ConfigStore.instance.config.headless,
-        });
+        }, getChromeUserDataDir());
     }
 }
 

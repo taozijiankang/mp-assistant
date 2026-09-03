@@ -1,18 +1,15 @@
-import { WorkerType } from "@mp-assistant/common/dist/work/index.js";
-import { getStoreDir } from "@mp-assistant/common/dist/pathManage.js";
+import { WorkerType, BaseWorkerOptions } from "@mp-assistant/common/dist/work/index.js";
 import { useLocalStore } from "../hooks/useLocalStore.js";
 import type { BaseWorker } from "@mp-assistant/core/dist/worker/BaseWorker.js";
-import { createWorker, isWXWorker } from "@mp-assistant/core/dist/worker/index.js";
-import { WSMessageEvent } from "../event/WSMessageEvent.js";
+import { createWorker } from "@mp-assistant/core/dist/worker/index.js";
+import { getStoreDir } from "../pathManage.js";
+import { WSStore } from "./WSStore.js";
+import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
 
 interface WorkerStoreItem {
     key: string;
     type: WorkerType;
-    name: string;
-    /** 排序权重，数值越大越靠前 */
-    weight?: number;
-    /** 微信 worker 已标记的小程序 appid 列表 */
-    markWXAppIds?: string[];
+    options: BaseWorkerOptions;
 }
 
 const { get: getWorkerLocalStoreList, set: setWorkerLocalStoreList } = useLocalStore<WorkerStoreItem[]>('workerList', [], {
@@ -32,44 +29,43 @@ export class WorkerStore {
     }
 
     constructor() {
-        this.__workerList = getWorkerLocalStoreList().map(item => {
-            const worker = createWorker(item.type, {
-                key: item.key,
-                name: item.name,
-                weight: item.weight,
-                wsMessageEventHandler: WSMessageEvent.instance,
-            });
-            if (isWXWorker(worker) && Array.isArray(item.markWXAppIds)) {
-                worker.markWXAppIds = [...item.markWXAppIds];
-            }
-            return worker;
+        this.loadData();
+    }
+
+    private bindWorkerEvent(worker: BaseWorker): void {
+        worker.on('detailChange', () => {
+            WSStore.instance.broadcast(WSMessage.ContentChanged.createMessage());
+            this.saveData();
         });
     }
 
     addWorker(worker: BaseWorker) {
+        this.bindWorkerEvent(worker);
         this.__workerList.push(worker);
-
         this.saveData();
     }
 
     removeWorker(worker: BaseWorker) {
+        worker.off('detailChange');
         this.__workerList = this.__workerList.filter(w => w.key !== worker.key);
-
         this.saveData();
     }
 
-    saveData() {
-        setWorkerLocalStoreList(this.__workerList.map(item => {
-            const base: WorkerStoreItem = {
-                key: item.key,
-                type: item.type!,
-                name: item.name,
-                weight: item.weight,
-            };
-            if (isWXWorker(item)) {
-                base.markWXAppIds = [...item.markWXAppIds];
-            }
-            return base;
+    saveData(): void {
+        const items: WorkerStoreItem[] = this.__workerList.map(w => ({
+            key: w.key,
+            type: w.type,
+            options: w.info().options,
         }));
+        setWorkerLocalStoreList(items);
+    }
+
+    private loadData(): void {
+        const items = getWorkerLocalStoreList();
+        for (const item of items) {
+            const worker = createWorker(item.type, item.options, item.key);
+            this.bindWorkerEvent(worker);
+            this.__workerList.push(worker);
+        }
     }
 }

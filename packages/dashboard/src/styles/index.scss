@@ -1,3 +1,9 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
   --el-color-primary: #00b240;
   --el-color-primary-light-3: rgb(153, 212, 178);

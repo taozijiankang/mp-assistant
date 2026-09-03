@@ -1,4 +1,11 @@
 import { Api } from "@mp-assistant/common/dist/api/index.js";
+import { WXTaskType } from "@mp-assistant/common/dist/work/const.js";
+import type {
+    WXLoginTaskOptions,
+    WXAuditTaskOptions,
+    WXInspectVersionTaskOptions,
+    WXPublishTaskOptions,
+} from "@mp-assistant/common/dist/work/index.js";
 import { request } from "../request";
 
 export function requestGetWorkerList() {
@@ -8,101 +15,79 @@ export function requestGetWorkerList() {
     );
 }
 
-export function requestGetWorkerDetail(key: string) {
-    return request<Api.Worker.GetWorkerDetail.ResponseData>(
-        Api.Worker.GetWorkerDetail.url,
-        { method: Api.Worker.GetWorkerDetail.method, query: { key } }
+export function requestAddWXWorker(body: Api.Worker.AddWXWorker.RequestBody) {
+    return request<Api.Worker.AddWXWorker.ResponseData>(
+        Api.Worker.AddWXWorker.url,
+        { method: Api.Worker.AddWXWorker.method, body }
     );
 }
 
-export function requestAddWorker(body: Api.Worker.AddWorker.RequestBody) {
-    return request<Api.Worker.AddWorker.ResponseData>(
-        Api.Worker.AddWorker.url,
-        { method: Api.Worker.AddWorker.method, body }
-    );
-}
-
-export function requestPauseAndRecoverWorker(key: string) {
+export function requestPauseAndRecoverWorker(body: Api.Worker.PauseAndRecoverWorker.RequestBody) {
     return request<Api.Worker.PauseAndRecoverWorker.ResponseData>(
         Api.Worker.PauseAndRecoverWorker.url,
-        { method: Api.Worker.PauseAndRecoverWorker.method, query: { key } }
+        { method: Api.Worker.PauseAndRecoverWorker.method, body }
     );
 }
 
-export function requestRemoveWorker(key: string) {
+export function requestRemoveWorker(body: Api.Worker.RemoveWorker.RequestBody) {
     return request<Api.Worker.RemoveWorker.ResponseData>(
         Api.Worker.RemoveWorker.url,
-        { method: Api.Worker.RemoveWorker.method, query: { key } }
+        { method: Api.Worker.RemoveWorker.method, body }
     );
 }
 
-export function requestUpdateWorker(key: string, body: Api.Worker.UpdateWorker.RequestBody) {
+export function requestUpdateWorker(body: Api.Worker.UpdateWorker.RequestBody) {
     return request<Api.Worker.UpdateWorker.ResponseData>(
         Api.Worker.UpdateWorker.url,
-        { method: Api.Worker.UpdateWorker.method, query: { key }, body }
+        { method: Api.Worker.UpdateWorker.method, body }
     );
 }
 
-export function requestMarkWXAppId(key: string, body: Api.Worker.MarkWXAppId.RequestBody) {
-    return request<Api.Worker.MarkWXAppId.ResponseData>(
-        Api.Worker.MarkWXAppId.url,
-        { method: Api.Worker.MarkWXAppId.method, query: { key }, body }
-    );
-}
-
-export function requestClearAllMarkWXAppIds(key: string) {
-    return request<Api.Worker.ClearAllMarkWXAppIds.ResponseData>(
-        Api.Worker.ClearAllMarkWXAppIds.url,
-        { method: Api.Worker.ClearAllMarkWXAppIds.method, query: { key } }
-    );
-}
-
-export function requestLoginWorker(key: string) {
-    return request<Api.Worker.WorkerLogin.ResponseData>(
-        Api.Worker.WorkerLogin.url,
-        { method: Api.Worker.WorkerLogin.method, query: { key } }
-    );
-}
-
-export function requestLogoutWorker(key: string) {
-    return request<Api.Worker.WorkerLogout.ResponseData>(
-        Api.Worker.WorkerLogout.url,
-        { method: Api.Worker.WorkerLogout.method, query: { key } }
-    );
-}
-
-export function requestWorkerUpdateWxaList(key: string) {
-    return request<Api.Worker.WorkerUpdateWxaList.ResponseData>(
-        Api.Worker.WorkerUpdateWxaList.url,
-        { method: Api.Worker.WorkerUpdateWxaList.method, query: { key } }
-    );
-}
-
-export function requestAddTask(key: string, body: Api.Worker.AddTask.RequestBody) {
+export function requestAddTask(body: {
+    key: string;
+    type: WXTaskType.WX_LOGIN;
+    options: WXLoginTaskOptions;
+}): Promise<Api.Worker.AddTask.SuccessResponse>;
+export function requestAddTask(body: {
+    key: string;
+    type: WXTaskType.WX_INSPECT_VERSION;
+    options: WXInspectVersionTaskOptions;
+}): Promise<Api.Worker.AddTask.SuccessResponse>;
+export function requestAddTask(body: {
+    key: string;
+    type: WXTaskType.WX_AUDIT;
+    options: WXAuditTaskOptions;
+}): Promise<Api.Worker.AddTask.SuccessResponse>;
+export function requestAddTask(body: {
+    key: string;
+    type: WXTaskType.WX_PUBLISH;
+    options: WXPublishTaskOptions;
+}): Promise<Api.Worker.AddTask.SuccessResponse>;
+export function requestAddTask(body: Api.Worker.AddTask.RequestBody): Promise<Api.Worker.AddTask.SuccessResponse>;
+export function requestAddTask(body: Api.Worker.AddTask.RequestBody) {
     return request<Api.Worker.AddTask.ResponseData>(
         Api.Worker.AddTask.url,
-        { method: Api.Worker.AddTask.method, query: { key }, body }
+        { method: Api.Worker.AddTask.method, body }
     );
 }
 
-export function requestRemoveTask(key: string, taskKey: string) {
+export function requestRemoveTask(body: Api.Worker.RemoveTask.RequestBody) {
     return request<Api.Worker.RemoveTask.ResponseData>(
         Api.Worker.RemoveTask.url,
-        { method: Api.Worker.RemoveTask.method, query: { key, taskKey } }
+        { method: Api.Worker.RemoveTask.method, body }
     );
 }
 
-export function requestGetTaskDetail(key: string, taskKey: string) {
-    return request<Api.Worker.TaskDetail.ResponseData>(
-        Api.Worker.TaskDetail.url,
-        { method: Api.Worker.TaskDetail.method, query: { key, taskKey } }
+export function requestAbortTask(body: Api.Worker.AbortTask.RequestBody) {
+    return request<Api.Worker.AbortTask.ResponseData>(
+        Api.Worker.AbortTask.url,
+        { method: Api.Worker.AbortTask.method, body }
     );
 }
 
-export function requestGetPublishQRCode(key: string, taskKey: string) {
-    return request<Api.Worker.GetPublishQRCode.ResponseData>(
-        Api.Worker.GetPublishQRCode.url,
-        { method: Api.Worker.GetPublishQRCode.method, query: { key, taskKey } }
+export function requestResetTaskStatus(body: Api.Worker.ResetTaskStatus.RequestBody) {
+    return request<Api.Worker.ResetTaskStatus.ResponseData>(
+        Api.Worker.ResetTaskStatus.url,
+        { method: Api.Worker.ResetTaskStatus.method, body }
     );
 }
-

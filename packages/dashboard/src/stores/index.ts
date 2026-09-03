@@ -6,5 +6,3 @@ const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
 export default pinia;
-
-export * from "./modules/operationRecord";

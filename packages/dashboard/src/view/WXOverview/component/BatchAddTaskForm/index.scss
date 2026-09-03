@@ -1,0 +1,57 @@
+.batch-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+
+  .batch-form-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .positioner-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .positioner-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: 6px;
+
+    .positioner-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .positioner-type {
+        width: 96px;
+        flex-shrink: 0;
+      }
+
+      .positioner-criteria {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .el-button {
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  .positioner-add {
+    align-self: flex-start;
+  }
+
+  .batch-submit {
+    width: 100%;
+  }
+}
