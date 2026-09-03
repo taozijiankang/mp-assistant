@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        node-version: [20]
+        node-version: [24]
     steps:
       - uses: actions/checkout@v4
 
@@ -27,9 +27,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
-
-      - name: Update npm
-        run: npm install -g npm@latest
 
       - name: 安装依赖
         run: pnpm install
