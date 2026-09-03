@@ -1,255 +1,184 @@
+import { TaskStatus, WorkerStatus, WorkerType } from "@mp-assistant/common/dist/work/const.js";
+import { BaseWorkerInfo, BaseWorkerOptions, WorkerEvent } from "@mp-assistant/common/dist/work/BaseWorker.js";
+import { getUUID, waitTime } from "@mp-assistant/common/dist/utils/index.js";
 import { BrowserContext, chromium, LaunchOptions } from "playwright";
-import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
-import path from "path";
-import { wait } from "@mp-assistant/common/dist/utils/global.js";
+import path from "node:path";
 import { BaseTask } from "./BaseTask.js";
-import { TaskStatus } from "@mp-assistant/common/dist/work/task/index.js";
-import { BaseWorkerOptions, BaseWorkInfo, WorkerStatus, WorkerType, WXWorkerN } from "@mp-assistant/common/dist/work/index.js";
-import { WSMessage } from "@mp-assistant/common/dist/ws/message.js"
-import { getChromeUserDataDir } from "@mp-assistant/common/dist/pathManage.js";
-import fs from "fs";
+import { EventEmitter } from "@mp-assistant/common/dist/event/EventEmitter.js";
+import getPort from "get-port";
 
-export abstract class BaseWorker {
-  readonly type?: WorkerType;
+export abstract class BaseWorker<
+  Options extends BaseWorkerOptions = BaseWorkerOptions,
+  Info extends BaseWorkerInfo = BaseWorkerInfo
+> extends EventEmitter<WorkerEvent> {
+  declare readonly type: WorkerType;
 
-  private readonly __key: string;
+  readonly key: string;
 
-  private __name: string = '';
+  protected readonly options: Options;
 
-  private __weight: number = 0;
+  protected status: WorkerStatus;
+  protected createdTime: string;
 
-  private __browserContent: BrowserContext | null = null;
+  private browserContent: BrowserContext | null = null;
 
-  private __taskList: BaseTask[] = [];
+  /** Chrome DevTools Protocol 远程调试端口 */
+  protected debugPort?: number;
 
-  private __status: WorkerStatus = WorkerStatus.RUNNING;
+  private taskList: BaseTask[] = [];
 
-  private __currentRunningTaskKey = '';
+  private destroyed = false;
+  private processExiting = false;
 
-  private __wsMessageEventHandler: WSMessage.Event;
+  constructor({ options, key }: {
+    options: Options;
+    key?: string;
+  }) {
+    super();
 
-  /** 等待列表 */
-  private __loadings: string[] = [];
+    this.key = key || `worker-${getUUID()}`;
+    this.options = options;
+    this.status = WorkerStatus.INIT;
+    this.createdTime = new Date().toISOString();
 
-  get key() {
-    return this.__key;
+    // 监听进程退出信号，防止浏览器因进程退出而关闭时触发自动重启
+    process.on('SIGINT', () => { this.processExiting = true; });
+    process.on('SIGTERM', () => { this.processExiting = true; });
   }
 
-  get name() {
-    return this.__name;
-  }
-
-  set name(name: string) {
-    this.__name = name;
-  }
-
-  get weight() {
-    return this.__weight;
-  }
-
-  set weight(weight: number) {
-    this.__weight = Number.isFinite(weight) ? weight : 0;
-  }
-
-  get browserContent() {
-    return this.__browserContent;
-  }
-
-  set status(status: WorkerStatus) {
-    if (this.__status === status) {
-      return;
-    }
-    this.__status = status;
-    this.emitDetailChangeEvent();
-  }
-
-  get status() {
-    return this.__status;
-  }
-
-  get taskList() {
-    return [...this.__taskList];
-  }
-
-  get currentRunningTask() {
-    return this.__taskList.find(task => task.key === this.__currentRunningTaskKey);
-  }
-  get currentRunningTaskKey() {
-    return this.__currentRunningTaskKey;
-  }
-  set currentRunningTaskKey(key: string) {
-    this.__currentRunningTaskKey = this.__taskList.find(task => task.key === key)?.key ?? '';
-  }
-
-  constructor(options: BaseWorkerOptions) {
-    const { key, name, weight, wsMessageEventHandler } = options;
-    this.__key = key ?? getUUID();
-    this.__name = name ?? '';
-    this.__weight = Number.isFinite(weight as number) ? (weight as number) : 0;
-
-    this.__wsMessageEventHandler = wsMessageEventHandler;
-  }
-
-  info(): BaseWorkInfo {
+  info(): Info {
     return {
       key: this.key,
-      name: this.name,
-      weight: this.weight,
-      type: this.type!,
-      taskList: this.taskList.map(task => task.info()),
-      loadings: [...this.__loadings],
+      type: this.type,
       status: this.status,
+      createdTime: this.createdTime,
+      debugPort: this.debugPort,
+      options: this.options as BaseWorkerOptions,
+      taskList: this.taskList.map(t => t.getInfo()),
+    } as Info;
+  }
+
+  getTask(taskKey: string): BaseTask | undefined {
+    return this.taskList.find(t => t.getInfo().key === taskKey);
+  }
+
+  addTask(task: BaseTask): void {
+    task.setWorker(this);
+    this.taskList.push(task);
+    this.changeDetail();
+  }
+
+  removeTask(taskKey: string): void {
+    const task = this.taskList.find(t => t.getInfo().key === taskKey);
+    if (task) {
+      task.abort();
+      task.setWorker(null);
+    }
+    this.taskList = this.taskList.filter(t => t.getInfo().key !== taskKey);
+    this.changeDetail();
+  }
+
+  setName(name: string): void {
+    this.options.name = name;
+    this.changeDetail();
+  }
+
+  setWeight(weight: number): void {
+    this.options.weight = weight;
+    this.changeDetail();
+  }
+
+  changeDetail(): void {
+    this.emit('detailChange', this.info() as Info);
+  }
+
+  destroy(): void {
+    this.destroyed = true;
+    this.taskList.forEach(t => {
+      t.setWorker(null);
+      t.abort();
+    });
+    if (this.browserContent) {
+      this.browserContent.close();
+      this.browserContent = null;
     }
   }
 
-  async init(options: Pick<LaunchOptions, 'headless'>) {
-    this.__browserContent = await chromium.launchPersistentContext(
-      path.join(getChromeUserDataDir(), this.key),
+  /**
+   * 暂停/恢复
+   * @param v true: 暂停, false: 恢复
+   */
+  suspend(v: boolean = true) {
+    if (v && this.status === WorkerStatus.RUNNING) {
+      this.status = WorkerStatus.PAUSED;
+      // 终止所有正在运行的任务并重置，恢复后可继续运行
+      this.taskList.forEach(t => {
+        if (t.getInfo().status === TaskStatus.RUNNING) {
+          t.abort();
+          t.resetStatus();
+        }
+      });
+      this.changeDetail();
+    } else if (!v && this.status === WorkerStatus.PAUSED) {
+      this.status = WorkerStatus.RUNNING;
+      this.changeDetail();
+    }
+  }
+
+  async launch(options: Pick<LaunchOptions, 'headless'>, chromeUserDataDir: string) {
+    if (this.status !== WorkerStatus.INIT) {
+      throw new Error(`Worker ${this.key} is not in init status`);
+    }
+    this.status = WorkerStatus.RUNNING;
+
+    await this.createBrowser(options, chromeUserDataDir);
+
+    // 开始任务循环
+    this.taskCycle();
+  }
+
+  /** 创建浏览器实例并监听关闭事件，意外关闭时自动重启 */
+  private async createBrowser(options: Pick<LaunchOptions, 'headless'>, chromeUserDataDir: string) {
+    const debugPort = await getPort({ port: 9222 });
+    this.debugPort = debugPort;
+
+    this.browserContent = await chromium.launchPersistentContext(
+      path.join(chromeUserDataDir, this.key),
       {
         ...options,
+        args: [
+          `--remote-debugging-port=${debugPort}`,
+        ],
         viewport: null,
       });
-    // 开始任务循环
-    this.__taskCycle();
+
+    this.browserContent.on('close', () => {
+      if (this.destroyed || this.processExiting) return;
+      console.warn(`[${this.key}] 浏览器意外关闭，自动重启中...`);
+      this.browserContent = null;
+      this.suspend(true);
+      this.createBrowser(options, chromeUserDataDir).then(() => {
+        this.suspend(false);
+      });
+    });
   }
 
-  /**
-   * 添加任务
-   * @param task 
-   */
-  addTask(task: BaseTask) {
-    task.worker = this;
-    this.__taskList.push(task);
-
-    this.emitDetailChangeEvent();
-  }
-
-  /**
-   * 删除任务
-   * @param taskKey 
-   */
-  async removeTask(taskKey: string) {
-    const task = this.__taskList.find(t => t.key === taskKey);
-    if (!task) {
-      return;
-    }
-    //如果任务在运行中则不能删除
-    if (task.status === TaskStatus.RUNNING) {
-      return;
-    }
-    await task.destroy();
-    this.__taskList = this.__taskList.filter(t => t.key !== taskKey);
-
-    this.emitDetailChangeEvent();
-  }
-
-  pauseAndRecover() {
-    if (this.status === WorkerStatus.PAUSED) {
-      this.status = WorkerStatus.RUNNING;
-      return;
-    }
-    this.status = WorkerStatus.PAUSED;
-  }
-
-  async destroy() {
-    if (this.isLoading(WXWorkerN.LoadingType.deleteUserDataDir)) {
-      return;
-    }
-
-    this.setLoading(WXWorkerN.LoadingType.deleteUserDataDir);
-    this.status = WorkerStatus.DELETED;
-
-    try {
-      await this.__browserContent?.close();
-      const userDataDir = path.join(getChromeUserDataDir(), this.key);
-      const stats = fs.statSync(userDataDir, { throwIfNoEntry: false })
-
-      if (stats && stats.isDirectory()) {
-        // 持久化目录下可能存在缓存文件，需强制递归删除避免 ENOTEMPTY
-        fs.rmSync(userDataDir, { recursive: true, force: true });
-      }
-    } catch (error) {
-
-      console.log('删除用户数据目录失败', error);
-    } finally {
-      this.offLoading(WXWorkerN.LoadingType.deleteUserDataDir);
-    }
-  }
-
-  private async __taskCycle() {
+  private async taskCycle() {
+    if (this.destroyed) return;
     try {
       if (this.status === WorkerStatus.RUNNING) {
-        await this._taskCycleExecutor();
+        const onRunningTaskNum = this.taskList.filter(task => task.getInfo().status === TaskStatus.RUNNING).length;
+        const syncTaskNum = Math.max(0, this.options.syncTaskNum - onRunningTaskNum);
+        const idleTask = this.taskList.filter(task => task.getInfo().status === TaskStatus.IDLE).slice(0, syncTaskNum);
+        idleTask.forEach(task => {
+          task.run(this.debugPort!);
+        });
       }
     } catch (error) {
-      console.error('任务执行失败', error);
-    }
-    finally {
-      await wait(0);
-      this.__taskCycle();
-    }
-  }
-
-  protected async _feedTasks() {
-    const currentRunningTaskIndex = this.taskList.findIndex(item => item.key === this.currentRunningTaskKey);
-    const oldCurrentRunningTaskKey = this.currentRunningTask;
-    this.currentRunningTaskKey =
-      // 可循环
-      [...this.taskList, ...this.taskList].find((item, index) => {
-        if (
-          // 不是当前任务
-          item.key != this.currentRunningTaskKey &&
-          // 序号大于当前任务
-          index > currentRunningTaskIndex &&
-          // 可执行
-          [TaskStatus.NOT_STARTED].includes(item.status)
-        ) {
-          return true;
-        }
-        return false;
-      })?.key || '';
-
-    // 当前执行任务发生改变
-    if (this.currentRunningTask !== oldCurrentRunningTaskKey) {
-      this.emitDetailChangeEvent();
+      console.error('[BaseWorker] taskCycle error', error);
+    } finally {
+      await waitTime(0);
+      this.taskCycle();
     }
   }
-
-  setLoading(type: string) {
-    if (!this.isLoading(type)) {
-      this.__loadings.push(type);
-    }
-
-    this.emitDetailChangeEvent();
-  }
-
-  offLoading(type: string) {
-    this.__loadings = this.__loadings.filter(item => item !== type);
-
-    this.emitDetailChangeEvent();
-  }
-
-  isLoading(type: string) {
-    return this.__loadings.includes(type);
-  }
-
-  emitMessage<K extends keyof WSMessage.EventMap>(type: K, data: WSMessage.EventMap[K]) {
-    this.__wsMessageEventHandler.emit(type, data);
-  }
-
-  private __emitDetailChangeEventTimer: ReturnType<typeof setTimeout> | null = null;
-  /**
-   * 触发详情改变事件
-   * 会有一层节流
-   */
-  emitDetailChangeEvent() {
-    this.__emitDetailChangeEventTimer && clearTimeout(this.__emitDetailChangeEventTimer);
-    this.__emitDetailChangeEventTimer = setTimeout(() => {
-      this.emitMessage(WSMessage.Worker.DetailChange.type, {
-        key: this.key,
-      });
-    }, 0);
-  }
-
-  protected abstract _taskCycleExecutor(): Promise<void>;
 }

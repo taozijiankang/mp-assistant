@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="element-plus/global" />
 
 interface ImportMetaEnv {
   VITE_BASE_API_URL: string;
