@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import type { SelectedCell } from "@/view/WXOverview/index";
+import type { SelectedCell } from "@/view/wx-overview/index";
 
 /**
  * 面板操作记录：持久化用户在面板中的操作状态
