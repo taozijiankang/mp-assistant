@@ -27,7 +27,7 @@
     <div v-if="info.type === WXTaskType.WX_LOGIN" class="task-option" :class="(info.options as any).action">
       {{ (info.options as any).action === 'logout' ? '退出登录' : '登录' }}
     </div>
-    <div v-if="info.type === WXTaskType.WX_INSPECT_VERSION" class="task-option">
+    <div v-if="showWxaInfo" class="task-option">
       <img v-if="wxaItem" :src="wxaItem.app_headimg" class="task-app-avatar" />
       <span>{{ wxaItem ? wxaItem.app_name : (info.options as any).appId }}</span>
     </div>
@@ -69,8 +69,13 @@ const props = defineProps<{
   wxaList?: WXMPItem[];
 }>();
 
+// 需要展示小程序信息的任务类型：检查版本 / 审核 / 发布
+const showWxaInfo = computed(() =>
+  [WXTaskType.WX_INSPECT_VERSION, WXTaskType.WX_AUDIT, WXTaskType.WX_PUBLISH].includes(props.info.type as WXTaskType)
+);
+
 const wxaItem = computed(() => {
-  if (props.info.type !== WXTaskType.WX_INSPECT_VERSION) return null;
+  if (!showWxaInfo.value) return null;
   const appId = (props.info.options as any).appId as string;
   return props.wxaList?.find(item => item.appid === appId) ?? null;
 });

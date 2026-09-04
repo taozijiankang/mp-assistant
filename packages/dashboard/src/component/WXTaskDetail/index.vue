@@ -27,13 +27,46 @@
             {{ (task as any).options.action === 'logout' ? '退出登录' : '登录' }}
           </span>
         </div>
-        <div v-if="task.type === WXTaskType.WX_INSPECT_VERSION" class="detail-row">
+        <div v-if="showWxaInfo" class="detail-row">
           <span class="label">小程序</span>
-          <template v-if="inspectWxaItem">
-            <img :src="inspectWxaItem.app_headimg" class="detail-app-avatar" />
-            <span>{{ inspectWxaItem.app_name }}</span>
+          <template v-if="wxaItem">
+            <img :src="wxaItem.app_headimg" class="detail-app-avatar" />
+            <span>{{ wxaItem.app_name }}</span>
           </template>
           <span v-else>{{ (task as any).options.appId }}</span>
+        </div>
+        <div v-if="positioners.length" class="detail-row detail-msg-row">
+          <span class="label">筛选条件</span>
+          <div class="detail-value">
+            <div v-for="(p, i) in positioners" :key="i" class="positioner-item">
+              {{ formatPositioner(p) }}
+            </div>
+          </div>
+        </div>
+        <div v-if="auditInfo?.options.populateData?.versionDescription" class="detail-row detail-msg-row">
+          <span class="label">版本描述</span>
+          <span class="detail-value">{{ auditInfo.options.populateData.versionDescription }}</span>
+        </div>
+        <div v-if="auditImagePreviews.length" class="detail-row detail-msg-row">
+          <span class="label">图片预览</span>
+          <div class="detail-value audit-previews">
+            <el-image
+              v-for="(img, i) in auditImagePreviews"
+              :key="i"
+              :src="getFileUrl(img)"
+              :preview-src-list="auditImagePreviews.map(getFileUrl)"
+              :initial-index="i"
+              preview-teleported
+              fit="cover"
+              class="audit-preview-image"
+            />
+          </div>
+        </div>
+        <div v-if="auditInfo?.options.populateData?.videoPreview" class="detail-row detail-msg-row">
+          <span class="label">视频预览</span>
+          <div class="detail-value">
+            <video :src="getFileUrl(auditInfo.options.populateData.videoPreview)" controls class="audit-preview-video" />
+          </div>
         </div>
         <div
           v-if="task.completedMessage && (task.status === TaskStatus.COMPLETED || task.status === TaskStatus.FAILED)"
@@ -123,9 +156,13 @@
 import { computed } from "vue";
 import type { WXTaskInfo } from "@mp-assistant/common/dist/work/wx/WXTask.js";
 import type { WXLoginTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXLoginTask.js";
+import type { WXAuditTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXAuditTask.js";
 import type { WXPublishTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXPublishTask.js";
 import type { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
 import { TaskStatus, TaskStatusDict, WXTaskTypeDict, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
+import { VersionPositioningTypeDict, VersionPositioningCriteriaDict } from "@mp-assistant/common/dist/utils/index.js";
+import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
+import { getFileUrl } from "@/api";
 
 const props = defineProps<{
   task: WXTaskInfo | null;
@@ -155,8 +192,14 @@ const wxaList = computed<WXMPItem[]>(() => {
   return (props.task as WXLoginTaskInfo).wxaList ?? [];
 });
 
-const inspectWxaItem = computed(() => {
-  if (!props.task || props.task.type !== WXTaskType.WX_INSPECT_VERSION) return null;
+// 需要展示小程序信息的任务类型：检查版本 / 审核 / 发布
+const showWxaInfo = computed(() =>
+  props.task != null &&
+  [WXTaskType.WX_INSPECT_VERSION, WXTaskType.WX_AUDIT, WXTaskType.WX_PUBLISH].includes(props.task.type as WXTaskType)
+);
+
+const wxaItem = computed(() => {
+  if (!showWxaInfo.value || !props.task) return null;
   const appId = (props.task.options as any).appId as string;
   return props.wxaList?.find(item => item.appid === appId) ?? null;
 });
@@ -164,6 +207,27 @@ const inspectWxaItem = computed(() => {
 const publishInfo = computed<WXPublishTaskInfo | null>(() =>
   props.task?.type === WXTaskType.WX_PUBLISH ? (props.task as WXPublishTaskInfo) : null
 );
+
+// 审核任务的参数：筛选条件 + 审核内容（版本描述/图片/视频）
+const auditInfo = computed<WXAuditTaskInfo | null>(() =>
+  props.task?.type === WXTaskType.WX_AUDIT ? (props.task as WXAuditTaskInfo) : null
+);
+
+// 审核/发布任务都有的版本筛选条件
+const positioners = computed(() => {
+  if (!props.task) return [];
+  if (props.task.type === WXTaskType.WX_AUDIT) return auditInfo.value?.options.positioner ?? [];
+  if (props.task.type === WXTaskType.WX_PUBLISH) return publishInfo.value?.options.positioner ?? [];
+  return [];
+});
+
+const formatPositioner = (p: VersionPositioner) => {
+  const typeDict = VersionPositioningTypeDict as Record<string, string>;
+  const criteriaDict = VersionPositioningCriteriaDict as Record<string, string>;
+  return `${typeDict[p.type]} · ${criteriaDict[p.criteria]} · ${p.value}`;
+};
+
+const auditImagePreviews = computed(() => auditInfo.value?.options.populateData?.imagePreviews ?? []);
 
 const formatTime = (timestamp: number) => {
   const d = new Date(timestamp);
