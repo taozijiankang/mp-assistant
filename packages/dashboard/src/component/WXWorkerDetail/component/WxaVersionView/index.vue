@@ -53,7 +53,7 @@
                     type="primary"
                     @click="handlePublish(row)"
                   >
-                    去发布
+                    发布
                   </el-button>
                 </div>
                 <div class="version-status" :class="auditStatusClass(row.versionData.experience_info.basic_info.audit_status)">
@@ -105,7 +105,7 @@
                     {{ devAuditLabel(row) }}
                   </span>
                   <el-button v-if="canAudit(row, dev.nick_name)" size="small" text type="primary" @click="handleAudit(row, dev.nick_name)">
-                    去审核
+                    提交审核
                   </el-button>
                 </div>
                 <div class="version-desc">{{ getDevInfo(row, dev.nick_name)!.describe }}</div>
