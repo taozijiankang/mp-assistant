@@ -2,7 +2,7 @@ import { TaskStatus, WXTaskType } from "@mp-assistant/common/dist/work/const.js"
 import { WXTask } from "../../WXTask.js";
 import { WXPublishTaskInfo, WXPublishTaskOptions } from "@mp-assistant/common/dist/work/index.js";
 import { WXVersionCodeData } from "@mp-assistant/common/dist/types/wx.js";
-import { getVersionList } from "../../../../api/index.js";
+import { requestVersionList } from "../../../../api/index.js";
 import { versionSatisfy } from "@mp-assistant/common/dist/utils/wx/index.js";
 import { WXAuditStatus } from "@mp-assistant/common/dist/constant/wx.js";
 import { WXMP_URL, WXMP_VERSION_MANAGEMENT_URL } from "../../../../constant/wx.js";
@@ -53,7 +53,7 @@ export class WXPublishTask extends WXTask<WXPublishTaskOptions, WXPublishTaskInf
 
             this.report("text", `开始获取版本列表`);
 
-            const versionData = await getVersionList(page);
+            const versionData = await requestVersionList(page);
             this.setAVersionData(versionData);
 
             // 判断当前版本是否已发布
@@ -125,7 +125,7 @@ export class WXPublishTask extends WXTask<WXPublishTaskOptions, WXPublishTaskInf
                     }
                 };
                 const interval = setInterval(async () => {
-                    const versionData = await getVersionList(page);
+                    const versionData = await requestVersionList(page);
                     this.setAVersionData(versionData);
 
                     const onReleaseVersionInfo = versionData.online_info?.basic_info;
@@ -197,7 +197,7 @@ export class WXPublishTask extends WXTask<WXPublishTaskOptions, WXPublishTaskInf
                 }, 2000);
             });
 
-            const versionData2 = await getVersionList(page);
+            const versionData2 = await requestVersionList(page);
             this.setAVersionData(versionData2);
 
             this.end(TaskStatus.COMPLETED, "发布任务完成");

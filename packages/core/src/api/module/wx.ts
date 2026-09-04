@@ -32,7 +32,7 @@ export async function requestWxaList(page: Page): Promise<WXMPItem[]> {
  * @returns 小程序版本列表
  * @throws 如果获取失败，则抛出错误
  */
-export async function getVersionList(page: Page): Promise<WXVersionCodeData> {
+export async function requestVersionList(page: Page): Promise<WXVersionCodeData> {
     const urlParams = new URLSearchParams(page.url())
     const queryParams = 'path=' + encodeURIComponent(`/wxopen/wacodepage?action=getcodepage&f=json&lang=zh_CN`) + `&token=${urlParams.get('token')}&lang=zh_CN&random=${Math.random()}`
 
