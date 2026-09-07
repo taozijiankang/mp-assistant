@@ -131,7 +131,8 @@
           v-if="task.status === TaskStatus.RUNNING"
           size="small"
           type="warning"
-          @click="$emit('abort')"
+          :loading="abortLoading"
+          @click="handleAbort"
         >
           终止
         </el-button>
@@ -139,11 +140,12 @@
           v-if="task.status === TaskStatus.FAILED || task.status === TaskStatus.COMPLETED"
           size="small"
           type="primary"
-          @click="$emit('reset')"
+          :loading="resetLoading"
+          @click="handleReset"
         >
           重新运行
         </el-button>
-        <el-button size="small" type="danger" @click="$emit('remove')">删除</el-button>
+        <el-button size="small" type="danger" :loading="removeLoading" @click="handleRemove">删除</el-button>
       </div>
     </template>
 
@@ -155,6 +157,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { ElMessage, ElMessageBox } from "element-plus";
 import type { WXTaskInfo } from "@mp-assistant/common/dist/work/wx/WXTask.js";
 import type { WXLoginTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXLoginTask.js";
 import type { WXAuditTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXAuditTask.js";
@@ -163,18 +166,50 @@ import type { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
 import { TaskStatus, TaskStatusDict, WXTaskTypeDict, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
 import { VersionPositioningTypeDict, VersionPositioningCriteriaDict } from "@mp-assistant/common/dist/utils/index.js";
 import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
-import { getFileUrl } from "@/api";
+import { getFileUrl, requestAbortTask, requestResetTaskStatus, requestRemoveTask } from "@/api";
+import { useApiCall } from "@/hooks/useApiCall";
 
 const props = defineProps<{
   task: WXTaskInfo | null;
   wxaList?: WXMPItem[];
+  workerKey: string;
 }>();
 
-defineEmits<{
-  abort: [];
-  reset: [];
-  remove: [];
+const emit = defineEmits<{
+  removed: [];
 }>();
+
+const { call: abortTask, loading: abortLoading } = useApiCall(requestAbortTask);
+const { call: resetTask, loading: resetLoading } = useApiCall(requestResetTaskStatus);
+const { call: removeTask, loading: removeLoading } = useApiCall(requestRemoveTask);
+
+const handleAbort = async () => {
+  if (!props.task) return;
+  try {
+    await abortTask({ key: props.workerKey, taskKey: props.task.key });
+    ElMessage.success("已终止");
+  } catch {}
+};
+
+const handleReset = async () => {
+  if (!props.task) return;
+  try {
+    await resetTask({ key: props.workerKey, taskKey: props.task.key });
+    ElMessage.success("任务已重新运行");
+  } catch {}
+};
+
+const handleRemove = async () => {
+  if (!props.task) return;
+  await ElMessageBox.confirm(`确定删除 "${WXTaskTypeDict[props.task.type]}" 吗？`, "删除确认", {
+    type: "warning"
+  });
+  try {
+    await removeTask({ key: props.workerKey, taskKey: props.task.key });
+    ElMessage.success("删除成功");
+    emit("removed");
+  } catch {}
+};
 
 const statusTagType = computed(() => {
   if (!props.task) return "info";

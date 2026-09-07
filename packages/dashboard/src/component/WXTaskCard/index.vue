@@ -38,7 +38,8 @@
         v-if="info.status === TaskStatus.RUNNING"
         size="small"
         type="warning"
-        @click.stop="$emit('abort')"
+        :loading="abortLoading"
+        @click.stop="handleAbort"
       >
         终止
       </el-button>
@@ -46,7 +47,8 @@
         v-if="info.status === TaskStatus.FAILED"
         size="small"
         type="primary"
-        @click.stop="$emit('reset')"
+        :loading="resetLoading"
+        @click.stop="handleReset"
       >
         重新运行
       </el-button>
@@ -56,16 +58,37 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { ElMessage } from "element-plus";
 import type { BaseTaskInfo } from "@mp-assistant/common/dist/work/BaseTask.js";
 import type { WXPublishTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXPublishTask.js";
 import type { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
 import { TaskStatus, TaskStatusDict, WXTaskTypeDict, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
+import { requestAbortTask, requestResetTaskStatus } from "@/api";
+import { useApiCall } from "@/hooks/useApiCall";
 
 const props = defineProps<{
   info: BaseTaskInfo;
   active: boolean;
   wxaList?: WXMPItem[];
+  workerKey: string;
 }>();
+
+const { call: abortTask, loading: abortLoading } = useApiCall(requestAbortTask);
+const { call: resetTask, loading: resetLoading } = useApiCall(requestResetTaskStatus);
+
+const handleAbort = async () => {
+  try {
+    await abortTask({ key: props.workerKey, taskKey: props.info.key });
+    ElMessage.success("已终止");
+  } catch {}
+};
+
+const handleReset = async () => {
+  try {
+    await resetTask({ key: props.workerKey, taskKey: props.info.key });
+    ElMessage.success("任务已重新运行");
+  } catch {}
+};
 
 // 需要展示小程序信息的任务类型：检查版本 / 审核 / 发布
 const showWxaInfo = computed(() =>
@@ -95,8 +118,6 @@ const formatCountdown = (seconds: number) => {
 
 defineEmits<{
   select: [];
-  abort: [];
-  reset: [];
 }>();
 
 const statusTagType = computed(() => {
