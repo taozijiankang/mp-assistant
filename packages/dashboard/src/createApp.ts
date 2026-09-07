@@ -2,6 +2,7 @@ import type { Component } from "vue";
 import "./assets/main.css";
 import "element-plus/dist/index.css";
 import ElementPlus from 'element-plus';
+import zhCn from 'element-plus/es/locale/lang/zh-cn';
 import "./styles/index.scss";
 
 import { createApp as createVueApp } from "vue";
@@ -17,7 +18,7 @@ export async function createApp(App: Component) {
   WSConnection.instance.connect();
 
   const app = createVueApp(App);
-  app.use(ElementPlus);
+  app.use(ElementPlus, { locale: zhCn });
   app.use(pinia);
   app.use(router);
 
