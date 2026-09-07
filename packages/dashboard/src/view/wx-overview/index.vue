@@ -155,10 +155,17 @@ const keywordList = computed(() =>
     .filter(Boolean)
 );
 
+// 过滤掉被「隐藏」类型标签标记的小程序
+const visibleRows = computed<OverviewRow[]>(() => {
+  const hidden = tagStore.hiddenAppids;
+  if (!hidden.size) return rows.value;
+  return rows.value.filter(row => !hidden.has(row.appid));
+});
+
 const tagFilteredRows = computed<OverviewRow[]>(() => {
-  if (!overviewTagFilters.value.length) return rows.value;
+  if (!overviewTagFilters.value.length) return visibleRows.value;
   const selected = new Set(overviewTagFilters.value);
-  return rows.value.filter(row => tagStore.appTags[row.appid]?.some(t => selected.has(t.name)));
+  return visibleRows.value.filter(row => tagStore.appTags[row.appid]?.some(t => selected.has(t.name)));
 });
 
 const filteredRows = computed<OverviewRow[]>(() => {

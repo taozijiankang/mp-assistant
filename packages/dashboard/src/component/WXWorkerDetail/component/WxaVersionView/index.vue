@@ -156,10 +156,17 @@ const tagStore = useTagStore();
 
 const sortedList = computed(() => [...(props.list ?? [])].sort((a, b) => a.app_name.localeCompare(b.app_name)));
 
+// 过滤掉被「隐藏」类型标签标记的小程序
+const visibleList = computed(() => {
+  const hidden = tagStore.hiddenAppids;
+  if (!hidden.size) return sortedList.value;
+  return sortedList.value.filter(row => !hidden.has(row.appid));
+});
+
 const tagFilteredList = computed(() => {
-  if (!tagFilters.value.length) return sortedList.value;
+  if (!tagFilters.value.length) return visibleList.value;
   const selected = new Set(tagFilters.value);
-  return sortedList.value.filter(row => tagStore.appTags[row.appid]?.some(t => selected.has(t.name)));
+  return visibleList.value.filter(row => tagStore.appTags[row.appid]?.some(t => selected.has(t.name)));
 });
 
 const filteredList = computed(() => {
