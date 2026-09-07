@@ -26,7 +26,7 @@
                   {{ WXTaskTypeDict[WXTaskType.WX_INSPECT_VERSION] }}进行中
                 </el-button>
               </template>
-              <el-button v-else size="small" text type="primary" class="app-info-btn" @click="$emit('fetchVersion', row.appid)">获取版本</el-button>
+              <el-button v-else size="small" text type="primary" class="app-info-btn" :loading="fetchingAppids[row.appid]" @click="handleFetchVersion(row.appid)">获取版本</el-button>
             </AppInfo>
           </template>
         </el-table-column>
@@ -82,7 +82,16 @@
                   v-if="row.versionData.experience_info.basic_info.audit_status === WXAuditStatus.SUCCESS"
                   class="version-action"
                 >
-                  <el-button size="small" text type="primary" @click="handlePublish(row)">发布</el-button>
+                  <el-button
+                    v-if="hasPublishingTask(row)"
+                    size="small"
+                    text
+                    type="warning"
+                    @click="$emit('showTask', hasPublishingTask(row)!.key)"
+                  >
+                    {{ WXTaskTypeDict[WXTaskType.WX_PUBLISH] }}中
+                  </el-button>
+                  <el-button v-else size="small" text type="primary" :loading="publishingAppids[row.appid]" @click="handlePublish(row)">发布</el-button>
                 </div>
               </div>
             </template>
@@ -125,12 +134,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { ref, computed } from "vue";
+import { ElMessage } from "element-plus";
 import { storeToRefs } from "pinia";
 import fuzzysort from "fuzzysort";
 import { TaskStatus, WXTaskType, WXTaskTypeDict } from "@mp-assistant/common/dist/work/const.js";
 import { WXAuditStatus, WXAuditStatusDict } from "@mp-assistant/common/dist/constant/wx.js";
 import type { WXWorkerWxaItem } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
+import type { WXPublishTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXPublishTask.js";
 import type { WXVersionBasicInfo } from "@mp-assistant/common/dist/types/wx.js";
 import { VersionPositioningType, VersionPositioningCriteria } from "@mp-assistant/common/dist/utils/index.js";
 import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
@@ -138,16 +149,16 @@ import AppInfo from "@/component/AppInfo/index.vue";
 import TagFilter from "@/component/TagFilter/index.vue";
 import { usePanelStore } from "@/stores/panel";
 import { useTagStore } from "@/stores/tag";
+import { requestAddTask } from "@/api";
 
 const props = defineProps<{
   list?: WXWorkerWxaItem[];
+  workerKey: string;
 }>();
 
 const emit = defineEmits<{
-  fetchVersion: [appId: string];
   showTask: [taskKey: string];
   audit: [payload: { appId: string; positioner: VersionPositioner[]; versionDescription: string }];
-  publish: [payload: { appId: string; positioner: VersionPositioner[] }];
 }>();
 
 const { versionViewSearchText: searchText, versionViewVisibleDevs: visibleDevs, versionViewTagFilters: tagFilters } = storeToRefs(usePanelStore());
@@ -198,6 +209,25 @@ const filteredDevelopers = computed(() => {
 
 const hasTask = (row: WXWorkerWxaItem, type: WXTaskType) => {
   return row.tasks?.find(t => (t.status === TaskStatus.RUNNING || t.status === TaskStatus.IDLE) && t.type === type) ?? null;
+};
+
+// 判断是否存在与当前待发布版本（提交者/版本号/描述）一致的「发布中」任务
+const hasPublishingTask = (row: WXWorkerWxaItem) => {
+  const exp = row.versionData?.experience_info?.basic_info;
+  if (!exp) return null;
+  return (
+    row.tasks?.find(t => {
+      if (t.status !== TaskStatus.RUNNING && t.status !== TaskStatus.IDLE) return false;
+      if (t.type !== WXTaskType.WX_PUBLISH) return false;
+      const positioner = (t as WXPublishTaskInfo).options.positioner ?? [];
+      const getVal = (type: VersionPositioningType) => positioner.find(p => p.type === type)?.value;
+      return (
+        getVal(VersionPositioningType.Version) === exp.version &&
+        getVal(VersionPositioningType.NickName) === exp.nick_name &&
+        getVal(VersionPositioningType.Describe) === exp.describe
+      );
+    }) ?? null
+  );
 };
 
 const isDevReleased = (row: WXWorkerWxaItem, nickName: string) => {
@@ -260,10 +290,38 @@ const handleAudit = (row: WXWorkerWxaItem, nickName: string) => {
   emit("audit", { appId: row.appid, positioner: buildPositioner(info), versionDescription: info.describe });
 };
 
-const handlePublish = (row: WXWorkerWxaItem) => {
+// 获取版本 / 发布任务的 loading 状态，按 appid 精确隔离，避免多行按钮一起转圈
+const fetchingAppids = ref<Record<string, boolean>>({});
+const publishingAppids = ref<Record<string, boolean>>({});
+
+const handleFetchVersion = async (appId: string) => {
+  if (fetchingAppids.value[appId]) return;
+  fetchingAppids.value[appId] = true;
+  try {
+    await requestAddTask({ key: props.workerKey, type: WXTaskType.WX_INSPECT_VERSION, options: { appId } });
+    ElMessage.success("版本获取任务已添加");
+  } catch {
+  } finally {
+    fetchingAppids.value[appId] = false;
+  }
+};
+
+const handlePublish = async (row: WXWorkerWxaItem) => {
   const info = row.versionData?.experience_info?.basic_info;
   if (!info) return;
-  emit("publish", { appId: row.appid, positioner: buildPositioner(info) });
+  if (publishingAppids.value[row.appid]) return;
+  publishingAppids.value[row.appid] = true;
+  try {
+    await requestAddTask({
+      key: props.workerKey,
+      type: WXTaskType.WX_PUBLISH,
+      options: { appId: row.appid, positioner: buildPositioner(info) },
+    });
+    ElMessage.success("发布任务已添加");
+  } catch {
+  } finally {
+    publishingAppids.value[row.appid] = false;
+  }
 };
 </script>
 

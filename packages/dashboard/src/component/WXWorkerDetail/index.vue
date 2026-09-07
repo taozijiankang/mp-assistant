@@ -52,10 +52,9 @@
           <WxaVersionView
             v-if="activeTab === 'version'"
             :list="worker.wxaList"
-            @fetch-version="handleFetchVersion"
+            :worker-key="worker.key"
             @show-task="openTaskDrawer"
             @audit="handleAudit"
-            @publish="handlePublish"
           />
         </div>
 
@@ -173,17 +172,6 @@ const handleAddLoginTask = async () => {
   } catch {}
 };
 
-const handleFetchVersion = async (appId: string) => {
-  try {
-    await requestAddTask({
-      key: props.worker.key,
-      type: WXTaskType.WX_INSPECT_VERSION,
-      options: { appId }
-    });
-    ElMessage.success("版本获取任务已添加");
-  } catch {}
-};
-
 const handleAudit = (payload: { appId: string; positioner: VersionPositioner[]; versionDescription: string }) => {
   // 打开添加任务弹窗并预填审核参数，其余信息（版本描述/图片/视频等）由用户在弹窗中补充
   addTaskDialog.value?.open(props.worker.key, {
@@ -191,17 +179,6 @@ const handleAudit = (payload: { appId: string; positioner: VersionPositioner[]; 
     appId: payload.appId,
     positioners: payload.positioner,
   });
-};
-
-const handlePublish = async (payload: { appId: string; positioner: VersionPositioner[] }) => {
-  try {
-    await requestAddTask({
-      key: props.worker.key,
-      type: WXTaskType.WX_PUBLISH,
-      options: { appId: payload.appId, positioner: payload.positioner },
-    });
-    ElMessage.success("发布任务已添加");
-  } catch {}
 };
 
 </script>
