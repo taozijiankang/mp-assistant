@@ -27,7 +27,7 @@ export namespace WSMessage {
     }
 
     /**
-     * 内容改变：worker 或 plan 数据发生变化时广播
+     * 内容改变：worker 或标签数据发生变化时广播
      */
     export namespace ContentChanged {
         export const type = 'content-change';

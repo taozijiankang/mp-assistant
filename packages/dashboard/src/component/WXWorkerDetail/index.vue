@@ -208,19 +208,13 @@ const handleFetchVersion = async (appId: string) => {
   } catch {}
 };
 
-const handleAudit = async (payload: { appId: string; positioner: VersionPositioner[]; versionDescription: string }) => {
-  try {
-    await requestAddTask({
-      key: props.worker.key,
-      type: WXTaskType.WX_AUDIT,
-      options: {
-        appId: payload.appId,
-        positioner: payload.positioner,
-        populateData: { versionDescription: payload.versionDescription },
-      },
-    });
-    ElMessage.success("审核任务已添加");
-  } catch {}
+const handleAudit = (payload: { appId: string; positioner: VersionPositioner[]; versionDescription: string }) => {
+  // 打开添加任务弹窗并预填审核参数，其余信息（版本描述/图片/视频等）由用户在弹窗中补充
+  addTaskDialog.value?.open(props.worker.key, {
+    type: WXTaskType.WX_AUDIT,
+    appId: payload.appId,
+    positioners: payload.positioner,
+  });
 };
 
 const handlePublish = async (payload: { appId: string; positioner: VersionPositioner[] }) => {

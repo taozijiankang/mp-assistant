@@ -1,0 +1,47 @@
+.app-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+
+  .avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 1px solid #ebeef5;
+  }
+
+  .body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+
+    .name {
+      max-width: 100%;
+      font-size: 13px;
+      color: #303133;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+
+      .tag {
+        display: inline-block;
+        font-size: 11px;
+        line-height: 1;
+        padding: 2px 6px;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+    }
+  }
+}

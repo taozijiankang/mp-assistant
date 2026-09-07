@@ -20,24 +20,8 @@
   overflow: hidden;
 }
 
-.wxa-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.wxa-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-}
-
-.wxa-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  min-width: 0;
+.app-info-btn {
+  padding: 0;
 }
 
 .version-cell {
@@ -47,6 +31,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-wrap: wrap;
     margin-bottom: 6px;
 
     .vnum {
@@ -54,16 +39,21 @@
       font-size: 12px;
       padding: 1px 6px;
       border-radius: 3px;
+      white-space: nowrap;
     }
 
     &.online {
       color: #303133;
+      flex-direction: column;
+      align-items: flex-start;
       .vnum {
         color: #909399;
       }
     }
     &.experience {
       color: #303133;
+      flex-direction: column;
+      align-items: flex-start;
       .vnum {
         background: #f0f0f0;
         color: #8c8c8c;
@@ -96,6 +86,7 @@
       background: #f0f0f0;
       color: #909399;
       font-weight: 400;
+      white-space: nowrap;
     }
 
     .audit-tag {
@@ -103,6 +94,7 @@
       padding: 0 6px;
       border-radius: 3px;
       font-weight: 400;
+      white-space: nowrap;
 
       &.audit-reviewing {
         background: #fdf6ec;
@@ -122,6 +114,7 @@
   .version-status {
     font-size: 12px;
     margin-top: 4px;
+    white-space: nowrap;
 
     &.audit-reviewing {
       color: #e6a23c;
@@ -167,6 +160,14 @@
   color: #606266;
   line-height: 1.5;
   word-break: break-all;
+}
+
+.version-action {
+  margin-top: 6px;
+
+  .el-button {
+    padding: 0;
+  }
 }
 
 .develop-list {

@@ -1,4 +1,4 @@
-.plan-editor {
+.tag-editor {
   display: flex;
   height: 320px;
   border: 1px solid var(--el-border-color);
@@ -6,7 +6,7 @@
   overflow: hidden;
 }
 
-.plan-list {
+.tag-list {
   width: 260px;
   flex-shrink: 0;
   border-right: 1px solid var(--el-border-color);
@@ -15,7 +15,7 @@
   background: var(--el-fill-color-light);
 }
 
-.plan-list-header {
+.tag-list-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -25,14 +25,14 @@
   font-weight: 600;
 }
 
-.plan-list-empty {
+.tag-list-empty {
   padding: 24px 12px;
   text-align: center;
   color: var(--el-text-color-secondary);
   font-size: 13px;
 }
 
-.plan-item {
+.tag-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -44,7 +44,7 @@
     background: var(--el-color-primary-light-9);
   }
 
-  .plan-name {
+  .tag-name {
     flex: 1;
     font-size: 13px;
     overflow: hidden;
@@ -53,13 +53,13 @@
   }
 }
 
-.plan-detail {
+.tag-detail {
   flex: 1;
   padding: 16px;
   overflow-y: auto;
 }
 
-.plan-detail-empty {
+.tag-detail-empty {
   display: flex;
   align-items: center;
   justify-content: center;

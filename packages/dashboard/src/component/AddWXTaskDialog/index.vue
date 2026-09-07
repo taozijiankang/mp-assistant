@@ -252,9 +252,16 @@ const handleSubmit = async () => {
   }
 };
 
-const open = (workerKey: string) => {
+const open = (workerKey: string, preset?: {
+  type?: string;
+  appId?: string;
+  positioners?: VersionPositioner[];
+}) => {
   resetForm();
   currentWorkerKey.value = workerKey;
+  if (preset?.type) form.type = preset.type;
+  if (preset?.appId) form.appId = preset.appId;
+  if (preset?.positioners) form.positioners = [...preset.positioners];
   visible.value = true;
 };
 

@@ -15,7 +15,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/wx-overview',
     name: 'wxOverview',
-    component: () => import('@/view/WXOverview/index.vue'),
+    component: () => import('@/view/wx-overview/index.vue'),
     meta: { title: '微信小程序总览' },
   },
 ];

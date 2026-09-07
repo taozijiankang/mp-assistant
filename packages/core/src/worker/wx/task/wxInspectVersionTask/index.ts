@@ -2,7 +2,7 @@ import { TaskStatus, WXTaskType } from "@mp-assistant/common/dist/work/const.js"
 import { WXTask } from "../../WXTask.js";
 import { WXInspectVersionTaskInfo, WXInspectVersionTaskOptions } from "@mp-assistant/common/dist/work/index.js";
 import { WXVersionCodeData } from "@mp-assistant/common/dist/types/wx.js";
-import { getVersionList } from "../../../../api/index.js";
+import { requestVersionList } from "../../../../api/index.js";
 
 export class WXInspectVersionTask extends WXTask<WXInspectVersionTaskOptions, WXInspectVersionTaskInfo> {
     readonly type = WXTaskType.WX_INSPECT_VERSION;
@@ -32,7 +32,7 @@ export class WXInspectVersionTask extends WXTask<WXInspectVersionTaskOptions, WX
             await this.switchMP(page, this.options.appId);
 
             this.report('text', '正在获取版本列表...');
-            const versionData = await getVersionList(page);
+            const versionData = await requestVersionList(page);
 
             this.setAVersionData(versionData);
 

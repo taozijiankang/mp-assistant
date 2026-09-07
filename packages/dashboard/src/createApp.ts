@@ -9,7 +9,7 @@ import { WSConnection } from "./ws/WSConnection";
 import pinia from "./stores";
 import router from "./router";
 import { useWorkerStore } from "./stores/worker";
-import { usePlanStore } from "./stores/plan";
+import { useTagStore } from "./stores/tag";
 import { useReviewTemplateStore } from "./stores/reviewTemplate";
 
 export async function createApp(App: Component) {
@@ -23,7 +23,7 @@ export async function createApp(App: Component) {
 
   // 初始化全局 store：拉取数据并监听内容变更事件
   useWorkerStore().init();
-  usePlanStore().init();
+  useTagStore().init();
   useReviewTemplateStore().init();
 
   await router.isReady();

@@ -31,6 +31,10 @@
               <el-radio-button value="exact">全匹配</el-radio-button>
             </el-radio-group>
           </div>
+          <div class="search-group">
+            <span class="search-label">标签</span>
+            <TagFilter v-model="overviewTagFilters" />
+          </div>
           <el-button size="small" class="search-clear" @click="clearSearch">清空</el-button>
         </div>
       </div>
@@ -71,12 +75,9 @@
                 :class="{ selected: isSelectedCell(row.appid, worker.key) }"
                 @click.stop="toggleCell(row.appid, worker.key)"
               >
-                <img :src="row.appHeadimg" class="app-avatar" />
-                <div class="app-info">
-                  <div class="app-name">{{ row.appName }}</div>
-                  <PlanBadge :appid="row.appid" />
+                <AppInfo :appid="row.appid" :app-name="row.appName" :avatar="row.appHeadimg">
                   <div class="app-id">{{ row.appid }}</div>
-                </div>
+                </AppInfo>
                 <img v-if="isSelectedCell(row.appid, worker.key)" src="@/assets/check.png" class="cell-check" />
               </div>
               <span v-else class="member-empty">-</span>
@@ -98,7 +99,9 @@ import { storeToRefs } from "pinia";
 import { isWXWorkerInfo } from "@mp-assistant/common/dist/work/index.js";
 import { useWorkerStore } from "@/stores/worker";
 import { usePanelStore } from "@/stores/panel";
-import PlanBadge from "@/component/PlanBadge/index.vue";
+import { useTagStore } from "@/stores/tag";
+import AppInfo from "@/component/AppInfo/index.vue";
+import TagFilter from "@/component/TagFilter/index.vue";
 import BatchAddTaskForm from "./component/BatchAddTaskForm/index.vue";
 
 interface OverviewRow {
@@ -109,6 +112,7 @@ interface OverviewRow {
 }
 
 const workerStore = useWorkerStore();
+const tagStore = useTagStore();
 
 const wxWorkers = computed(() =>
   [...(workerStore.workerList ?? [])]
@@ -141,6 +145,7 @@ const {
   overviewSearchField: searchField,
   overviewSearchType: searchType,
   overviewSelectedCells: selectedCells,
+  overviewTagFilters,
 } = storeToRefs(usePanelStore());
 
 const keywordList = computed(() =>
@@ -150,11 +155,18 @@ const keywordList = computed(() =>
     .filter(Boolean)
 );
 
+const tagFilteredRows = computed<OverviewRow[]>(() => {
+  if (!overviewTagFilters.value.length) return rows.value;
+  const selected = new Set(overviewTagFilters.value);
+  return rows.value.filter(row => tagStore.appTags[row.appid]?.some(t => selected.has(t.name)));
+});
+
 const filteredRows = computed<OverviewRow[]>(() => {
-  if (!keywordList.value.length) return rows.value;
+  const base = tagFilteredRows.value;
+  if (!keywordList.value.length) return base;
   const isExact = searchType.value === "exact";
   const field = searchField.value;
-  return rows.value.filter(row => {
+  return base.filter(row => {
     const target = (field === "appid" ? row.appid : row.appName).toLowerCase();
     return keywordList.value.some(kw => {
       const k = kw.toLowerCase();
