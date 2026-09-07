@@ -2,27 +2,7 @@
   <div class="task-card" :class="{ active }" @click="$emit('select')">
     <div class="task-card-header">
       <span class="task-name">{{ WXTaskTypeDict[info.type] }}</span>
-      <div class="task-card-header-right">
-        <el-tag size="small" :type="statusTagType">{{ TaskStatusDict[info.status] }}</el-tag>
-        <el-button
-          v-if="info.status === TaskStatus.RUNNING"
-          size="small"
-          type="danger"
-          plain
-          @click.stop="$emit('abort')"
-        >
-          终止
-        </el-button>
-        <el-button
-          v-if="info.status === TaskStatus.FAILED"
-          size="small"
-          type="warning"
-          plain
-          @click.stop="$emit('reset')"
-        >
-          重置
-        </el-button>
-      </div>
+      <el-tag size="small" :type="statusTagType">{{ TaskStatusDict[info.status] }}</el-tag>
     </div>
     <div v-if="info.type === WXTaskType.WX_LOGIN" class="task-option" :class="(info.options as any).action">
       {{ (info.options as any).action === 'logout' ? '退出登录' : '登录' }}
@@ -52,6 +32,24 @@
     </div>
     <div v-if="info.status === TaskStatus.FAILED && info.completedMessage" class="task-fail-reason">
       {{ info.completedMessage }}
+    </div>
+    <div class="task-card-actions">
+      <el-button
+        v-if="info.status === TaskStatus.RUNNING"
+        size="small"
+        type="warning"
+        @click.stop="$emit('abort')"
+      >
+        终止
+      </el-button>
+      <el-button
+        v-if="info.status === TaskStatus.FAILED"
+        size="small"
+        type="primary"
+        @click.stop="$emit('reset')"
+      >
+        重新运行
+      </el-button>
     </div>
   </div>
 </template>

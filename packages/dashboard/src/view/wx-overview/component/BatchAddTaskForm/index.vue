@@ -45,7 +45,7 @@
 
       <template v-if="form.type === WXTaskType.WX_AUDIT">
         <el-form-item label="审核模板">
-          <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <div class="template-list">
             <el-button v-for="(t, i) in templateList" :key="i" size="small" plain @click="fillFromTemplate(t)">
               {{ t.name }}
             </el-button>

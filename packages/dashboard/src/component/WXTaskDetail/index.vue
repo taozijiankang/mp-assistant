@@ -138,9 +138,10 @@
         <el-button
           v-if="task.status === TaskStatus.FAILED || task.status === TaskStatus.COMPLETED"
           size="small"
+          type="primary"
           @click="$emit('reset')"
         >
-          重置
+          重新运行
         </el-button>
         <el-button size="small" type="danger" @click="$emit('remove')">删除</el-button>
       </div>

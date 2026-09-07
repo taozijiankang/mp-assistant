@@ -48,3 +48,13 @@
     white-space: nowrap;
   }
 }
+
+.template-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .el-button + .el-button {
+    margin-left: 0;
+  }
+}

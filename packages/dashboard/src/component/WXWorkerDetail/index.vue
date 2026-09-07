@@ -235,7 +235,7 @@ const handleResetTask = async (taskKey?: string) => {
   if (!key) return;
   try {
     await resetTask({ key: props.worker.key, taskKey: key });
-    ElMessage.success("已重置");
+    ElMessage.success("任务已重新运行");
   } catch {}
 };
 </script>
