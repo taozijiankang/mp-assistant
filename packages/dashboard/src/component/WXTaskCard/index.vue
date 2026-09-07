@@ -16,9 +16,6 @@
       class="task-publish"
     >
       <img :src="publishInfo.publishQRCode" class="task-publish-qrcode" />
-      <span v-if="publishInfo.publishCountdown != null" class="task-publish-countdown">
-        {{ formatCountdown(publishInfo.publishCountdown) }}
-      </span>
     </div>
     <div v-if="info.status === TaskStatus.RUNNING && latestReport" class="task-latest-report">
       <span v-if="latestReport.type === 'text'" class="task-latest-report-text">{{ latestReport.message }}</span>
@@ -109,12 +106,6 @@ const latestReport = computed(() => {
   const reports = props.info.reports ?? [];
   return reports.length > 0 ? reports[reports.length - 1] : null;
 });
-
-const formatCountdown = (seconds: number) => {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-};
 
 defineEmits<{
   select: [];

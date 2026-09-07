@@ -17,6 +17,10 @@
           <span class="label">状态</span>
           <span>{{ TaskStatusDict[task.status] }}</span>
         </div>
+        <div v-if="task.status === TaskStatus.RUNNING && task.timeoutCountdown != null" class="detail-row">
+          <span class="label">超时倒计时</span>
+          <span class="detail-value">{{ formatCountdown(task.timeoutCountdown) }}</span>
+        </div>
         <div class="detail-row">
           <span class="label">创建时间</span>
           <span>{{ task.createdTime }}</span>
@@ -109,9 +113,6 @@
           <span class="label">发布二维码</span>
           <div class="publish-qrcode-wrap">
             <img :src="publishInfo.publishQRCode" class="qrcode-image" />
-            <span v-if="publishInfo.publishCountdown != null" class="publish-countdown">
-              {{ formatCountdown(publishInfo.publishCountdown) }}
-            </span>
           </div>
         </div>
 

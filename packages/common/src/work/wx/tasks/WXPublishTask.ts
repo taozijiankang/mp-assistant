@@ -13,6 +13,4 @@ export interface WXPublishTaskInfo extends WXTaskInfo {
     options: WXPublishTaskOptions;
     versionData?: WXVersionCodeData;
     publishQRCode?: string;
-    /** 发布扫码倒计时（剩余秒数） */
-    publishCountdown?: number;
 }
