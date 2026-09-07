@@ -6,7 +6,7 @@ import { versionSatisfy } from "@mp-assistant/common/dist/utils/index.js";
 import { WXAuditStatus } from "@mp-assistant/common/dist/constant/wx.js";
 import { WXMP_AUDIT_PAGE_URL, WXMP_URL, WXMP_VERSION_MANAGEMENT_URL } from "../../../../constant/wx.js";
 import { expect } from "playwright/test";
-import { WXVersionCodeData } from "@mp-assistant/common/dist/types/wx.js";
+import { WXVersionBasicInfo, WXVersionCodeData } from "@mp-assistant/common/dist/types/wx.js";
 
 export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
     readonly type = WXTaskType.WX_AUDIT;
@@ -27,6 +27,10 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
 
     protected setAVersionData(versionData: WXVersionCodeData): void {
         this.setAProperty('versionData', versionData);
+    }
+
+    private describeVersion(info: WXVersionBasicInfo): string {
+        return `v${info.version} ${info.nick_name} (${info.describe})`;
     }
 
     async execute(): Promise<void> {
@@ -57,7 +61,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                 throw new Error('未找到可提审的版本');
             }
 
-            this.report('text', `找到可提审的版本: ${developVersionInfo.version}, ${developVersionInfo.nick_name}, ${developVersionInfo.describe}`);
+            this.report('text', `找到可提审的版本 [${this.options.appId}]: ${this.describeVersion(developVersionInfo)}`);
 
             // 判断当前版本是否已发布
             const onReleaseVersionInfo = versionData.online_info?.basic_info;
@@ -67,7 +71,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                 && onReleaseVersionInfo.nick_name === developVersionInfo.nick_name
                 && onReleaseVersionInfo.describe === developVersionInfo.describe
             ) {
-                this.end(TaskStatus.COMPLETED, "当前版本已发布");
+                this.end(TaskStatus.COMPLETED, `当前版本已发布，无需提审 [${this.options.appId}]: ${this.describeVersion(developVersionInfo)}`);
                 return;
             }
 
@@ -81,7 +85,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                     && onAuditVersionInfo.nick_name === developVersionInfo.nick_name
                     && onAuditVersionInfo.describe === developVersionInfo.describe
                 ) {
-                    this.end(TaskStatus.COMPLETED, "当前版本已提交审核");
+                    this.end(TaskStatus.COMPLETED, `当前版本已提交审核，无需重复提审 [${this.options.appId}]: ${this.describeVersion(developVersionInfo)}`);
                     return;
                 }
             }
@@ -99,7 +103,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                     // 如果有其他版本在审核中就取消它
                     const onAuditVersionInfo = versionData.experience_info?.basic_info;
                     if (onAuditVersionInfo && onAuditVersionInfo.audit_status! === WXAuditStatus.REVIEWING) {
-                        this.report('text', `有版本正在审核中，开始撤回审核`);
+                        this.report('text', `有版本正在审核中（${this.describeVersion(onAuditVersionInfo)}），开始撤回审核`);
 
                         // 如果不是当前版本，则取消审核
                         // 审核版本盒子定位器
@@ -122,7 +126,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                         await expect(cancelAuditModalLocator).toBeVisible({ timeout: 30 * 1000 })
                         await cancelAuditModalLocator.locator('.weui-desktop-dialog__ft button', { hasText: '确认撤回' }).click();
 
-                        this.report('text', `撤回审核成功`);
+                        this.report('text', `撤回审核成功，准备提审 ${this.describeVersion(developVersionInfo)}`);
 
                         // 更新一下版本信息
                         await getVersionList();
@@ -141,7 +145,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                      * 填写表单
                      */
 
-                    this.report('text', `开始填写表单`);
+                    this.report('text', `开始填写提审表单 [${this.options.appId}]: ${this.describeVersion(developVersionInfo)}`);
 
                     // 等待提交审核页面加载完成
                     await expect(auditPage.locator('.main_hd h2', { hasText: '提交审核' })).toBeVisible({ timeout: 30 * 1000 });
@@ -160,7 +164,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                     await Promise.all([
                         // 传图片
                         images.length > 0 ? new Promise<void>(async (resolve, reject) => {
-                            this.report('text', `开始上传图片`);
+                            this.report('text', `开始上传图片（共 ${images.length} 张）`);
                             const timeout = setTimeout(() => {
                                 complete(new Error('上传图片超时'));
                             }, 30 * 1000);
@@ -226,7 +230,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                         }) : Promise.resolve(),
                     ]);
 
-                    this.report('text', `开始提交审核`);
+                    this.report('text', `表单填写完成，开始提交审核 [${this.options.appId}]: ${this.describeVersion(developVersionInfo)}`);
 
                     await submitFormBoxLocator.locator('.tool_bar a', { hasText: '提交审核' }).click();
                 })(),
@@ -252,7 +256,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                             && onAuditVersionInfo.nick_name === developVersionInfo.nick_name
                             && onAuditVersionInfo.describe === developVersionInfo.describe
                         ) {
-                            this.end(TaskStatus.COMPLETED, "当前版本已提交审核");
+                            this.end(TaskStatus.COMPLETED, `提交审核成功 [${this.options.appId}]: ${this.describeVersion(developVersionInfo)}`);
                             complete();
                         }
                     }, 1000);
@@ -263,7 +267,7 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                 })
             ]);
         } catch (error) {
-            this.end(TaskStatus.FAILED, error instanceof Error ? error.message : '提审失败');
+            this.end(TaskStatus.FAILED, `提审失败 [${this.options.appId}]: ${error instanceof Error ? error.message : '未知错误'}`);
         }
     }
 }
