@@ -13,9 +13,11 @@
               {{ item.label }}
             </el-menu-item>
           </el-menu>
-          <el-button size="small" @click="tagEditDialog?.open()">标签</el-button>
-          <el-button size="small" @click="reviewTemplateEditDialog?.open()">审核模板</el-button>
         </div>
+      </div>
+      <div class="header-right">
+        <el-button size="small" @click="tagEditDialog?.open()">标签管理</el-button>
+        <el-button size="small" @click="reviewTemplateEditDialog?.open()">审核模板管理</el-button>
       </div>
     </div>
     <div class="page-content">

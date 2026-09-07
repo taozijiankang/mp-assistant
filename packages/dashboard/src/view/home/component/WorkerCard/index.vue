@@ -1,8 +1,8 @@
 <template>
   <div class="worker-card" :class="{ active }" @click="$emit('select')">
     <div class="worker-card-header">
+      <img src="@/assets/wx.png" alt="微信小程序" title="微信小程序" class="worker-card-type-icon" />
       <span class="worker-card-name">{{ info.options.name }}</span>
-      <el-tag type="info" size="small">{{ WorkerTypeDict[info.type] }}</el-tag>
       <el-tag :type="statusTagType" size="small">{{ statusLabel }}</el-tag>
     </div>
   </div>
@@ -11,7 +11,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { BaseWorkerInfo } from "@mp-assistant/common/dist/work/BaseWorker.js";
-import { WorkerStatus, WorkerStatusDict, WorkerTypeDict } from "@mp-assistant/common/dist/work/const.js";
+import { WorkerStatus, WorkerStatusDict } from "@mp-assistant/common/dist/work/const.js";
 
 const props = defineProps<{
   info: BaseWorkerInfo;
