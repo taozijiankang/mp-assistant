@@ -53,7 +53,7 @@
             v-if="activeTab === 'version'"
             :list="worker.wxaList"
             :worker-key="worker.key"
-            @show-task="openTaskDrawer"
+            @show-task="openTaskDialog"
             @audit="handleAudit"
           />
         </div>
@@ -71,14 +71,14 @@
               :active="selectedTaskKey === task.key"
               :wxa-list="worker.wxaList"
               :worker-key="worker.key"
-              @select="openTaskDrawer(task.key)"
+              @select="openTaskDialog(task.key)"
             />
           </div>
         </div>
       </template>
     </div>
 
-    <el-drawer v-model="drawerVisible" title="任务详情" size="400px" @close="selectedTaskKey = null">
+    <el-dialog v-model="dialogVisible" title="任务详情" width="600px" align-center @close="selectedTaskKey = null">
       <WXTaskDetail
         v-if="selectedTask"
         :task="selectedTask"
@@ -86,7 +86,7 @@
         :worker-key="worker.key"
         @removed="handleTaskRemoved"
       />
-    </el-drawer>
+    </el-dialog>
 
     <AddWXTaskDialog ref="addTaskDialog" :wxa-list="worker.wxaList ?? []" />
   </div>
@@ -123,14 +123,14 @@ const tabs = [{ key: "version", label: "版本视图" }];
 
 const activeTab = ref("version");
 const selectedTaskKey = ref<string | null>(null);
-const drawerVisible = ref(false);
+const dialogVisible = ref(false);
 const addTaskDialog = ref<InstanceType<typeof AddWXTaskDialog> | null>(null);
 
 const selectedTask = computed(() => props.worker.taskList.find(t => t.key === selectedTaskKey.value) ?? null);
 
-const openTaskDrawer = (taskKey: string) => {
+const openTaskDialog = (taskKey: string) => {
   selectedTaskKey.value = taskKey;
-  drawerVisible.value = true;
+  dialogVisible.value = true;
 };
 
 // worker 变化时重置任务选中
@@ -138,7 +138,7 @@ watch(
   () => props.worker.key,
   () => {
     selectedTaskKey.value = null;
-    drawerVisible.value = false;
+    dialogVisible.value = false;
   }
 );
 
@@ -158,7 +158,7 @@ const statusTagType = computed(() => {
 // 任务删除成功后关闭抽屉
 const handleTaskRemoved = () => {
   selectedTaskKey.value = null;
-  drawerVisible.value = false;
+  dialogVisible.value = false;
 };
 
 const handleAddLoginTask = async () => {
