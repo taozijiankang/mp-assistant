@@ -7,7 +7,7 @@ export interface TagApp {
     icon: string;
 }
 
-export type TagType = "normal" | "hidden";
+export type TagType = "mark" | "hidden";
 
 export interface Tag {
     /** 标签名称 */
@@ -18,6 +18,6 @@ export interface Tag {
     enabled: boolean;
     /** 标签颜色（hex，如 #409eff） */
     color: string;
-    /** 标签类型：普通 / 隐藏（隐藏类型的标签会让其下小程序在版本视图和总览中隐藏） */
+    /** 标签类型：标记 / 隐藏（隐藏类型的标签会让其下小程序在版本视图和总览中隐藏） */
     type: TagType;
 }

@@ -30,7 +30,7 @@
                         <el-form-item label="类型">
                             <div class="tag-type">
                                 <el-radio-group v-model="activeTag.type">
-                                    <el-radio-button value="normal">普通</el-radio-button>
+                                    <el-radio-button value="mark">标记</el-radio-button>
                                     <el-radio-button value="hidden">隐藏</el-radio-button>
                                 </el-radio-group>
                                 <span class="tag-type-tip">隐藏类型会使其下小程序不在版本视图和总览中显示</span>
@@ -114,13 +114,13 @@ const buildAppOptions = (): TagApp[] => {
 
 const open = () => {
     visible.value = true;
-    tags.value = (tagStore.tagList ?? []).map(t => ({ ...t, type: t.type ?? "normal", apps: t.apps.map(a => ({ ...a })) }));
+    tags.value = (tagStore.tagList ?? []).map(t => ({ ...t, type: t.type === "hidden" ? "hidden" : "mark", apps: t.apps.map(a => ({ ...a })) }));
     appOptions.value = buildAppOptions();
     activeIndex.value = tags.value.length ? 0 : -1;
 };
 
 const addTag = () => {
-    tags.value.push({ name: "", apps: [], enabled: false, color: PREDEFINE_COLORS[0], type: "normal" });
+    tags.value.push({ name: "", apps: [], enabled: false, color: PREDEFINE_COLORS[0], type: "mark" });
     activeIndex.value = tags.value.length - 1;
 };
 
@@ -155,7 +155,7 @@ const handleSubmit = async () => {
                 apps: t.apps.map(a => ({ ...a })),
                 enabled: t.enabled,
                 color: t.color,
-                type: t.type ?? "normal"
+                type: t.type === "hidden" ? "hidden" : "mark"
             }))
         );
         ElMessage.success("保存成功");
