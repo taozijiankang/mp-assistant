@@ -18,6 +18,7 @@
       <div class="header-right">
         <el-button size="small" @click="tagEditDialog?.open()">标签管理</el-button>
         <el-button size="small" @click="reviewTemplateEditDialog?.open()">审核模板管理</el-button>
+        <el-button size="small" @click="configDialog?.open()">设置</el-button>
       </div>
     </div>
     <div class="page-content">
@@ -27,6 +28,7 @@
         </keep-alive>
       </router-view>
     </div>
+    <ConfigDialog ref="configDialog" />
     <TagEditDialog ref="tagEditDialog" />
     <ReviewTemplateEditDialog ref="reviewTemplateEditDialog" />
   </div>
@@ -36,6 +38,7 @@
 import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { menuRoutes } from "@/router";
+import ConfigDialog from "@/component/ConfigDialog/index.vue";
 import TagEditDialog from "@/component/TagEditDialog/index.vue";
 import ReviewTemplateEditDialog from "@/component/ReviewTemplateEditDialog/index.vue";
 
@@ -45,6 +48,7 @@ const router = useRouter();
 
 const activeMenu = computed(() => route.path);
 
+const configDialog = ref<InstanceType<typeof ConfigDialog> | null>(null);
 const tagEditDialog = ref<InstanceType<typeof TagEditDialog> | null>(null);
 const reviewTemplateEditDialog = ref<InstanceType<typeof ReviewTemplateEditDialog> | null>(null);
 
