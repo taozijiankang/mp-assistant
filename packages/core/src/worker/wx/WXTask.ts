@@ -14,19 +14,28 @@ export abstract class WXTask<
     /** 登录二维码 base64 data URL，由 executor 通过 LOGIN_QR_CODE 消息上报 */
     protected loginQRCode?: string;
 
+    /** 整体超时兜底的倒计时（剩余秒数） */
+    protected timeoutCountdown?: number;
+
     getInfo(): Info {
         return {
             ...super.getInfo(),
             loginQRCode: this.loginQRCode,
+            timeoutCountdown: this.timeoutCountdown,
         } as Info;
     }
 
     protected onReset(): void {
         this.loginQRCode = '';
+        this.timeoutCountdown = undefined;
     }
 
     protected setLoginQRCode(loginQRCode: string): void {
         this.setAProperty('loginQRCode', loginQRCode);
+    }
+
+    protected setTimeoutCountdown(timeoutCountdown: number): void {
+        this.setAProperty('timeoutCountdown', timeoutCountdown);
     }
 
     protected async login(page: Page) {

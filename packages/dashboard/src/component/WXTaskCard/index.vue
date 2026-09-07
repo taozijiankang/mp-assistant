@@ -2,27 +2,7 @@
   <div class="task-card" :class="{ active }" @click="$emit('select')">
     <div class="task-card-header">
       <span class="task-name">{{ WXTaskTypeDict[info.type] }}</span>
-      <div class="task-card-header-right">
-        <el-tag size="small" :type="statusTagType">{{ TaskStatusDict[info.status] }}</el-tag>
-        <el-button
-          v-if="info.status === TaskStatus.RUNNING"
-          size="small"
-          type="danger"
-          plain
-          @click.stop="$emit('abort')"
-        >
-          终止
-        </el-button>
-        <el-button
-          v-if="info.status === TaskStatus.FAILED"
-          size="small"
-          type="warning"
-          plain
-          @click.stop="$emit('reset')"
-        >
-          重置
-        </el-button>
-      </div>
+      <el-tag size="small" :type="statusTagType">{{ TaskStatusDict[info.status] }}</el-tag>
     </div>
     <div v-if="info.type === WXTaskType.WX_LOGIN" class="task-option" :class="(info.options as any).action">
       {{ (info.options as any).action === 'logout' ? '退出登录' : '登录' }}
@@ -36,9 +16,6 @@
       class="task-publish"
     >
       <img :src="publishInfo.publishQRCode" class="task-publish-qrcode" />
-      <span v-if="publishInfo.publishCountdown != null" class="task-publish-countdown">
-        {{ formatCountdown(publishInfo.publishCountdown) }}
-      </span>
     </div>
     <div v-if="info.status === TaskStatus.RUNNING && latestReport" class="task-latest-report">
       <span v-if="latestReport.type === 'text'" class="task-latest-report-text">{{ latestReport.message }}</span>
@@ -53,21 +30,62 @@
     <div v-if="info.status === TaskStatus.FAILED && info.completedMessage" class="task-fail-reason">
       {{ info.completedMessage }}
     </div>
+    <div class="task-card-actions">
+      <el-button
+        v-if="info.status === TaskStatus.RUNNING"
+        size="small"
+        type="warning"
+        :loading="abortLoading"
+        @click.stop="handleAbort"
+      >
+        终止
+      </el-button>
+      <el-button
+        v-if="info.status === TaskStatus.FAILED"
+        size="small"
+        type="primary"
+        :loading="resetLoading"
+        @click.stop="handleReset"
+      >
+        重新运行
+      </el-button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { ElMessage } from "element-plus";
 import type { BaseTaskInfo } from "@mp-assistant/common/dist/work/BaseTask.js";
 import type { WXPublishTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXPublishTask.js";
 import type { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
 import { TaskStatus, TaskStatusDict, WXTaskTypeDict, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
+import { requestAbortTask, requestResetTaskStatus } from "@/api";
+import { useApiCall } from "@/hooks/useApiCall";
 
 const props = defineProps<{
   info: BaseTaskInfo;
   active: boolean;
   wxaList?: WXMPItem[];
+  workerKey: string;
 }>();
+
+const { call: abortTask, loading: abortLoading } = useApiCall(requestAbortTask);
+const { call: resetTask, loading: resetLoading } = useApiCall(requestResetTaskStatus);
+
+const handleAbort = async () => {
+  try {
+    await abortTask({ key: props.workerKey, taskKey: props.info.key });
+    ElMessage.success("已终止");
+  } catch {}
+};
+
+const handleReset = async () => {
+  try {
+    await resetTask({ key: props.workerKey, taskKey: props.info.key });
+    ElMessage.success("任务已重新运行");
+  } catch {}
+};
 
 // 需要展示小程序信息的任务类型：检查版本 / 审核 / 发布
 const showWxaInfo = computed(() =>
@@ -89,16 +107,8 @@ const latestReport = computed(() => {
   return reports.length > 0 ? reports[reports.length - 1] : null;
 });
 
-const formatCountdown = (seconds: number) => {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-};
-
 defineEmits<{
   select: [];
-  abort: [];
-  reset: [];
 }>();
 
 const statusTagType = computed(() => {

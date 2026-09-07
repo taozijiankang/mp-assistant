@@ -263,7 +263,17 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                 }),
                 // 整体超时兜底，避免主线/检测卡死导致任务永不结束
                 new Promise<never>((_, reject) => {
-                    setTimeout(() => reject(new Error('提交审核超时')), 5 * 60 * 1000);
+                    let remain = 5 * 60;
+                    this.setTimeoutCountdown(remain);
+                    const interval = setInterval(() => {
+                        remain -= 1;
+                        if (remain <= 0) {
+                            clearInterval(interval);
+                            reject(new Error('提交审核超时'));
+                        } else {
+                            this.setTimeoutCountdown(remain);
+                        }
+                    }, 1000);
                 })
             ]);
         } catch (error) {

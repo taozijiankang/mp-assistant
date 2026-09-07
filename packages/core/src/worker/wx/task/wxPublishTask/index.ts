@@ -13,15 +13,12 @@ export class WXPublishTask extends WXTask<WXPublishTaskOptions, WXPublishTaskInf
 
     private versionData?: WXVersionCodeData;
     private publishQRCode?: string;
-    /** 发布扫码倒计时（剩余秒数） */
-    private publishCountdown?: number;
 
     getInfo(): WXPublishTaskInfo {
         return {
             ...super.getInfo(),
             versionData: this.versionData,
-            publishQRCode: this.publishQRCode,
-            publishCountdown: this.publishCountdown
+            publishQRCode: this.publishQRCode
         } as WXPublishTaskInfo;
     }
 
@@ -29,7 +26,6 @@ export class WXPublishTask extends WXTask<WXPublishTaskOptions, WXPublishTaskInf
         super.onReset();
         this.versionData = undefined;
         this.publishQRCode = undefined;
-        this.publishCountdown = undefined;
     }
 
     protected setAVersionData(versionData: WXVersionCodeData): void {
@@ -37,9 +33,6 @@ export class WXPublishTask extends WXTask<WXPublishTaskOptions, WXPublishTaskInf
     }
     protected setAPublishQRCode(publishQRCode: string): void {
         this.setAProperty("publishQRCode", publishQRCode);
-    }
-    protected setAPublishCountdown(publishCountdown: number): void {
-        this.setAProperty("publishCountdown", publishCountdown);
     }
 
     async execute(): Promise<void> {
@@ -217,7 +210,17 @@ export class WXPublishTask extends WXTask<WXPublishTaskOptions, WXPublishTaskInf
                 }),
                 // 整体超时兜底，避免主线/检测卡死导致任务永不结束
                 new Promise<never>((_, reject) => {
-                    setTimeout(() => reject(new Error('发布超时')), 5 * 60 * 1000);
+                    let remain = 5 * 60;
+                    this.setTimeoutCountdown(remain);
+                    const interval = setInterval(() => {
+                        remain -= 1;
+                        if (remain <= 0) {
+                            clearInterval(interval);
+                            reject(new Error('发布超时'));
+                        } else {
+                            this.setTimeoutCountdown(remain);
+                        }
+                    }, 1000);
                 })
             ]);
         } catch (error) {

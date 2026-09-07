@@ -52,10 +52,9 @@
           <WxaVersionView
             v-if="activeTab === 'version'"
             :list="worker.wxaList"
-            @fetch-version="handleFetchVersion"
+            :worker-key="worker.key"
             @show-task="openTaskDrawer"
             @audit="handleAudit"
-            @publish="handlePublish"
           />
         </div>
 
@@ -71,9 +70,8 @@
               :info="task"
               :active="selectedTaskKey === task.key"
               :wxa-list="worker.wxaList"
+              :worker-key="worker.key"
               @select="openTaskDrawer(task.key)"
-              @abort="handleAbortTask(task.key)"
-              @reset="handleResetTask(task.key)"
             />
           </div>
         </div>
@@ -85,9 +83,8 @@
         v-if="selectedTask"
         :task="selectedTask"
         :wxa-list="worker.wxaList"
-        @abort="handleAbortTask"
-        @reset="handleResetTask"
-        @remove="handleRemoveTask"
+        :worker-key="worker.key"
+        @removed="handleTaskRemoved"
       />
     </el-drawer>
 
@@ -97,18 +94,16 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage } from "element-plus";
 import type { WXWorkerInfo } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
 import {
   WorkerStatus,
   WorkerStatusDict,
   WorkerTypeDict,
-  WXTaskTypeDict,
   WXTaskType
 } from "@mp-assistant/common/dist/work/const.js";
-import { requestRemoveTask, requestAbortTask, requestResetTaskStatus, requestAddTask } from "@/api";
+import { requestAddTask } from "@/api";
 import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
-import { useApiCall } from "@/hooks/useApiCall";
 import WXTaskCard from "@/component/WXTaskCard/index.vue";
 import WXTaskDetail from "@/component/WXTaskDetail/index.vue";
 import WxaVersionView from "./component/WxaVersionView/index.vue";
@@ -160,30 +155,10 @@ const statusTagType = computed(() => {
   }
 });
 
-const { call: removeTask } = useApiCall(requestRemoveTask);
-
-const handleRemoveTask = async () => {
-  if (!selectedTask.value) return;
-  await ElMessageBox.confirm(`确定删除 "${WXTaskTypeDict[selectedTask.value.type]}" 吗？`, "删除确认", {
-    type: "warning"
-  });
-  try {
-    await removeTask({ key: props.worker.key, taskKey: selectedTask.value.key });
-    selectedTaskKey.value = null;
-    drawerVisible.value = false;
-    ElMessage.success("删除成功");
-  } catch {}
-};
-
-const { call: abortTask } = useApiCall(requestAbortTask);
-
-const handleAbortTask = async (taskKey?: string) => {
-  const key = taskKey ?? selectedTask.value?.key;
-  if (!key) return;
-  try {
-    await abortTask({ key: props.worker.key, taskKey: key });
-    ElMessage.success("已终止");
-  } catch {}
+// 任务删除成功后关闭抽屉
+const handleTaskRemoved = () => {
+  selectedTaskKey.value = null;
+  drawerVisible.value = false;
 };
 
 const handleAddLoginTask = async () => {
@@ -197,17 +172,6 @@ const handleAddLoginTask = async () => {
   } catch {}
 };
 
-const handleFetchVersion = async (appId: string) => {
-  try {
-    await requestAddTask({
-      key: props.worker.key,
-      type: WXTaskType.WX_INSPECT_VERSION,
-      options: { appId }
-    });
-    ElMessage.success("版本获取任务已添加");
-  } catch {}
-};
-
 const handleAudit = (payload: { appId: string; positioner: VersionPositioner[]; versionDescription: string }) => {
   // 打开添加任务弹窗并预填审核参数，其余信息（版本描述/图片/视频等）由用户在弹窗中补充
   addTaskDialog.value?.open(props.worker.key, {
@@ -217,27 +181,6 @@ const handleAudit = (payload: { appId: string; positioner: VersionPositioner[]; 
   });
 };
 
-const handlePublish = async (payload: { appId: string; positioner: VersionPositioner[] }) => {
-  try {
-    await requestAddTask({
-      key: props.worker.key,
-      type: WXTaskType.WX_PUBLISH,
-      options: { appId: payload.appId, positioner: payload.positioner },
-    });
-    ElMessage.success("发布任务已添加");
-  } catch {}
-};
-
-const { call: resetTask } = useApiCall(requestResetTaskStatus);
-
-const handleResetTask = async (taskKey?: string) => {
-  const key = taskKey ?? selectedTask.value?.key;
-  if (!key) return;
-  try {
-    await resetTask({ key: props.worker.key, taskKey: key });
-    ElMessage.success("已重置");
-  } catch {}
-};
 </script>
 
 <style scoped lang="scss">

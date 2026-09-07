@@ -35,11 +35,23 @@ export const useTagStore = defineStore("tag", () => {
     return map;
   });
 
+  // 被「隐藏」类型且已启用的标签标记的小程序 appid 集合（这些小程序不在版本视图和总览中显示）
+  const hiddenAppids = computed<Set<string>>(() => {
+    const set = new Set<string>();
+    for (const tag of tagList.value ?? []) {
+      if (!tag.enabled || tag.type !== "hidden") continue;
+      for (const app of tag.apps) {
+        set.add(app.appid);
+      }
+    }
+    return set;
+  });
+
   const init = () => {
     fetchList();
     WSConnection.instance.on(WSMessage.ContentChanged.type, fetchList);
     WSConnection.instance.on(WSMessageEvent.connect, fetchList);
   };
 
-  return { tagList, loading, saving, appTags, fetchList, setTags, init };
+  return { tagList, loading, saving, appTags, hiddenAppids, fetchList, setTags, init };
 });

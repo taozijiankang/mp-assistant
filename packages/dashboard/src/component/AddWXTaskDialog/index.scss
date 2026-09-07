@@ -29,3 +29,32 @@
 .positioner-add {
   align-self: flex-start;
 }
+
+.app-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .app-option-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .app-option-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.template-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .el-button + .el-button {
+    margin-left: 0;
+  }
+}

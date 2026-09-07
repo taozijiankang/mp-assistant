@@ -71,6 +71,16 @@
       gap: 8px;
       height: 100%;
     }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .el-button + .el-button {
+        margin-left: 0;
+      }
+    }
   }
 
   .page-content {

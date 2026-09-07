@@ -23,6 +23,12 @@
     gap: 6px;
   }
 
+  .worker-card-type-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
   .worker-card-name {
     font-weight: 500;
     font-size: 13px;
