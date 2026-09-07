@@ -1,0 +1,22 @@
+.tag-filter {
+  width: 200px;
+}
+
+.tag-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

@@ -1,4 +1,4 @@
-export interface PlanApp {
+export interface TagApp {
     /** 小程序 appid */
     appid: string;
     /** 小程序名称 */
@@ -7,11 +7,13 @@ export interface PlanApp {
     icon: string;
 }
 
-export interface Plan {
-    /** 计划名称 */
+export interface Tag {
+    /** 标签名称 */
     name: string;
-    /** 该计划下的小程序列表 */
-    apps: PlanApp[];
+    /** 该标签下的小程序列表 */
+    apps: TagApp[];
     /** 是否启用（可同时启用多个） */
     enabled: boolean;
+    /** 标签颜色（hex，如 #409eff） */
+    color: string;
 }

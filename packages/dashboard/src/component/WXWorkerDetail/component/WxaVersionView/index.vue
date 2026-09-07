@@ -2,6 +2,7 @@
   <div v-if="sortedList.length > 0" class="wxa-section">
     <div class="wxa-toolbar">
       <el-input v-model="searchText" placeholder="搜索小程序" clearable size="small" style="width: 180px" />
+      <TagFilter v-model="tagFilters" />
     </div>
     <div class="wxa-toolbar">
       <el-checkbox-group v-model="visibleDevs" size="small">
@@ -13,24 +14,20 @@
       <el-table :data="filteredList" size="small" height="100%" border stripe :cell-style="{ verticalAlign: 'top' }">
         <el-table-column :resizable="false" label="小程序" min-width="200" fixed>
           <template #default="{ row }: { row: WXWorkerWxaItem }">
-            <div class="wxa-cell">
-              <img :src="row.app_headimg" class="wxa-avatar" />
-              <div class="wxa-info">
-                <span>{{ row.app_name }}</span>
-                <PlanBadge :appid="row.appid" />
-                <template v-if="hasTask(row, WXTaskType.WX_INSPECT_VERSION)">
-                  <el-button
-                    size="small"
-                    text
-                    type="warning"
-                    @click="$emit('showTask', hasTask(row, WXTaskType.WX_INSPECT_VERSION)!.key)"
-                  >
-                    {{ WXTaskTypeDict[WXTaskType.WX_INSPECT_VERSION] }}进行中
-                  </el-button>
-                </template>
-                <el-button v-else size="small" text type="primary" @click="$emit('fetchVersion', row.appid)">获取版本</el-button>
-              </div>
-            </div>
+            <AppInfo :appid="row.appid" :app-name="row.app_name" :avatar="row.app_headimg">
+              <template v-if="hasTask(row, WXTaskType.WX_INSPECT_VERSION)">
+                <el-button
+                  size="small"
+                  text
+                  type="warning"
+                  class="app-info-btn"
+                  @click="$emit('showTask', hasTask(row, WXTaskType.WX_INSPECT_VERSION)!.key)"
+                >
+                  {{ WXTaskTypeDict[WXTaskType.WX_INSPECT_VERSION] }}进行中
+                </el-button>
+              </template>
+              <el-button v-else size="small" text type="primary" class="app-info-btn" @click="$emit('fetchVersion', row.appid)">获取版本</el-button>
+            </AppInfo>
           </template>
         </el-table-column>
         <el-table-column :resizable="false" label="线上版本" width="200">
@@ -137,8 +134,10 @@ import type { WXWorkerWxaItem } from "@mp-assistant/common/dist/work/wx/WXWorker
 import type { WXVersionBasicInfo } from "@mp-assistant/common/dist/types/wx.js";
 import { VersionPositioningType, VersionPositioningCriteria } from "@mp-assistant/common/dist/utils/index.js";
 import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
-import PlanBadge from "@/component/PlanBadge/index.vue";
+import AppInfo from "@/component/AppInfo/index.vue";
+import TagFilter from "@/component/TagFilter/index.vue";
 import { usePanelStore } from "@/stores/panel";
+import { useTagStore } from "@/stores/tag";
 
 const props = defineProps<{
   list?: WXWorkerWxaItem[];
@@ -151,12 +150,20 @@ const emit = defineEmits<{
   publish: [payload: { appId: string; positioner: VersionPositioner[] }];
 }>();
 
-const { versionViewSearchText: searchText, versionViewVisibleDevs: visibleDevs } = storeToRefs(usePanelStore());
+const { versionViewSearchText: searchText, versionViewVisibleDevs: visibleDevs, versionViewTagFilters: tagFilters } = storeToRefs(usePanelStore());
+
+const tagStore = useTagStore();
 
 const sortedList = computed(() => [...(props.list ?? [])].sort((a, b) => a.app_name.localeCompare(b.app_name)));
 
+const tagFilteredList = computed(() => {
+  if (!tagFilters.value.length) return sortedList.value;
+  const selected = new Set(tagFilters.value);
+  return sortedList.value.filter(row => tagStore.appTags[row.appid]?.some(t => selected.has(t.name)));
+});
+
 const filteredList = computed(() => {
-  let list = sortedList.value;
+  let list = tagFilteredList.value;
   if (searchText.value) {
     list = fuzzysort.go(searchText.value, list, { keys: ["app_name", "appid"] }).map(r => r.obj);
   }

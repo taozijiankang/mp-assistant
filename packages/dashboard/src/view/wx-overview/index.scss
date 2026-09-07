@@ -137,33 +137,12 @@
         background: #ecf5ff;
       }
 
-      .app-avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        flex-shrink: 0;
-        border: 1px solid #ebeef5;
-      }
-
-      .app-info {
-        flex: 1;
-        min-width: 0;
-
-        .app-name {
-          font-size: 13px;
-          color: #303133;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .app-id {
-          font-size: 12px;
-          color: #909399;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
+      .app-id {
+        font-size: 12px;
+        color: #909399;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .cell-check {

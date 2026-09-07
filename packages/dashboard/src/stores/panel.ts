@@ -19,9 +19,15 @@ export const usePanelStore = defineStore(
     // 总览页选中的小程序
     const overviewSelectedCells = ref<SelectedCell[]>([]);
 
+    // 总览页标签筛选
+    const overviewTagFilters = ref<string[]>([]);
+
     // 版本视图：小程序搜索关键字与提交者筛选（持久化，跨 worker 保留）
     const versionViewSearchText = ref("");
     const versionViewVisibleDevs = ref<string[]>([]);
+
+    // 版本视图：标签筛选
+    const versionViewTagFilters = ref<string[]>([]);
 
     return {
       selectedWorkerKey,
@@ -29,8 +35,10 @@ export const usePanelStore = defineStore(
       overviewSearchField,
       overviewSearchType,
       overviewSelectedCells,
+      overviewTagFilters,
       versionViewSearchText,
       versionViewVisibleDevs,
+      versionViewTagFilters,
     };
   },
   {
