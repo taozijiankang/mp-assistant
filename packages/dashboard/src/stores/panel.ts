@@ -19,12 +19,18 @@ export const usePanelStore = defineStore(
     // 总览页选中的小程序
     const overviewSelectedCells = ref<SelectedCell[]>([]);
 
+    // 版本视图：小程序搜索关键字与提交者筛选（持久化，跨 worker 保留）
+    const versionViewSearchText = ref("");
+    const versionViewVisibleDevs = ref<string[]>([]);
+
     return {
       selectedWorkerKey,
       overviewSearchKeywords,
       overviewSearchField,
       overviewSearchType,
       overviewSelectedCells,
+      versionViewSearchText,
+      versionViewVisibleDevs,
     };
   },
   {

@@ -18,6 +18,17 @@
               <div class="wxa-info">
                 <span>{{ row.app_name }}</span>
                 <PlanBadge :appid="row.appid" />
+                <template v-if="hasTask(row, WXTaskType.WX_INSPECT_VERSION)">
+                  <el-button
+                    size="small"
+                    text
+                    type="warning"
+                    @click="$emit('showTask', hasTask(row, WXTaskType.WX_INSPECT_VERSION)!.key)"
+                  >
+                    {{ WXTaskTypeDict[WXTaskType.WX_INSPECT_VERSION] }}进行中
+                  </el-button>
+                </template>
+                <el-button v-else size="small" text type="primary" @click="$emit('fetchVersion', row.appid)">获取版本</el-button>
               </div>
             </div>
           </template>
@@ -46,15 +57,6 @@
                 >
                   <span>{{ row.versionData.experience_info.basic_info.nick_name }}</span>
                   <span class="vnum">v{{ row.versionData.experience_info.basic_info.version }}</span>
-                  <el-button
-                    v-if="row.versionData.experience_info.basic_info.audit_status === WXAuditStatus.SUCCESS"
-                    size="small"
-                    text
-                    type="primary"
-                    @click="handlePublish(row)"
-                  >
-                    发布
-                  </el-button>
                 </div>
                 <div class="version-status" :class="auditStatusClass(row.versionData.experience_info.basic_info.audit_status)">
                   <template v-if="row.versionData.experience_info.basic_info.audit_status === WXAuditStatus.FAIL">
@@ -79,6 +81,12 @@
                   </template>
                 </div>
                 <div class="version-desc">{{ row.versionData.experience_info.basic_info.describe }}</div>
+                <div
+                  v-if="row.versionData.experience_info.basic_info.audit_status === WXAuditStatus.SUCCESS"
+                  class="version-action"
+                >
+                  <el-button size="small" text type="primary" @click="handlePublish(row)">发布</el-button>
+                </div>
               </div>
             </template>
             <span v-else class="text-muted">-</span>
@@ -104,29 +112,14 @@
                   >
                     {{ devAuditLabel(row) }}
                   </span>
-                  <el-button v-if="canAudit(row, dev.nick_name)" size="small" text type="primary" @click="handleAudit(row, dev.nick_name)">
-                    提交审核
-                  </el-button>
                 </div>
                 <div class="version-desc">{{ getDevInfo(row, dev.nick_name)!.describe }}</div>
+                <div v-if="canAudit(row, dev.nick_name)" class="version-action">
+                  <el-button size="small" text type="primary" @click="handleAudit(row, dev.nick_name)">提交审核</el-button>
+                </div>
               </div>
             </template>
             <span v-else class="text-muted">-</span>
-          </template>
-        </el-table-column>
-        <el-table-column :resizable="false" label="操作" width="150" fixed="right">
-          <template #default="{ row }: { row: WXWorkerWxaItem }">
-            <template v-if="hasTask(row, WXTaskType.WX_INSPECT_VERSION)">
-              <el-button
-                size="small"
-                text
-                type="warning"
-                @click="$emit('showTask', hasTask(row, WXTaskType.WX_INSPECT_VERSION)!.key)"
-              >
-                {{ WXTaskTypeDict[WXTaskType.WX_INSPECT_VERSION] }}进行中
-              </el-button>
-            </template>
-            <el-button v-else size="small" text type="primary" @click="$emit('fetchVersion', row.appid)">获取版本</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -135,7 +128,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { computed } from "vue";
+import { storeToRefs } from "pinia";
 import fuzzysort from "fuzzysort";
 import { TaskStatus, WXTaskType, WXTaskTypeDict } from "@mp-assistant/common/dist/work/const.js";
 import { WXAuditStatus, WXAuditStatusDict } from "@mp-assistant/common/dist/constant/wx.js";
@@ -144,6 +138,7 @@ import type { WXVersionBasicInfo } from "@mp-assistant/common/dist/types/wx.js";
 import { VersionPositioningType, VersionPositioningCriteria } from "@mp-assistant/common/dist/utils/index.js";
 import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
 import PlanBadge from "@/component/PlanBadge/index.vue";
+import { usePanelStore } from "@/stores/panel";
 
 const props = defineProps<{
   list?: WXWorkerWxaItem[];
@@ -156,8 +151,7 @@ const emit = defineEmits<{
   publish: [payload: { appId: string; positioner: VersionPositioner[] }];
 }>();
 
-const searchText = ref("");
-const visibleDevs = ref<string[]>([]);
+const { versionViewSearchText: searchText, versionViewVisibleDevs: visibleDevs } = storeToRefs(usePanelStore());
 
 const sortedList = computed(() => [...(props.list ?? [])].sort((a, b) => a.app_name.localeCompare(b.app_name)));
 
