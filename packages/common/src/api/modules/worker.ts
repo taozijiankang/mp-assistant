@@ -149,4 +149,22 @@ export namespace WorkerApi {
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }
+
+    /**
+     * 设置任务定时开关
+     */
+    export namespace SetTaskScheduled {
+        export const url = '/worker/setTaskScheduled';
+        export const method = 'POST';
+
+        export type RequestBody = {
+            key: string;
+            taskKey: string;
+            scheduled: boolean;
+        };
+
+        export type ResponseData = BaseTaskInfo;
+        export type SuccessResponse = APISuccessRes<ResponseData>;
+        export type Response = SuccessResponse | APIErrorRes;
+    }
 }

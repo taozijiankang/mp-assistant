@@ -58,3 +58,14 @@
     margin-left: 0;
   }
 }
+
+.scheduled-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .scheduled-label {
+    color: var(--el-text-color-regular);
+    font-size: 13px;
+  }
+}

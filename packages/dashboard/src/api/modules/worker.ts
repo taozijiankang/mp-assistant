@@ -91,3 +91,10 @@ export function requestResetTaskStatus(body: Api.Worker.ResetTaskStatus.RequestB
         { method: Api.Worker.ResetTaskStatus.method, body }
     );
 }
+
+export function requestSetTaskScheduled(body: Api.Worker.SetTaskScheduled.RequestBody) {
+    return request<Api.Worker.SetTaskScheduled.ResponseData>(
+        Api.Worker.SetTaskScheduled.url,
+        { method: Api.Worker.SetTaskScheduled.method, body }
+    );
+}

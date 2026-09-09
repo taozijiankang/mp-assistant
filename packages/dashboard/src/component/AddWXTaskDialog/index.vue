@@ -8,6 +8,17 @@
                     </el-radio-button>
                 </el-radio-group>
             </el-form-item>
+            <el-form-item label="定时任务">
+                <div class="scheduled-wrap">
+                    <el-switch v-model="form.scheduled" />
+                    <template v-if="form.scheduled">
+                        <span class="scheduled-label">间隔</span>
+                        <el-input-number v-model="form.interval" :min="1" :step="1" style="width: 140px" />
+                        <span class="scheduled-label">秒</span>
+                    </template>
+                </div>
+            </el-form-item>
+            <el-divider content-position="left">任务参数</el-divider>
             <el-form-item v-if="form.type === WXTaskType.WX_LOGIN" label="操作" prop="action">
                 <el-radio-group v-model="form.action">
                     <el-radio value="login">登录</el-radio>
@@ -132,7 +143,9 @@ const form = reactive({
     positioners: [] as VersionPositioner[],
     versionDescription: "",
     imagePreviews: [] as string[],
-    videoPreviews: [] as string[]
+    videoPreviews: [] as string[],
+    scheduled: false,
+    interval: 60
 });
 
 const isAppIdRequired = computed(
@@ -192,6 +205,8 @@ const resetForm = () => {
     form.versionDescription = "";
     form.imagePreviews = [];
     form.videoPreviews = [];
+    form.scheduled = false;
+    form.interval = 60;
     currentWorkerKey.value = "";
     formRef.value?.resetFields();
 };
@@ -223,16 +238,24 @@ const buildAuditOptions = (appId: string): WXAuditTaskOptions => {
     return {
         appId,
         positioner: buildPositioners(),
-        populateData
+        populateData,
+        ...buildScheduledOptions()
     };
 };
 
 const buildPublishOptions = (appId: string): WXPublishTaskOptions => {
     return {
         appId,
-        positioner: buildPositioners()
+        positioner: buildPositioners(),
+        ...buildScheduledOptions()
     };
 };
+
+// 定时任务参数：仅开启定时时携带间隔
+const buildScheduledOptions = () => ({
+    scheduled: form.scheduled,
+    interval: form.scheduled ? form.interval : undefined
+});
 
 const handleSubmit = async () => {
     if (!formRef.value) return;
@@ -244,14 +267,14 @@ const handleSubmit = async () => {
             await callAdd({
                 key: currentWorkerKey.value,
                 type,
-                options: { action: form.action } as WXLoginTaskOptions
+                options: { action: form.action, ...buildScheduledOptions() } as WXLoginTaskOptions
             });
         } else {
             // 其余类型按选中的小程序逐个调用接口
             for (const appId of form.appIds) {
                 let options: WXInspectVersionTaskOptions | WXAuditTaskOptions | WXPublishTaskOptions;
                 if (type === WXTaskType.WX_INSPECT_VERSION) {
-                    options = { appId } as WXInspectVersionTaskOptions;
+                    options = { appId, ...buildScheduledOptions() } as WXInspectVersionTaskOptions;
                 } else if (type === WXTaskType.WX_AUDIT) {
                     options = buildAuditOptions(appId);
                 } else {

@@ -142,4 +142,21 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
 
         return getSuccessApiResponse(task.getInfo(), '重置任务状态成功');
     });
+
+    fastify.post(Api.Worker.SetTaskScheduled.url, async (request, reply): Promise<Api.Worker.SetTaskScheduled.Response> => {
+        const { key, taskKey, scheduled } = request.body as Api.Worker.SetTaskScheduled.RequestBody;
+
+        const worker = WorkerStore.instance.workerList.find(item => item.key === key);
+        if (!worker) {
+            return getErrorApiResponse('Worker not found', 404);
+        }
+        const task = worker.getTask(taskKey);
+        if (!task) {
+            return getErrorApiResponse('Task not found', 404);
+        }
+
+        task.setScheduled(scheduled);
+
+        return getSuccessApiResponse(task.getInfo(), scheduled ? '开启定时任务成功' : '关闭定时任务成功');
+    });
 }

@@ -24,12 +24,39 @@
     margin-bottom: 4px;
   }
 
+  .task-card-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .task-scheduled-badge {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    line-height: 18px;
+    color: #7c5cff;
+    background: rgba(124, 92, 255, 0.12);
+    white-space: nowrap;
+
+    .task-scheduled-badge-icon {
+      font-size: 12px;
+    }
+  }
+
   .task-name {
     font-size: 13px;
     font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
   }
 
   .task-option {
@@ -99,6 +126,20 @@
     line-height: 1.4;
     word-break: break-all;
     white-space: pre-wrap;
+  }
+
+  .task-schedule {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #00b240;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    .task-schedule-countdown {
+      font-family: monospace;
+      font-weight: 600;
+    }
   }
 
   .task-card-actions {

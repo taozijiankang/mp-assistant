@@ -1,7 +1,13 @@
 <template>
   <div class="task-card" :class="{ active }" @click="$emit('select')">
     <div class="task-card-header">
-      <span class="task-name">{{ WXTaskTypeDict[info.type] }}</span>
+      <div class="task-card-title">
+        <span class="task-name">{{ WXTaskTypeDict[info.type] }}</span>
+        <span v-if="info.options.scheduled" class="task-scheduled-badge">
+          <el-icon class="task-scheduled-badge-icon"><Timer /></el-icon>
+          <span>定时</span>
+        </span>
+      </div>
       <el-tag size="small" :type="statusTagType">{{ TaskStatusDict[info.status] }}</el-tag>
     </div>
     <div v-if="info.type === WXTaskType.WX_LOGIN" class="task-option" :class="(info.options as any).action">
@@ -30,6 +36,13 @@
     <div v-if="info.status === TaskStatus.FAILED && info.completedMessage" class="task-fail-reason">
       {{ info.completedMessage }}
     </div>
+    <div v-if="info.options.scheduled" class="task-schedule">
+      <template v-if="scheduleCountdown != null">
+        <span class="task-schedule-countdown">{{ formatCountdown(scheduleCountdown) }}</span>
+        <span>后重跑</span>
+      </template>
+      <span v-else>定时任务</span>
+    </div>
     <div class="task-card-actions">
       <el-button
         v-if="info.status === TaskStatus.RUNNING"
@@ -56,12 +69,14 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { ElMessage } from "element-plus";
+import { Timer } from "@element-plus/icons-vue";
 import type { BaseTaskInfo } from "@mp-assistant/common/dist/work/BaseTask.js";
 import type { WXPublishTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXPublishTask.js";
 import type { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
 import { TaskStatus, TaskStatusDict, WXTaskTypeDict, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
 import { requestAbortTask, requestResetTaskStatus } from "@/api";
 import { useApiCall } from "@/hooks/useApiCall";
+import { useScheduleCountdown } from "@/hooks/useScheduleCountdown";
 
 const props = defineProps<{
   info: BaseTaskInfo;
@@ -119,6 +134,14 @@ const statusTagType = computed(() => {
     default: return "info";
   }
 });
+
+const scheduleCountdown = useScheduleCountdown(() => props.info);
+
+const formatCountdown = (seconds: number) => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+};
 </script>
 
 <style scoped lang="scss">

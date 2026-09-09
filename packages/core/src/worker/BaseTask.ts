@@ -58,18 +58,24 @@ export abstract class BaseTask<
     protected reports: TaskReport[];
     /** 任务完成/失败时记录的消息 */
     protected completedMessage: string;
+    /** 任务完成/失败的时间戳（毫秒），供定时任务判断间隔 */
+    protected completedTime?: number;
+    /** 执行次数，任务每次运行累加 */
+    protected runCount: number;
 
     private pages: Page[] = [];
 
     constructor({ options, info, browserContent }: { options: Options, info?: Omit<Partial<Info>, 'options'>, browserContent?: BrowserContext }) {
         this.options = options;
 
-        const { key, status, createdTime, reports, completedMessage } = info ?? {};
+        const { key, status, createdTime, reports, completedMessage, completedTime, runCount } = info ?? {};
         this.key = key || `task-${getUUID()}`;
         this.status = status || TaskStatus.IDLE;
         this.createdTime = createdTime || new Date().toISOString();
         this.reports = reports || [];
         this.completedMessage = completedMessage || '';
+        this.completedTime = completedTime;
+        this.runCount = runCount || 0;
 
         this.browserContent = browserContent ?? null;
         this.installType = this.browserContent ? 'B' : 'A';
@@ -97,6 +103,8 @@ export abstract class BaseTask<
             options: this.options as BaseTaskOptions,
             reports: this.reports,
             completedMessage: this.completedMessage,
+            completedTime: this.completedTime,
+            runCount: this.runCount,
         } as Info;
     }
 
@@ -106,6 +114,8 @@ export abstract class BaseTask<
 
     private setStatus(status: TaskStatus): void {
         this.status = status;
+        // 记录完成/失败时间，重置为其他状态时清空
+        this.completedTime = status === TaskStatus.COMPLETED || status === TaskStatus.FAILED ? Date.now() : undefined;
         this.worker?.changeDetail();
 
         // 任务完成或失败，通知执行器自行退出
@@ -125,6 +135,7 @@ export abstract class BaseTask<
         if (this.status !== TaskStatus.IDLE) {
             return;
         }
+        this.runCount += 1;
         this.setStatus(TaskStatus.RUNNING);
 
         this.reports.push({
@@ -185,6 +196,12 @@ export abstract class BaseTask<
     /** 子类可重写，重置自身字段 */
     protected onReset(): void {
         // 子类实现
+    }
+
+    /** 设置是否为定时任务，供详情面板开关控制 */
+    setScheduled(scheduled: boolean): void {
+        this.options.scheduled = scheduled;
+        this.worker?.changeDetail();
     }
 
     protected end(status: TaskStatus.COMPLETED | TaskStatus.FAILED, message?: string): void {

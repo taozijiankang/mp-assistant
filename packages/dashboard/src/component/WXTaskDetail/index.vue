@@ -35,6 +35,25 @@
               <span class="label">超时倒计时</span>
               <span class="detail-value">{{ formatCountdown(task.timeoutCountdown) }}</span>
             </div>
+            <div v-if="task.options.scheduled" class="detail-row">
+              <span class="label">定时任务</span>
+              <div class="detail-value detail-scheduled">
+                <el-switch
+                  :model-value="task.options.scheduled"
+                  :loading="setScheduledLoading"
+                  @change="handleToggleScheduled"
+                />
+                <span class="detail-scheduled-interval">每 {{ task.options.interval }} 秒</span>
+              </div>
+            </div>
+            <div v-if="(task.runCount ?? 0) > 0" class="detail-row">
+              <span class="label">执行次数</span>
+              <span class="detail-value">{{ task.runCount }}</span>
+            </div>
+            <div v-if="scheduleCountdown != null" class="detail-row">
+              <span class="label">下次运行</span>
+              <span class="detail-value">{{ formatCountdown(scheduleCountdown) }}</span>
+            </div>
             <div class="detail-row">
               <span class="label">创建时间</span>
               <span>{{ task.createdTime }}</span>
@@ -182,8 +201,9 @@ import type { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
 import { TaskStatus, TaskStatusDict, WXTaskTypeDict, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
 import { VersionPositioningTypeDict, VersionPositioningCriteriaDict } from "@mp-assistant/common/dist/utils/index.js";
 import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
-import { getFileUrl, requestAbortTask, requestResetTaskStatus, requestRemoveTask } from "@/api";
+import { getFileUrl, requestAbortTask, requestResetTaskStatus, requestRemoveTask, requestSetTaskScheduled } from "@/api";
 import { useApiCall } from "@/hooks/useApiCall";
+import { useScheduleCountdown } from "@/hooks/useScheduleCountdown";
 
 const props = defineProps<{
   task: WXTaskInfo | null;
@@ -204,6 +224,7 @@ const activeTab = ref("detail");
 const { call: abortTask, loading: abortLoading } = useApiCall(requestAbortTask);
 const { call: resetTask, loading: resetLoading } = useApiCall(requestResetTaskStatus);
 const { call: removeTask, loading: removeLoading } = useApiCall(requestRemoveTask);
+const { call: setTaskScheduled, loading: setScheduledLoading } = useApiCall(requestSetTaskScheduled);
 
 const handleAbort = async () => {
   if (!props.task) return;
@@ -230,6 +251,15 @@ const handleRemove = async () => {
     await removeTask({ key: props.workerKey, taskKey: props.task.key });
     ElMessage.success("删除成功");
     emit("removed");
+  } catch {}
+};
+
+const handleToggleScheduled = async (scheduled: boolean | string | number) => {
+  if (!props.task) return;
+  const next = Boolean(scheduled);
+  try {
+    await setTaskScheduled({ key: props.workerKey, taskKey: props.task.key, scheduled: next });
+    ElMessage.success(next ? "已开启定时任务" : "已关闭定时任务");
   } catch {}
 };
 
@@ -298,6 +328,8 @@ const formatCountdown = (seconds: number) => {
   const s = seconds % 60;
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 };
+
+const scheduleCountdown = useScheduleCountdown(() => props.task);
 </script>
 
 <style scoped lang="scss">

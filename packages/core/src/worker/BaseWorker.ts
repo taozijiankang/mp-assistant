@@ -167,6 +167,7 @@ export abstract class BaseWorker<
     if (this.destroyed) return;
     try {
       if (this.status === WorkerStatus.RUNNING) {
+        this.resetScheduledTasks();
         const onRunningTaskNum = this.taskList.filter(task => task.getInfo().status === TaskStatus.RUNNING).length;
         const syncTaskNum = Math.max(0, this.options.syncTaskNum - onRunningTaskNum);
         const idleTask = this.taskList.filter(task => task.getInfo().status === TaskStatus.IDLE).slice(0, syncTaskNum);
@@ -180,5 +181,22 @@ export abstract class BaseWorker<
       await waitTime(0);
       this.taskCycle();
     }
+  }
+
+  /** 重置已结束且过了间隔时间的定时任务，使其回到空闲状态等待重跑 */
+  private resetScheduledTasks(): void {
+    const now = Date.now();
+    this.taskList.forEach(task => {
+      const info = task.getInfo();
+      if (
+        (info.status === TaskStatus.COMPLETED || info.status === TaskStatus.FAILED) &&
+        info.options.scheduled &&
+        info.options.interval != null &&
+        info.completedTime != null &&
+        now - info.completedTime >= info.options.interval * 1000
+      ) {
+        task.resetStatus();
+      }
+    });
   }
 }
