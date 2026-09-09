@@ -110,12 +110,23 @@
         justify-content: space-between;
       }
 
+      .task-filter {
+        margin-bottom: 8px;
+      }
+
       .task-list {
         flex: 1;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
         gap: 6px;
+
+        .task-list-empty {
+          padding: 20px 0;
+          text-align: center;
+          color: #c0c4cc;
+          font-size: 12px;
+        }
       }
     }
 

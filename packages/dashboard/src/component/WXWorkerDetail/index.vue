@@ -63,9 +63,14 @@
             <span>任务列表</span>
             <el-button size="small" type="primary" @click="addTaskDialog?.open(worker.key)">添加任务</el-button>
           </div>
+          <div class="task-filter">
+            <el-select v-model="statusFilter" size="small" placeholder="状态筛选" style="width: 100%">
+              <el-option v-for="opt in statusFilterOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+            </el-select>
+          </div>
           <div class="task-list">
             <WXTaskCard
-              v-for="task in worker.taskList"
+              v-for="task in filteredTaskList"
               :key="task.key"
               :info="task"
               :active="selectedTaskKey === task.key"
@@ -73,6 +78,7 @@
               :worker-key="worker.key"
               @select="openTaskDialog(task.key)"
             />
+            <div v-if="filteredTaskList.length === 0" class="task-list-empty">无匹配任务</div>
           </div>
         </div>
       </template>
@@ -97,6 +103,8 @@ import { ref, computed, watch } from "vue";
 import { ElMessage } from "element-plus";
 import type { WXWorkerInfo } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
 import {
+  TaskStatus,
+  TaskStatusDict,
   WorkerStatus,
   WorkerStatusDict,
   WorkerTypeDict,
@@ -127,6 +135,20 @@ const dialogVisible = ref(false);
 const addTaskDialog = ref<InstanceType<typeof AddWXTaskDialog> | null>(null);
 
 const selectedTask = computed(() => props.worker.taskList.find(t => t.key === selectedTaskKey.value) ?? null);
+
+const statusFilter = ref("");
+const statusFilterOptions = [
+  { value: "", label: "全部" },
+  { value: TaskStatus.IDLE, label: TaskStatusDict[TaskStatus.IDLE] },
+  { value: TaskStatus.RUNNING, label: TaskStatusDict[TaskStatus.RUNNING] },
+  { value: TaskStatus.COMPLETED, label: TaskStatusDict[TaskStatus.COMPLETED] },
+  { value: TaskStatus.FAILED, label: TaskStatusDict[TaskStatus.FAILED] }
+];
+
+const filteredTaskList = computed(() => {
+  if (!statusFilter.value) return props.worker.taskList;
+  return props.worker.taskList.filter(t => t.status === statusFilter.value);
+});
 
 const openTaskDialog = (taskKey: string) => {
   selectedTaskKey.value = taskKey;
