@@ -115,7 +115,7 @@ interface OverviewRow {
 
 const tagStore = useTagStore();
 
-const { run: refresh, loading, data: overviewList } = useLatestCall(requestGetWorkerOverview);
+const { run: refresh, loading, data: overviewList } = useLatestCall(requestGetWorkerOverview, 2000);
 
 onMounted(() => {
   refresh();
