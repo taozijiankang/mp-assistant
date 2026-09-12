@@ -191,9 +191,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, onUnmounted, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import type { WXTaskInfo } from "@mp-assistant/common/dist/work/wx/WXTask.js";
 import type { WXLoginTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXLoginTask.js";
 import type { WXAuditTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXAuditTask.js";
 import type { WXPublishTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXPublishTask.js";
@@ -201,12 +200,15 @@ import type { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
 import { TaskStatus, TaskStatusDict, WXTaskTypeDict, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
 import { VersionPositioningTypeDict, VersionPositioningCriteriaDict } from "@mp-assistant/common/dist/utils/index.js";
 import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
-import { getFileUrl, requestAbortTask, requestResetTaskStatus, requestRemoveTask, requestSetTaskScheduled } from "@/api";
+import { getFileUrl, requestAbortTask, requestResetTaskStatus, requestRemoveTask, requestSetTaskScheduled, requestGetTaskDetail } from "@/api";
 import { useApiCall } from "@/hooks/useApiCall";
+import { useLatestCall } from "@/hooks/useLatestCall";
 import { useScheduleCountdown } from "@/hooks/useScheduleCountdown";
+import { WSConnection } from "@/ws/WSConnection";
+import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
 
 const props = defineProps<{
-  task: WXTaskInfo | null;
+  taskKey: string;
   wxaList?: WXMPItem[];
   workerKey: string;
 }>();
@@ -221,51 +223,70 @@ const tabs = [
 ];
 const activeTab = ref("detail");
 
+const { run: refresh, data: task } = useLatestCall(() => requestGetTaskDetail({ key: props.workerKey, taskKey: props.taskKey }));
+
+const handleTaskChange = (data: WSMessage.TaskDetailChanged.Data) => {
+  if (data.workerKey === props.workerKey && data.taskKey === props.taskKey) {
+    refresh();
+  }
+};
+
+onMounted(() => {
+  refresh();
+  WSConnection.instance.on(WSMessage.TaskDetailChanged.type, handleTaskChange);
+});
+
+onUnmounted(() => {
+  WSConnection.instance.off(WSMessage.TaskDetailChanged.type, handleTaskChange);
+});
+
+watch(() => props.taskKey, () => refresh());
+
 const { call: abortTask, loading: abortLoading } = useApiCall(requestAbortTask);
 const { call: resetTask, loading: resetLoading } = useApiCall(requestResetTaskStatus);
 const { call: removeTask, loading: removeLoading } = useApiCall(requestRemoveTask);
 const { call: setTaskScheduled, loading: setScheduledLoading } = useApiCall(requestSetTaskScheduled);
 
 const handleAbort = async () => {
-  if (!props.task) return;
+  if (!task.value) return;
   try {
-    await abortTask({ key: props.workerKey, taskKey: props.task.key });
+    await abortTask({ key: props.workerKey, taskKey: task.value.key });
     ElMessage.success("已终止");
   } catch {}
 };
 
 const handleReset = async () => {
-  if (!props.task) return;
+  if (!task.value) return;
   try {
-    await resetTask({ key: props.workerKey, taskKey: props.task.key });
+    await resetTask({ key: props.workerKey, taskKey: task.value.key });
     ElMessage.success("任务已重新运行");
   } catch {}
 };
 
 const handleRemove = async () => {
-  if (!props.task) return;
-  await ElMessageBox.confirm(`确定删除 "${WXTaskTypeDict[props.task.type]}" 吗？`, "删除确认", {
+  if (!task.value) return;
+  await ElMessageBox.confirm(`确定删除 "${WXTaskTypeDict[task.value.type]}" 吗？`, "删除确认", {
     type: "warning"
   });
   try {
-    await removeTask({ key: props.workerKey, taskKey: props.task.key });
+    await removeTask({ key: props.workerKey, taskKey: task.value.key });
     ElMessage.success("删除成功");
     emit("removed");
   } catch {}
 };
 
 const handleToggleScheduled = async (scheduled: boolean | string | number) => {
-  if (!props.task) return;
+  if (!task.value) return;
   const next = Boolean(scheduled);
   try {
-    await setTaskScheduled({ key: props.workerKey, taskKey: props.task.key, scheduled: next });
+    await setTaskScheduled({ key: props.workerKey, taskKey: task.value.key, scheduled: next });
     ElMessage.success(next ? "已开启定时任务" : "已关闭定时任务");
   } catch {}
 };
 
 const statusTagType = computed(() => {
-  if (!props.task) return "info";
-  switch (props.task.status) {
+  if (!task.value) return "info";
+  switch (task.value.status) {
     case TaskStatus.RUNNING: return "warning";
     case TaskStatus.COMPLETED: return "success";
     case TaskStatus.FAILED: return "danger";
@@ -273,39 +294,39 @@ const statusTagType = computed(() => {
   }
 });
 
-const isWXLoginTask = computed(() => props.task?.type === WXTaskType.WX_LOGIN);
+const isWXLoginTask = computed(() => task.value?.type === WXTaskType.WX_LOGIN);
 
 const wxaList = computed<WXMPItem[]>(() => {
   if (!isWXLoginTask.value) return [];
-  return (props.task as WXLoginTaskInfo).wxaList ?? [];
+  return (task.value as WXLoginTaskInfo).wxaList ?? [];
 });
 
 // 需要展示小程序信息的任务类型：检查版本 / 审核 / 发布
 const showWxaInfo = computed(() =>
-  props.task != null &&
-  [WXTaskType.WX_INSPECT_VERSION, WXTaskType.WX_AUDIT, WXTaskType.WX_PUBLISH].includes(props.task.type as WXTaskType)
+  task.value != null &&
+  [WXTaskType.WX_INSPECT_VERSION, WXTaskType.WX_AUDIT, WXTaskType.WX_PUBLISH].includes(task.value.type as WXTaskType)
 );
 
 const wxaItem = computed(() => {
-  if (!showWxaInfo.value || !props.task) return null;
-  const appId = (props.task.options as any).appId as string;
+  if (!showWxaInfo.value || !task.value) return null;
+  const appId = (task.value.options as any).appId as string;
   return props.wxaList?.find(item => item.appid === appId) ?? null;
 });
 
 const publishInfo = computed<WXPublishTaskInfo | null>(() =>
-  props.task?.type === WXTaskType.WX_PUBLISH ? (props.task as WXPublishTaskInfo) : null
+  task.value?.type === WXTaskType.WX_PUBLISH ? (task.value as WXPublishTaskInfo) : null
 );
 
 // 审核任务的参数：筛选条件 + 审核内容（版本描述/图片/视频）
 const auditInfo = computed<WXAuditTaskInfo | null>(() =>
-  props.task?.type === WXTaskType.WX_AUDIT ? (props.task as WXAuditTaskInfo) : null
+  task.value?.type === WXTaskType.WX_AUDIT ? (task.value as WXAuditTaskInfo) : null
 );
 
 // 审核/发布任务都有的版本筛选条件
 const positioners = computed(() => {
-  if (!props.task) return [];
-  if (props.task.type === WXTaskType.WX_AUDIT) return auditInfo.value?.options.positioner ?? [];
-  if (props.task.type === WXTaskType.WX_PUBLISH) return publishInfo.value?.options.positioner ?? [];
+  if (!task.value) return [];
+  if (task.value.type === WXTaskType.WX_AUDIT) return auditInfo.value?.options.positioner ?? [];
+  if (task.value.type === WXTaskType.WX_PUBLISH) return publishInfo.value?.options.positioner ?? [];
   return [];
 });
 
@@ -329,7 +350,7 @@ const formatCountdown = (seconds: number) => {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 };
 
-const scheduleCountdown = useScheduleCountdown(() => props.task);
+const scheduleCountdown = useScheduleCountdown(() => task.value);
 </script>
 
 <style scoped lang="scss">

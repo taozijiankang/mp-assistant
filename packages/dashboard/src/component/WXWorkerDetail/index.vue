@@ -3,8 +3,8 @@
     <div class="detail-header">
       <div class="detail-header-main">
         <div class="detail-title">
-          <span class="detail-name">{{ worker.options.name }}</span>
-          <el-tag type="info" size="small">{{ WorkerTypeDict[worker.type] }}</el-tag>
+          <span class="detail-name">{{ workerListItem.name }}</span>
+          <el-tag type="info" size="small">{{ WorkerTypeDict[workerListItem.type] }}</el-tag>
           <el-tag :type="statusTagType" size="small">{{ statusLabel }}</el-tag>
           <span class="title-sep"></span>
           <span
@@ -17,7 +17,7 @@
             {{ tab.label }}
           </span>
         </div>
-        <div class="detail-info">
+        <div v-if="worker" class="detail-info">
           <span>调试端口 {{ worker.debugPort ?? "-" }}</span>
           <span>权重 {{ worker.options.weight ?? "-" }}</span>
           <span>并发 {{ worker.options.syncTaskNum }}</span>
@@ -28,17 +28,20 @@
         <el-button size="small" @click="$emit('edit')">编辑</el-button>
         <el-button
           size="small"
-          :type="worker.status === WorkerStatus.RUNNING ? 'warning' : 'success'"
+          :type="currentStatus === WorkerStatus.RUNNING ? 'warning' : 'success'"
           @click="$emit('toggleSuspend')"
         >
-          {{ worker.status === WorkerStatus.PAUSED ? "恢复" : "暂停" }}
+          {{ currentStatus === WorkerStatus.PAUSED ? "恢复" : "暂停" }}
         </el-button>
         <el-button size="small" type="danger" @click="$emit('remove')">删除</el-button>
       </div>
     </div>
 
     <div class="detail-body">
-      <div v-if="worker.taskList.length === 0" class="detail-body-empty">
+      <div v-if="!worker" class="detail-body-empty">
+        <el-empty :description="loading ? '加载中...' : '加载失败'" />
+      </div>
+      <div v-else-if="worker.taskList.length === 0" class="detail-body-empty">
         <el-empty description="暂无任务">
           <el-button type="primary" size="small" @click="handleAddLoginTask">登录</el-button>
         </el-empty>
@@ -52,7 +55,7 @@
           <WxaVersionView
             v-if="activeTab === 'version'"
             :list="worker.wxaList"
-            :worker-key="worker.key"
+            :worker-key="workerKey"
             @show-task="openTaskDialog"
             @audit="handleAudit"
           />
@@ -61,7 +64,7 @@
         <div class="detail-right">
           <div class="section-title">
             <span>任务列表</span>
-            <el-button size="small" type="primary" @click="addTaskDialog?.open(worker.key)">添加任务</el-button>
+            <el-button size="small" type="primary" @click="addTaskDialog?.open(workerKey)">添加任务</el-button>
           </div>
           <div class="task-filter">
             <el-select v-model="statusFilter" size="small" placeholder="状态筛选" style="width: 100%">
@@ -75,7 +78,7 @@
               :info="task"
               :active="selectedTaskKey === task.key"
               :wxa-list="worker.wxaList"
-              :worker-key="worker.key"
+              :worker-key="workerKey"
               @select="openTaskDialog(task.key)"
             />
             <div v-if="filteredTaskList.length === 0" class="task-list-empty">无匹配任务</div>
@@ -86,22 +89,22 @@
 
     <el-dialog v-model="dialogVisible" title="任务详情" width="600px" align-center @close="selectedTaskKey = null">
       <WXTaskDetail
-        v-if="selectedTask"
-        :task="selectedTask"
-        :wxa-list="worker.wxaList"
-        :worker-key="worker.key"
+        v-if="selectedTaskKey"
+        :task-key="selectedTaskKey"
+        :wxa-list="worker?.wxaList"
+        :worker-key="workerKey"
         @removed="handleTaskRemoved"
       />
     </el-dialog>
 
-    <AddWXTaskDialog ref="addTaskDialog" :wxa-list="worker.wxaList ?? []" />
+    <AddWXTaskDialog ref="addTaskDialog" :wxa-list="worker?.wxaList ?? []" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { ElMessage } from "element-plus";
-import type { WXWorkerInfo } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
+import type { WorkerListItem } from "@mp-assistant/common/dist/work/BaseWorker.js";
 import {
   TaskStatus,
   TaskStatusDict,
@@ -110,7 +113,10 @@ import {
   WorkerTypeDict,
   WXTaskType
 } from "@mp-assistant/common/dist/work/const.js";
-import { requestAddTask } from "@/api";
+import { requestAddTask, requestGetWorkerDetail } from "@/api";
+import { useLatestCall } from "@/hooks/useLatestCall";
+import { WSConnection } from "@/ws/WSConnection";
+import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
 import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
 import WXTaskCard from "@/component/WXTaskCard/index.vue";
 import WXTaskDetail from "@/component/WXTaskDetail/index.vue";
@@ -118,7 +124,8 @@ import WxaVersionView from "./component/WxaVersionView/index.vue";
 import AddWXTaskDialog from "@/component/AddWXTaskDialog/index.vue";
 
 const props = defineProps<{
-  worker: WXWorkerInfo;
+  workerKey: string;
+  workerListItem: WorkerListItem;
 }>();
 
 defineEmits<{
@@ -134,7 +141,47 @@ const selectedTaskKey = ref<string | null>(null);
 const dialogVisible = ref(false);
 const addTaskDialog = ref<InstanceType<typeof AddWXTaskDialog> | null>(null);
 
-const selectedTask = computed(() => props.worker.taskList.find(t => t.key === selectedTaskKey.value) ?? null);
+const { run: refresh, loading, data: worker } = useLatestCall(() => requestGetWorkerDetail({ key: props.workerKey }));
+
+const handleDetailChange = (data: WSMessage.WorkerDetailChanged.Data) => {
+  if (data.workerKey === props.workerKey) {
+    refresh();
+  }
+};
+
+onMounted(() => {
+  refresh();
+  WSConnection.instance.on(WSMessage.WorkerDetailChanged.type, handleDetailChange);
+});
+
+onUnmounted(() => {
+  WSConnection.instance.off(WSMessage.WorkerDetailChanged.type, handleDetailChange);
+});
+
+// worker 切换时刷新并重置任务选中
+watch(
+  () => props.workerKey,
+  () => {
+    selectedTaskKey.value = null;
+    dialogVisible.value = false;
+    refresh();
+  }
+);
+
+const currentStatus = computed(() => worker.value?.status ?? props.workerListItem.status);
+
+const statusLabel = computed(() => WorkerStatusDict[currentStatus.value] || currentStatus.value);
+
+const statusTagType = computed(() => {
+  switch (currentStatus.value) {
+    case WorkerStatus.RUNNING:
+      return "success";
+    case WorkerStatus.PAUSED:
+      return "warning";
+    default:
+      return "info";
+  }
+});
 
 const statusFilter = ref("");
 const statusFilterOptions = [
@@ -146,36 +193,15 @@ const statusFilterOptions = [
 ];
 
 const filteredTaskList = computed(() => {
-  if (!statusFilter.value) return props.worker.taskList;
-  return props.worker.taskList.filter(t => t.status === statusFilter.value);
+  if (!worker.value) return [];
+  if (!statusFilter.value) return worker.value.taskList;
+  return worker.value.taskList.filter(t => t.status === statusFilter.value);
 });
 
 const openTaskDialog = (taskKey: string) => {
   selectedTaskKey.value = taskKey;
   dialogVisible.value = true;
 };
-
-// worker 变化时重置任务选中
-watch(
-  () => props.worker.key,
-  () => {
-    selectedTaskKey.value = null;
-    dialogVisible.value = false;
-  }
-);
-
-const statusLabel = computed(() => WorkerStatusDict[props.worker.status] || props.worker.status);
-
-const statusTagType = computed(() => {
-  switch (props.worker.status) {
-    case WorkerStatus.RUNNING:
-      return "success";
-    case WorkerStatus.PAUSED:
-      return "warning";
-    default:
-      return "info";
-  }
-});
 
 // 任务删除成功后关闭抽屉
 const handleTaskRemoved = () => {
@@ -186,7 +212,7 @@ const handleTaskRemoved = () => {
 const handleAddLoginTask = async () => {
   try {
     await requestAddTask({
-      key: props.worker.key,
+      key: props.workerKey,
       type: WXTaskType.WX_LOGIN,
       options: { action: "login" }
     });
@@ -196,7 +222,7 @@ const handleAddLoginTask = async () => {
 
 const handleAudit = (payload: { appId: string; positioner: VersionPositioner[]; versionDescription: string }) => {
   // 打开添加任务弹窗并预填审核参数，其余信息（版本描述/图片/视频等）由用户在弹窗中补充
-  addTaskDialog.value?.open(props.worker.key, {
+  addTaskDialog.value?.open(props.workerKey, {
     type: WXTaskType.WX_AUDIT,
     appId: payload.appId,
     positioners: payload.positioner,

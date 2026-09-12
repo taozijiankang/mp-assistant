@@ -1,5 +1,5 @@
 import { TaskStatus, WorkerStatus, WorkerType } from "@mp-assistant/common/dist/work/const.js";
-import { BaseWorkerInfo, BaseWorkerOptions, WorkerEvent } from "@mp-assistant/common/dist/work/BaseWorker.js";
+import { BaseWorkerInfo, BaseWorkerOptions, WorkerEvent, WorkerListItem } from "@mp-assistant/common/dist/work/BaseWorker.js";
 import { getUUID, waitTime } from "@mp-assistant/common/dist/utils/index.js";
 import { BrowserContext, chromium, LaunchOptions } from "playwright";
 import path from "node:path";
@@ -58,6 +58,16 @@ export abstract class BaseWorker<
     } as Info;
   }
 
+  getListInfo(): WorkerListItem {
+    return {
+      key: this.key,
+      type: this.type,
+      status: this.status,
+      name: this.options.name,
+      weight: this.options.weight ?? 0,
+    };
+  }
+
   getTask(taskKey: string): BaseTask | undefined {
     return this.taskList.find(t => t.getInfo().key === taskKey);
   }
@@ -80,16 +90,26 @@ export abstract class BaseWorker<
 
   setName(name: string): void {
     this.options.name = name;
+    this.changeList();
     this.changeDetail();
   }
 
   setWeight(weight: number): void {
     this.options.weight = weight;
+    this.changeList();
     this.changeDetail();
   }
 
+  changeList(): void {
+    this.emit('listChange', undefined);
+  }
+
   changeDetail(): void {
-    this.emit('detailChange', this.info() as Info);
+    this.emit('detailChange', { workerKey: this.key });
+  }
+
+  changeTask(taskKey: string): void {
+    this.emit('taskChange', { workerKey: this.key, taskKey });
   }
 
   destroy(): void {
@@ -118,9 +138,11 @@ export abstract class BaseWorker<
           t.resetStatus();
         }
       });
+      this.changeList();
       this.changeDetail();
     } else if (!v && this.status === WorkerStatus.PAUSED) {
       this.status = WorkerStatus.RUNNING;
+      this.changeList();
       this.changeDetail();
     }
   }

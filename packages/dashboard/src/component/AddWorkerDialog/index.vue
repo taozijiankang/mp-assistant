@@ -27,7 +27,7 @@ import type { FormInstance, FormRules } from "element-plus";
 import { requestAddWXWorker, requestUpdateWorker } from "@/api";
 import { useApiCall } from "@/hooks/useApiCall";
 import { WorkerTypeOptions, WorkerType } from "@mp-assistant/common/dist/work/const.js";
-import type { BaseWorkerInfo } from "@mp-assistant/common/dist/work/BaseWorker.js";
+import type { WorkerListItem } from "@mp-assistant/common/dist/work/BaseWorker.js";
 
 const { call: callAdd, loading: addLoading } = useApiCall(requestAddWXWorker);
 const { call: callUpdate, loading: updateLoading } = useApiCall(requestUpdateWorker);
@@ -71,12 +71,12 @@ const handleSubmit = async () => {
   }
 };
 
-const open = (worker?: BaseWorkerInfo) => {
+const open = (worker?: WorkerListItem) => {
   resetForm();
   if (worker) {
     editKey.value = worker.key;
-    form.name = worker.options.name;
-    form.weight = worker.options.weight ?? 0;
+    form.name = worker.name;
+    form.weight = worker.weight ?? 0;
   }
   visible.value = true;
 };

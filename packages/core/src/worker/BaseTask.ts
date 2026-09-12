@@ -8,6 +8,7 @@ import { BrowserContext, Page } from "playwright";
 
 export interface TaskWorker {
     changeDetail(): void;
+    changeTask(taskKey: string): void;
 }
 
 export interface BaseTaskExecutorMessage {
@@ -112,11 +113,17 @@ export abstract class BaseTask<
         this.worker = worker;
     }
 
+    /** 通知 worker：详情面板摘要与任务弹窗均需刷新 */
+    private notifyWorkerChange(): void {
+        this.worker?.changeDetail();
+        this.worker?.changeTask(this.key);
+    }
+
     private setStatus(status: TaskStatus): void {
         this.status = status;
         // 记录完成/失败时间，重置为其他状态时清空
         this.completedTime = status === TaskStatus.COMPLETED || status === TaskStatus.FAILED ? Date.now() : undefined;
-        this.worker?.changeDetail();
+        this.notifyWorkerChange();
 
         // 任务完成或失败，通知执行器自行退出
         if (this.status === TaskStatus.COMPLETED || this.status === TaskStatus.FAILED) {
@@ -201,7 +208,7 @@ export abstract class BaseTask<
     /** 设置是否为定时任务，供详情面板开关控制 */
     setScheduled(scheduled: boolean): void {
         this.options.scheduled = scheduled;
-        this.worker?.changeDetail();
+        this.notifyWorkerChange();
     }
 
     protected end(status: TaskStatus.COMPLETED | TaskStatus.FAILED, message?: string): void {
@@ -235,7 +242,7 @@ export abstract class BaseTask<
                     message,
                     time: Date.now(),
                 });
-                this.worker?.changeDetail();
+                this.notifyWorkerChange();
                 break;
             }
             case 'B': {
@@ -270,13 +277,13 @@ export abstract class BaseTask<
                     ...data,
                     time: Date.now(),
                 });
-                this.worker?.changeDetail();
+                this.notifyWorkerChange();
                 break;
             }
             case 'TO_A_SET_PROPERTY': {
                 const { key, value } = data;
                 (this as any)[key] = value;
-                this.worker?.changeDetail();
+                this.notifyWorkerChange();
                 break;
             }
             default:

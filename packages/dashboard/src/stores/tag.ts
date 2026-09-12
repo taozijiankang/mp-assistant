@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { requestGetTagList, requestSetTags } from "@/api";
-import { useApiCall } from "@/hooks/useApiCall";
+import { useLatestCall } from "@/hooks/useLatestCall";
 import { WSConnection, WSMessageEvent } from "@/ws/WSConnection";
 import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
 import type { Tag } from "@mp-assistant/common/dist/types/tag.js";
@@ -10,7 +10,7 @@ import type { Tag } from "@mp-assistant/common/dist/types/tag.js";
  * 全局标签列表 store，监听内容变更事件自动刷新
  */
 export const useTagStore = defineStore("tag", () => {
-  const { call: fetchList, loading, data: tagList } = useApiCall(requestGetTagList);
+  const { run: fetchList, loading, data: tagList } = useLatestCall(requestGetTagList);
   const saving = ref(false);
 
   const setTags = async (tags: Tag[]) => {
@@ -49,7 +49,7 @@ export const useTagStore = defineStore("tag", () => {
 
   const init = () => {
     fetchList();
-    WSConnection.instance.on(WSMessage.ContentChanged.type, fetchList);
+    WSConnection.instance.on(WSMessage.TagChanged.type, fetchList);
     WSConnection.instance.on(WSMessageEvent.connect, fetchList);
   };
 

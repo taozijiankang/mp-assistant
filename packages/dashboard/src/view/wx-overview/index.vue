@@ -4,7 +4,7 @@
       <div class="overview-header">
         <span class="overview-title">微信小程序总览</span>
         <span class="overview-summary">{{ wxWorkers.length }} 个 Worker · {{ filteredRows.length }} / {{ rows.length }} 个小程序</span>
-        <span v-if="workerStore.loading" class="loading-tip">加载中...</span>
+        <span v-if="loading && overviewList === null" class="loading-tip">加载中...</span>
       </div>
 
       <div class="overview-search">
@@ -65,7 +65,7 @@
           <el-table-column
             v-for="worker in wxWorkers"
             :key="worker.key"
-            :label="worker.options.name"
+            :label="worker.name"
             min-width="160"
           >
             <template #default="{ row }">
@@ -84,7 +84,7 @@
             </template>
           </el-table-column>
         </el-table>
-        <el-empty v-else-if="!workerStore.loading" description="暂无小程序数据" />
+        <el-empty v-else-if="!loading" description="暂无小程序数据" />
       </div>
       <div class="overview-side">
         <BatchAddTaskForm :selected-cells="selectedCells" @done="clearSelection" />
@@ -94,12 +94,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, onUnmounted } from "vue";
 import { storeToRefs } from "pinia";
-import { isWXWorkerInfo } from "@mp-assistant/common/dist/work/index.js";
-import { useWorkerStore } from "@/stores/worker";
 import { usePanelStore } from "@/stores/panel";
 import { useTagStore } from "@/stores/tag";
+import { useLatestCall } from "@/hooks/useLatestCall";
+import { requestGetWorkerOverview } from "@/api";
+import { WSConnection, WSMessageEvent } from "@/ws/WSConnection";
+import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
 import AppInfo from "@/component/AppInfo/index.vue";
 import TagFilter from "@/component/TagFilter/index.vue";
 import BatchAddTaskForm from "./component/BatchAddTaskForm/index.vue";
@@ -111,13 +113,25 @@ interface OverviewRow {
   workers: Set<string>;
 }
 
-const workerStore = useWorkerStore();
 const tagStore = useTagStore();
 
+const { run: refresh, loading, data: overviewList } = useLatestCall(requestGetWorkerOverview);
+
+onMounted(() => {
+  refresh();
+  WSConnection.instance.on(WSMessage.WorkerListChanged.type, refresh);
+  WSConnection.instance.on(WSMessage.WorkerDetailChanged.type, refresh);
+  WSConnection.instance.on(WSMessageEvent.connect, refresh);
+});
+
+onUnmounted(() => {
+  WSConnection.instance.off(WSMessage.WorkerListChanged.type, refresh);
+  WSConnection.instance.off(WSMessage.WorkerDetailChanged.type, refresh);
+  WSConnection.instance.off(WSMessageEvent.connect, refresh);
+});
+
 const wxWorkers = computed(() =>
-  [...(workerStore.workerList ?? [])]
-    .filter(isWXWorkerInfo)
-    .sort((a, b) => (b.options.weight ?? 0) - (a.options.weight ?? 0))
+  [...(overviewList.value ?? [])].sort((a, b) => b.weight - a.weight)
 );
 
 const rows = computed<OverviewRow[]>(() => {

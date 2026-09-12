@@ -70,7 +70,7 @@
 import { computed } from "vue";
 import { ElMessage } from "element-plus";
 import { Timer } from "@element-plus/icons-vue";
-import type { BaseTaskInfo } from "@mp-assistant/common/dist/work/BaseTask.js";
+import type { WXTaskSummary } from "@mp-assistant/common/dist/work/wx/WXTask.js";
 import type { WXPublishTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXPublishTask.js";
 import type { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
 import { TaskStatus, TaskStatusDict, WXTaskTypeDict, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
@@ -79,7 +79,7 @@ import { useApiCall } from "@/hooks/useApiCall";
 import { useScheduleCountdown } from "@/hooks/useScheduleCountdown";
 
 const props = defineProps<{
-  info: BaseTaskInfo;
+  info: WXTaskSummary;
   active: boolean;
   wxaList?: WXMPItem[];
   workerKey: string;
@@ -117,10 +117,7 @@ const publishInfo = computed<WXPublishTaskInfo | null>(() =>
   props.info.type === WXTaskType.WX_PUBLISH ? (props.info as WXPublishTaskInfo) : null
 );
 
-const latestReport = computed(() => {
-  const reports = props.info.reports ?? [];
-  return reports.length > 0 ? reports[reports.length - 1] : null;
-});
+const latestReport = computed(() => props.info.lastReport ?? null);
 
 defineEmits<{
   select: [];

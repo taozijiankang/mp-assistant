@@ -1,17 +1,63 @@
 import { BaseTaskInfo } from "../../work/BaseTask.js";
-import { BaseWorkerInfo, BaseWorkerOptions } from "../../work/BaseWorker.js";
-import { WXWorkerInfo } from "../../work/wx/WXWorker.js";
+import { BaseWorkerInfo, BaseWorkerOptions, WorkerListItem } from "../../work/BaseWorker.js";
+import { WXWorkerDetailInfo, WXWorkerInfo, WorkerOverviewItem } from "../../work/wx/WXWorker.js";
+import { WXTaskInfo } from "../../work/wx/WXTask.js";
 import { APIErrorRes, APISuccessRes } from "../type.js";
 
 export namespace WorkerApi {
     /**
-     * 获取所有 Worker 信息
+     * 获取所有 Worker 列表项（精简，仅供列表页展示）
      */
     export namespace GetWorkerList {
         export const url = '/worker/list';
         export const method = 'GET';
 
-        export type ResponseData = BaseWorkerInfo[];
+        export type ResponseData = WorkerListItem[];
+        export type SuccessResponse = APISuccessRes<ResponseData>;
+        export type Response = SuccessResponse | APIErrorRes;
+    }
+
+    /**
+     * 获取单个 Worker 详情（任务为摘要，版本信息聚合）
+     */
+    export namespace GetWorkerDetail {
+        export const url = '/worker/detail';
+        export const method = 'GET';
+
+        export type RequestQuery = {
+            key: string;
+        };
+
+        export type ResponseData = WXWorkerDetailInfo;
+        export type SuccessResponse = APISuccessRes<ResponseData>;
+        export type Response = SuccessResponse | APIErrorRes;
+    }
+
+    /**
+     * 获取单个任务详情（完整信息）
+     */
+    export namespace GetTaskDetail {
+        export const url = '/worker/task';
+        export const method = 'GET';
+
+        export type RequestQuery = {
+            key: string;
+            taskKey: string;
+        };
+
+        export type ResponseData = WXTaskInfo;
+        export type SuccessResponse = APISuccessRes<ResponseData>;
+        export type Response = SuccessResponse | APIErrorRes;
+    }
+
+    /**
+     * 获取总览页矩阵（每个 worker 下的小程序列表）
+     */
+    export namespace GetWorkerOverview {
+        export const url = '/worker/overview';
+        export const method = 'GET';
+
+        export type ResponseData = WorkerOverviewItem[];
         export type SuccessResponse = APISuccessRes<ResponseData>;
         export type Response = SuccessResponse | APIErrorRes;
     }

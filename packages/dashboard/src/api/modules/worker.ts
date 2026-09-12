@@ -15,6 +15,27 @@ export function requestGetWorkerList() {
     );
 }
 
+export function requestGetWorkerDetail(query: Api.Worker.GetWorkerDetail.RequestQuery) {
+    return request<Api.Worker.GetWorkerDetail.ResponseData>(
+        Api.Worker.GetWorkerDetail.url,
+        { method: Api.Worker.GetWorkerDetail.method, query }
+    );
+}
+
+export function requestGetTaskDetail(query: Api.Worker.GetTaskDetail.RequestQuery) {
+    return request<Api.Worker.GetTaskDetail.ResponseData>(
+        Api.Worker.GetTaskDetail.url,
+        { method: Api.Worker.GetTaskDetail.method, query }
+    );
+}
+
+export function requestGetWorkerOverview() {
+    return request<Api.Worker.GetWorkerOverview.ResponseData>(
+        Api.Worker.GetWorkerOverview.url,
+        { method: Api.Worker.GetWorkerOverview.method }
+    );
+}
+
 export function requestAddWXWorker(body: Api.Worker.AddWXWorker.RequestBody) {
     return request<Api.Worker.AddWXWorker.ResponseData>(
         Api.Worker.AddWXWorker.url,

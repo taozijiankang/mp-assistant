@@ -1,12 +1,12 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { TaskStatus } from "@mp-assistant/common/dist/work/const.js";
-import type { BaseTaskInfo } from "@mp-assistant/common/dist/work/BaseTask.js";
+import type { BaseTaskSummary } from "@mp-assistant/common/dist/work/BaseTask.js";
 
 /**
  * 定时任务下次重跑的剩余倒计时（秒）
  * 仅当任务已完成/失败、且开启了定时并带有间隔时返回数值，否则返回 null
  */
-export function useScheduleCountdown(getTask: () => BaseTaskInfo | null | undefined) {
+export function useScheduleCountdown(getTask: () => BaseTaskSummary | null | undefined) {
   const now = ref(Date.now());
   let timer: number | undefined;
 

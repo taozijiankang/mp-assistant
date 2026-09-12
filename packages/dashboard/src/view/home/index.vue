@@ -11,13 +11,14 @@
           @select="selectedKey = worker.key"
         />
       </div>
-      <span v-if="workerStore.loading" class="loading-tip">加载中...</span>
+      <span v-if="loading && workerList === null" class="loading-tip">加载中...</span>
       <el-button type="primary" size="small" @click="addWorkerDialog?.open()">添加</el-button>
     </div>
     <div class="home-bottom">
       <WXWorkerDetail
-        v-if="selectedWorker && isWXWorkerInfo(selectedWorker)"
-        :worker="selectedWorker"
+        v-if="selectedWorker"
+        :worker-key="selectedWorker.key"
+        :worker-list-item="selectedWorker"
         @edit="handleEditWorker"
         @toggle-suspend="handleToggleSuspend"
         @remove="handleRemoveWorker"
@@ -31,15 +32,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { storeToRefs } from "pinia";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useApiCall } from "@/hooks/useApiCall";
-import { requestRemoveWorker, requestPauseAndRecoverWorker } from "@/api";
+import { useLatestCall } from "@/hooks/useLatestCall";
+import { requestGetWorkerList, requestRemoveWorker, requestPauseAndRecoverWorker } from "@/api";
 import { WorkerStatus } from "@mp-assistant/common/dist/work/const.js";
-import { isWXWorkerInfo } from "@mp-assistant/common/dist/work/index.js";
-import { useWorkerStore } from "@/stores/worker";
 import { usePanelStore } from "@/stores/panel";
+import { WSConnection, WSMessageEvent } from "@/ws/WSConnection";
+import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
 import WorkerCard from "./component/WorkerCard/index.vue";
 import WXWorkerDetail from "@/component/WXWorkerDetail/index.vue";
 import AddWorkerDialog from "@/component/AddWorkerDialog/index.vue";
@@ -47,25 +49,33 @@ import AddWorkerDialog from "@/component/AddWorkerDialog/index.vue";
 const { selectedWorkerKey: selectedKey } = storeToRefs(usePanelStore());
 const addWorkerDialog = ref<InstanceType<typeof AddWorkerDialog> | null>(null);
 
-const workerStore = useWorkerStore();
+const { run: refreshList, loading, data: workerList } = useLatestCall(requestGetWorkerList);
+
+onMounted(() => {
+  refreshList();
+  WSConnection.instance.on(WSMessage.WorkerListChanged.type, refreshList);
+  WSConnection.instance.on(WSMessageEvent.connect, refreshList);
+});
+
+onUnmounted(() => {
+  WSConnection.instance.off(WSMessage.WorkerListChanged.type, refreshList);
+  WSConnection.instance.off(WSMessageEvent.connect, refreshList);
+});
 
 const sortedWorkerList = computed(() =>
-  [...(workerStore.workerList ?? [])].sort((a, b) => (b.options.weight ?? 0) - (a.options.weight ?? 0))
+  [...(workerList.value ?? [])].sort((a, b) => b.weight - a.weight)
 );
 
 const selectedWorker = computed(() => sortedWorkerList.value.find(w => w.key === selectedKey.value) ?? null);
 
-const showEmpty = computed(() => !workerStore.loading && workerStore.workerList !== null);
+const showEmpty = computed(() => !loading.value && workerList.value !== null);
 
 // 列表变化后，若当前选中失效则自动选中第一个
-watch(
-  () => workerStore.workerList,
-  () => {
-    if (sortedWorkerList.value.length > 0 && (!selectedKey.value || !sortedWorkerList.value.find(w => w.key === selectedKey.value))) {
-      selectedKey.value = sortedWorkerList.value[0].key;
-    }
+watch(workerList, () => {
+  if (sortedWorkerList.value.length > 0 && (!selectedKey.value || !sortedWorkerList.value.find(w => w.key === selectedKey.value))) {
+    selectedKey.value = sortedWorkerList.value[0].key;
   }
-);
+});
 
 const handleEditWorker = () => {
   if (!selectedWorker.value) return;
@@ -86,7 +96,7 @@ const { call: removeWorker } = useApiCall(requestRemoveWorker);
 
 const handleRemoveWorker = async () => {
   if (!selectedWorker.value) return;
-  await ElMessageBox.confirm(`确定删除 "${selectedWorker.value.options.name}" 吗？`, "删除确认", {
+  await ElMessageBox.confirm(`确定删除 "${selectedWorker.value.name}" 吗？`, "删除确认", {
     type: "warning"
   });
   try {

@@ -27,6 +27,6 @@ export class ReviewTemplateStore {
     setReviewTemplateList(templates: ReviewTemplate[]) {
         this.__reviewTemplateList = templates;
         setReviewTemplateLocalStore(this.__reviewTemplateList);
-        WSStore.instance.broadcast(WSMessage.ContentChanged.createMessage());
+        WSStore.instance.broadcast(WSMessage.ReviewTemplateChanged.createMessage());
     }
 }

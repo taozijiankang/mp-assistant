@@ -27,6 +27,6 @@ export class TagStore {
     setTagList(tags: Tag[]) {
         this.__tagList = tags;
         setTagLocalStore(this.__tagList);
-        WSStore.instance.broadcast(WSMessage.ContentChanged.createMessage());
+        WSStore.instance.broadcast(WSMessage.TagChanged.createMessage());
     }
 }

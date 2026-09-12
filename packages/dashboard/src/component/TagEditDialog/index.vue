@@ -73,12 +73,13 @@ import { ref, computed } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
 import type { Tag, TagApp } from "@mp-assistant/common/dist/types/tag.js";
-import { isWXWorkerInfo } from "@mp-assistant/common/dist/work/index.js";
+import type { WorkerOverviewItem } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
 import { useTagStore } from "@/stores/tag";
-import { useWorkerStore } from "@/stores/worker";
+import { useApiCall } from "@/hooks/useApiCall";
+import { requestGetWorkerOverview } from "@/api";
 
 const tagStore = useTagStore();
-const workerStore = useWorkerStore();
+const { call: fetchOverview } = useApiCall(requestGetWorkerOverview);
 
 const PREDEFINE_COLORS = ["#409eff", "#67c23a", "#e6a23c", "#f56c6c", "#909399", "#9c27b0", "#00bcd4", "#ff9800"];
 
@@ -96,10 +97,9 @@ const resetState = () => {
 };
 
 // 聚合所有 WX worker 的小程序，并补充已有标签里的小程序，避免丢失
-const buildAppOptions = (): TagApp[] => {
+const buildAppOptions = (list: WorkerOverviewItem[]): TagApp[] => {
     const map = new Map<string, TagApp>();
-    for (const worker of workerStore.workerList ?? []) {
-        if (!isWXWorkerInfo(worker)) continue;
+    for (const worker of list) {
         for (const item of worker.wxaList ?? []) {
             map.set(item.appid, { appid: item.appid, appName: item.app_name, icon: item.app_headimg });
         }
@@ -112,10 +112,11 @@ const buildAppOptions = (): TagApp[] => {
     return [...map.values()];
 };
 
-const open = () => {
+const open = async () => {
     visible.value = true;
     tags.value = (tagStore.tagList ?? []).map(t => ({ ...t, type: t.type === "hidden" ? "hidden" : "mark", apps: t.apps.map(a => ({ ...a })) }));
-    appOptions.value = buildAppOptions();
+    const res = await fetchOverview();
+    appOptions.value = buildAppOptions(res.data ?? []);
     activeIndex.value = tags.value.length ? 0 : -1;
 };
 
