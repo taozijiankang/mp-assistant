@@ -1,8 +1,9 @@
 import { useLocalStore } from "../hooks/useLocalStore.js";
 import type { Tag } from "@mp-assistant/common/dist/types/tag.js";
 import { getStoreDir } from "../pathManage.js";
-import { WSStore } from "./WSStore.js";
+import { WSStore, WS_THROTTLE_MS } from "./WSStore.js";
 import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
+import { throttle } from "@mp-assistant/common/dist/utils/index.js";
 
 const { get: getTagLocalStore, set: setTagLocalStore } = useLocalStore<Tag[]>('tagList', [], {
     storeDir: getStoreDir(),
@@ -16,6 +17,10 @@ export class TagStore {
 
     private __tagList: Tag[] = [];
 
+    private notifyThrottle = throttle(() => {
+        WSStore.instance.broadcast(WSMessage.TagChanged.createMessage());
+    }, WS_THROTTLE_MS);
+
     get tagList() {
         return [...this.__tagList];
     }
@@ -27,6 +32,6 @@ export class TagStore {
     setTagList(tags: Tag[]) {
         this.__tagList = tags;
         setTagLocalStore(this.__tagList);
-        WSStore.instance.broadcast(WSMessage.TagChanged.createMessage());
+        this.notifyThrottle();
     }
 }

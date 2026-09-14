@@ -3,11 +3,9 @@ import { useLocalStore } from "../hooks/useLocalStore.js";
 import type { BaseWorker } from "@mp-assistant/core/dist/worker/BaseWorker.js";
 import { createWorker } from "@mp-assistant/core/dist/worker/index.js";
 import { getStoreDir } from "../pathManage.js";
-import { WSStore } from "./WSStore.js";
+import { WSStore, WS_THROTTLE_MS } from "./WSStore.js";
 import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
-
-/** WS 高频通知节流窗口（毫秒），任务运行期间报告/状态变化频繁，合并成一次广播 */
-const WS_THROTTLE_MS = 300;
+import { throttle, KeyedThrottle } from "@mp-assistant/common/dist/utils/index.js";
 
 interface WorkerStoreItem {
     key: string;
@@ -19,60 +17,6 @@ const { get: getWorkerLocalStoreList, set: setWorkerLocalStoreList } = useLocalS
     storeDir: getStoreDir(),
 });
 
-/**
- * 节流：首次立即执行，wait 窗口内最多再补一次尾调。
- * 前端收到通知后会重新拉取最新数据，因此合并通知不会丢失最终状态。
- */
-function throttle(fn: () => void, wait: number): () => void {
-    let last = 0;
-    let timer: NodeJS.Timeout | null = null;
-
-    return () => {
-        const now = Date.now();
-        const remaining = wait - (now - last);
-        if (remaining <= 0) {
-            if (timer) {
-                clearTimeout(timer);
-                timer = null;
-            }
-            last = now;
-            fn();
-        } else if (!timer) {
-            timer = setTimeout(() => {
-                timer = null;
-                last = Date.now();
-                fn();
-            }, remaining);
-        }
-    };
-}
-
-/** 按 key 隔离的节流器，避免不同 worker/task 的通知互相延迟或丢失 */
-class KeyedThrottle {
-    private map = new Map<string, () => void>();
-
-    trigger(key: string, fn: () => void, wait: number): void {
-        let throttled = this.map.get(key);
-        if (!throttled) {
-            throttled = throttle(fn, wait);
-            this.map.set(key, throttled);
-        }
-        throttled();
-    }
-
-    clear(key: string): void {
-        this.map.delete(key);
-    }
-
-    clearByPrefix(prefix: string): void {
-        for (const key of this.map.keys()) {
-            if (key.startsWith(prefix)) {
-                this.map.delete(key);
-            }
-        }
-    }
-}
-
 export class WorkerStore {
     private static __instance: WorkerStore | null = null;
     public static get instance() {
@@ -83,6 +27,9 @@ export class WorkerStore {
 
     private detailThrottle = new KeyedThrottle();
     private taskThrottle = new KeyedThrottle();
+    private listThrottle = throttle(() => {
+        WSStore.instance.broadcast(WSMessage.WorkerListChanged.createMessage());
+    }, WS_THROTTLE_MS);
 
     get workerList() {
         return [...this.__workerList];
@@ -95,7 +42,7 @@ export class WorkerStore {
     private bindWorkerEvent(worker: BaseWorker): void {
         worker.on('listChange', () => {
             this.saveData();
-            WSStore.instance.broadcast(WSMessage.WorkerListChanged.createMessage());
+            this.notifyListChanged();
         });
         worker.on('detailChange', ({ workerKey }) => {
             this.detailThrottle.trigger(workerKey, () => {
@@ -123,6 +70,11 @@ export class WorkerStore {
         this.taskThrottle.clearByPrefix(`${worker.key}:`);
         this.__workerList = this.__workerList.filter(w => w.key !== worker.key);
         this.saveData();
+    }
+
+    /** 广播 worker 列表变化（节流合并，避免高频触发造成网络压力） */
+    notifyListChanged(): void {
+        this.listThrottle();
     }
 
     saveData(): void {

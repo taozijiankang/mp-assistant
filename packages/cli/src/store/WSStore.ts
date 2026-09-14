@@ -2,6 +2,9 @@ import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
 import { WebSocket } from "ws";
 import { WSMessage, WSMessageFormat } from "@mp-assistant/common/dist/ws/index.js";
 
+/** WS 通知节流窗口（毫秒），任务运行期间报告/状态变化频繁，合并成一次广播 */
+export const WS_THROTTLE_MS = 300;
+
 export class WSStore extends WSMessage.Event {
     private static __instance: WSStore | null = null
     public static get instance() {

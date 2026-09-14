@@ -2,8 +2,6 @@ import { FastifyInstance } from "fastify";
 import { WorkerStore } from "../../../store/WorkerStore.js";
 import { Api } from "@mp-assistant/common/dist/api/index.js";
 import { getSuccessApiResponse, getErrorApiResponse } from "@mp-assistant/common/dist/api/utils.js";
-import { WSStore } from "../../../store/WSStore.js";
-import { WSMessage } from "@mp-assistant/common/dist/ws/message.js";
 import { WorkerType, WXTaskType } from "@mp-assistant/common/dist/work/index.js";
 import { createTask, createWorker, isWXWorker } from "@mp-assistant/core/dist/worker/index.js";
 import { ConfigStore } from "../../../store/ConfigStore.js";
@@ -63,7 +61,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
 
         WorkerStore.instance.addWorker(worker);
 
-        WSStore.instance.broadcast(WSMessage.WorkerListChanged.createMessage());
+        WorkerStore.instance.notifyListChanged();
 
         return getSuccessApiResponse(worker.info());
     });
@@ -91,7 +89,7 @@ export const registerWorkerApi = (fastify: FastifyInstance) => {
         worker.destroy();
         WorkerStore.instance.removeWorker(worker);
 
-        WSStore.instance.broadcast(WSMessage.WorkerListChanged.createMessage());
+        WorkerStore.instance.notifyListChanged();
 
         return getSuccessApiResponse(undefined, '删除Worker成功');
     });
