@@ -159,6 +159,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   showTask: [taskKey: string];
   audit: [payload: { appId: string; positioner: VersionPositioner[]; versionDescription: string }];
+  changed: [];
 }>();
 
 const { versionViewSearchText: searchText, versionViewVisibleDevs: visibleDevs, versionViewTagFilters: tagFilters } = storeToRefs(usePanelStore());
@@ -300,6 +301,7 @@ const handleFetchVersion = async (appId: string) => {
   try {
     await requestAddTask({ key: props.workerKey, type: WXTaskType.WX_INSPECT_VERSION, options: { appId } });
     ElMessage.success("版本获取任务已添加");
+    emit("changed");
   } catch {
   } finally {
     fetchingAppids.value[appId] = false;
@@ -318,6 +320,7 @@ const handlePublish = async (row: WXWorkerWxaItem) => {
       options: { appId: row.appid, positioner: buildPositioner(info) },
     });
     ElMessage.success("发布任务已添加");
+    emit("changed");
   } catch {
   } finally {
     publishingAppids.value[row.appid] = false;

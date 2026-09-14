@@ -10,7 +10,7 @@ import type { ReviewTemplate } from "@mp-assistant/common/dist/types/reviewTempl
  * 全局审核模板列表 store，监听内容变更事件自动刷新
  */
 export const useReviewTemplateStore = defineStore("reviewTemplate", () => {
-  const { run: fetchList, loading, data: reviewTemplateList } = useLatestCall(requestGetReviewTemplateList);
+  const { run: fetchList, loading, data: reviewTemplateList } = useLatestCall(requestGetReviewTemplateList, 2000);
   const saving = ref(false);
 
   const setReviewTemplates = async (templates: ReviewTemplate[]) => {

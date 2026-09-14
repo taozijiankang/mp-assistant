@@ -27,7 +27,7 @@
         <el-empty description="暂无 Worker，请点击右上角「添加」创建" />
       </div>
     </div>
-    <AddWorkerDialog ref="addWorkerDialog" />
+    <AddWorkerDialog ref="addWorkerDialog" @success="handleWorkerSaved" />
   </div>
 </template>
 
@@ -39,6 +39,7 @@ import { useApiCall } from "@/hooks/useApiCall";
 import { useLatestCall } from "@/hooks/useLatestCall";
 import { requestGetWorkerList, requestRemoveWorker, requestPauseAndRecoverWorker } from "@/api";
 import { WorkerStatus } from "@mp-assistant/common/dist/work/const.js";
+import type { WorkerListItem, BaseWorkerInfo } from "@mp-assistant/common/dist/work/BaseWorker.js";
 import { usePanelStore } from "@/stores/panel";
 import { WSConnection, WSMessageEvent } from "@/ws/WSConnection";
 import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
@@ -49,7 +50,7 @@ import AddWorkerDialog from "@/component/AddWorkerDialog/index.vue";
 const { selectedWorkerKey: selectedKey } = storeToRefs(usePanelStore());
 const addWorkerDialog = ref<InstanceType<typeof AddWorkerDialog> | null>(null);
 
-const { run: refreshList, loading, data: workerList } = useLatestCall(requestGetWorkerList);
+const { run: refreshList, loading, data: workerList } = useLatestCall(requestGetWorkerList, 2000);
 
 onMounted(() => {
   refreshList();
@@ -82,13 +83,37 @@ const handleEditWorker = () => {
   addWorkerDialog.value?.open(selectedWorker.value);
 };
 
+// 添加/编辑 Worker 成功后，用接口返回的 worker 信息更新本地列表，不等 WS 推送
+const handleWorkerSaved = (info: BaseWorkerInfo) => {
+  const item: WorkerListItem = {
+    key: info.key,
+    type: info.type,
+    status: info.status,
+    name: info.options.name,
+    weight: info.options.weight ?? 0
+  };
+  const list = [...(workerList.value ?? [])];
+  const idx = list.findIndex(w => w.key === item.key);
+  if (idx >= 0) list[idx] = item;
+  else list.push(item);
+  workerList.value = list;
+};
+
 const { call: toggleSuspend } = useApiCall(requestPauseAndRecoverWorker);
 
 const handleToggleSuspend = async () => {
   if (!selectedWorker.value) return;
+  const key = selectedWorker.value.key;
   const suspend = selectedWorker.value.status === WorkerStatus.RUNNING;
   try {
-    await toggleSuspend({ key: selectedWorker.value.key, suspend });
+    await toggleSuspend({ key, suspend });
+    // 暂停/恢复接口无返回数据，直接按操作结果更新本地列表状态
+    const list = workerList.value;
+    if (list) {
+      workerList.value = list.map(w =>
+        w.key === key ? { ...w, status: suspend ? WorkerStatus.PAUSED : WorkerStatus.RUNNING } : w
+      );
+    }
   } catch {}
 };
 
@@ -96,11 +121,15 @@ const { call: removeWorker } = useApiCall(requestRemoveWorker);
 
 const handleRemoveWorker = async () => {
   if (!selectedWorker.value) return;
+  const key = selectedWorker.value.key;
   await ElMessageBox.confirm(`确定删除 "${selectedWorker.value.name}" 吗？`, "删除确认", {
     type: "warning"
   });
   try {
-    await removeWorker({ key: selectedWorker.value.key });
+    await removeWorker({ key });
+    // 删除接口无返回数据，直接从本地列表移除
+    const list = workerList.value;
+    if (list) workerList.value = list.filter(w => w.key !== key);
     selectedKey.value = null;
     ElMessage.success("删除成功");
   } catch {}

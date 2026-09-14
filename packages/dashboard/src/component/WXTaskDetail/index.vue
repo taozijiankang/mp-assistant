@@ -17,7 +17,7 @@
             :class="{ active: activeTab === tab.key }"
             @click="activeTab = tab.key"
           >
-            {{ tab.label }}
+            {{ tab.key === "report" ? `${tab.label} (${reportCount})` : tab.label }}
           </span>
         </div>
 
@@ -215,6 +215,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   removed: [];
+  changed: [];
 }>();
 
 const tabs = [
@@ -223,7 +224,9 @@ const tabs = [
 ];
 const activeTab = ref("detail");
 
-const { run: refresh, data: task } = useLatestCall(() => requestGetTaskDetail({ key: props.workerKey, taskKey: props.taskKey }));
+const { run: refresh, data: task } = useLatestCall(() => requestGetTaskDetail({ key: props.workerKey, taskKey: props.taskKey }), 1000);
+
+const reportCount = computed(() => task.value?.reports.length ?? 0);
 
 const handleTaskChange = (data: WSMessage.TaskDetailChanged.Data) => {
   if (data.workerKey === props.workerKey && data.taskKey === props.taskKey) {
@@ -249,17 +252,23 @@ const { call: setTaskScheduled, loading: setScheduledLoading } = useApiCall(requ
 
 const handleAbort = async () => {
   if (!task.value) return;
+  const current = task.value;
   try {
-    await abortTask({ key: props.workerKey, taskKey: task.value.key });
+    const res = await abortTask({ key: props.workerKey, taskKey: current.key });
+    task.value = { ...current, ...res.data };
     ElMessage.success("已终止");
+    emit("changed");
   } catch {}
 };
 
 const handleReset = async () => {
   if (!task.value) return;
+  const current = task.value;
   try {
-    await resetTask({ key: props.workerKey, taskKey: task.value.key });
+    const res = await resetTask({ key: props.workerKey, taskKey: current.key });
+    task.value = { ...current, ...res.data };
     ElMessage.success("任务已重新运行");
+    emit("changed");
   } catch {}
 };
 
@@ -277,10 +286,13 @@ const handleRemove = async () => {
 
 const handleToggleScheduled = async (scheduled: boolean | string | number) => {
   if (!task.value) return;
+  const current = task.value;
   const next = Boolean(scheduled);
   try {
-    await setTaskScheduled({ key: props.workerKey, taskKey: task.value.key, scheduled: next });
+    const res = await setTaskScheduled({ key: props.workerKey, taskKey: current.key, scheduled: next });
+    task.value = { ...current, ...res.data };
     ElMessage.success(next ? "已开启定时任务" : "已关闭定时任务");
+    emit("changed");
   } catch {}
 };
 

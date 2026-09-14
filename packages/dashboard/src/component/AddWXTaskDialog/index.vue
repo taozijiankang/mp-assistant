@@ -130,6 +130,10 @@ const props = defineProps<{
     wxaList?: WXMPItem[];
 }>();
 
+const emit = defineEmits<{
+    success: [];
+}>();
+
 const visible = ref(false);
 const formRef = ref<FormInstance>();
 const currentWorkerKey = ref("");
@@ -285,6 +289,7 @@ const handleSubmit = async () => {
         }
         const count = type === WXTaskType.WX_LOGIN ? 1 : form.appIds.length;
         ElMessage.success(count > 1 ? `已添加 ${count} 个任务` : "添加成功");
+        emit("success");
         visible.value = false;
     } catch {
         // 错误已在 request 中处理

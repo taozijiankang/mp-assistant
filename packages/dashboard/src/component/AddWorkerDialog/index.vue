@@ -27,10 +27,14 @@ import type { FormInstance, FormRules } from "element-plus";
 import { requestAddWXWorker, requestUpdateWorker } from "@/api";
 import { useApiCall } from "@/hooks/useApiCall";
 import { WorkerTypeOptions, WorkerType } from "@mp-assistant/common/dist/work/const.js";
-import type { WorkerListItem } from "@mp-assistant/common/dist/work/BaseWorker.js";
+import type { WorkerListItem, BaseWorkerInfo } from "@mp-assistant/common/dist/work/BaseWorker.js";
 
 const { call: callAdd, loading: addLoading } = useApiCall(requestAddWXWorker);
 const { call: callUpdate, loading: updateLoading } = useApiCall(requestUpdateWorker);
+
+const emit = defineEmits<{
+  success: [info: BaseWorkerInfo];
+}>();
 
 const visible = ref(false);
 const formRef = ref<FormInstance>();
@@ -59,11 +63,13 @@ const handleSubmit = async () => {
   await formRef.value.validate();
   try {
     if (editKey.value) {
-      await callUpdate({ key: editKey.value, ...form });
+      const res = await callUpdate({ key: editKey.value, ...form });
       ElMessage.success("更新成功");
+      emit("success", res.data);
     } else {
-      await callAdd({ ...form, syncTaskNum: 1 });
+      const res = await callAdd({ ...form, syncTaskNum: 1 });
       ElMessage.success("添加成功");
+      emit("success", res.data);
     }
     visible.value = false;
   } catch {

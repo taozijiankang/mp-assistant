@@ -10,7 +10,7 @@ import type { Tag } from "@mp-assistant/common/dist/types/tag.js";
  * 全局标签列表 store，监听内容变更事件自动刷新
  */
 export const useTagStore = defineStore("tag", () => {
-  const { run: fetchList, loading, data: tagList } = useLatestCall(requestGetTagList);
+  const { run: fetchList, loading, data: tagList } = useLatestCall(requestGetTagList, 2000);
   const saving = ref(false);
 
   const setTags = async (tags: Tag[]) => {

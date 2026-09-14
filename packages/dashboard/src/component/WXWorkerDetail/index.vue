@@ -58,6 +58,7 @@
             :worker-key="workerKey"
             @show-task="openTaskDialog"
             @audit="handleAudit"
+            @changed="refresh"
           />
         </div>
 
@@ -80,6 +81,7 @@
               :wxa-list="worker.wxaList"
               :worker-key="workerKey"
               @select="openTaskDialog(task.key)"
+              @changed="refresh"
             />
             <div v-if="filteredTaskList.length === 0" class="task-list-empty">无匹配任务</div>
           </div>
@@ -94,10 +96,11 @@
         :wxa-list="worker?.wxaList"
         :worker-key="workerKey"
         @removed="handleTaskRemoved"
+        @changed="refresh"
       />
     </el-dialog>
 
-    <AddWXTaskDialog ref="addTaskDialog" :wxa-list="worker?.wxaList ?? []" />
+    <AddWXTaskDialog ref="addTaskDialog" :wxa-list="worker?.wxaList ?? []" @success="refresh" />
   </div>
 </template>
 
@@ -141,7 +144,7 @@ const selectedTaskKey = ref<string | null>(null);
 const dialogVisible = ref(false);
 const addTaskDialog = ref<InstanceType<typeof AddWXTaskDialog> | null>(null);
 
-const { run: refresh, loading, data: worker } = useLatestCall(() => requestGetWorkerDetail({ key: props.workerKey }));
+const { run: refresh, loading, data: worker } = useLatestCall(() => requestGetWorkerDetail({ key: props.workerKey }), 1000);
 
 const handleDetailChange = (data: WSMessage.WorkerDetailChanged.Data) => {
   if (data.workerKey === props.workerKey) {
@@ -167,6 +170,11 @@ watch(
     refresh();
   }
 );
+
+// 列表项（名称/权重/状态）变化后刷新详情，编辑/暂停后不等 WS 推送
+watch(() => props.workerListItem, () => {
+  refresh();
+});
 
 const currentStatus = computed(() => worker.value?.status ?? props.workerListItem.status);
 
@@ -203,10 +211,11 @@ const openTaskDialog = (taskKey: string) => {
   dialogVisible.value = true;
 };
 
-// 任务删除成功后关闭抽屉
+// 任务删除成功后关闭抽屉，并刷新任务列表
 const handleTaskRemoved = () => {
   selectedTaskKey.value = null;
   dialogVisible.value = false;
+  refresh();
 };
 
 const handleAddLoginTask = async () => {
@@ -217,6 +226,7 @@ const handleAddLoginTask = async () => {
       options: { action: "login" }
     });
     ElMessage.success("登录任务已添加");
+    refresh();
   } catch {}
 };
 

@@ -85,6 +85,11 @@ const props = defineProps<{
   workerKey: string;
 }>();
 
+const emit = defineEmits<{
+  select: [];
+  changed: [];
+}>();
+
 const { call: abortTask, loading: abortLoading } = useApiCall(requestAbortTask);
 const { call: resetTask, loading: resetLoading } = useApiCall(requestResetTaskStatus);
 
@@ -92,6 +97,7 @@ const handleAbort = async () => {
   try {
     await abortTask({ key: props.workerKey, taskKey: props.info.key });
     ElMessage.success("已终止");
+    emit("changed");
   } catch {}
 };
 
@@ -99,6 +105,7 @@ const handleReset = async () => {
   try {
     await resetTask({ key: props.workerKey, taskKey: props.info.key });
     ElMessage.success("任务已重新运行");
+    emit("changed");
   } catch {}
 };
 
@@ -118,10 +125,6 @@ const publishInfo = computed<WXPublishTaskInfo | null>(() =>
 );
 
 const latestReport = computed(() => props.info.lastReport ?? null);
-
-defineEmits<{
-  select: [];
-}>();
 
 const statusTagType = computed(() => {
   switch (props.info.status) {
