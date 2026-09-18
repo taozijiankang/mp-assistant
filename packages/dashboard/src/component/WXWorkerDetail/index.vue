@@ -37,7 +37,7 @@
       </div>
     </div>
 
-    <div class="detail-body">
+    <div class="detail-body" v-loading="refreshing">
       <div v-if="!worker" class="detail-body-empty">
         <el-empty :description="loading ? '加载中...' : '加载失败'" />
       </div>
@@ -58,7 +58,7 @@
             :worker-key="workerKey"
             @show-task="openTaskDialog"
             @audit="handleAudit"
-            @changed="refresh"
+            @changed="reload"
           />
         </div>
 
@@ -81,7 +81,7 @@
               :wxa-list="worker.wxaList"
               :worker-key="workerKey"
               @select="openTaskDialog(task.key)"
-              @changed="refresh"
+              @changed="reload"
             />
             <div v-if="filteredTaskList.length === 0" class="task-list-empty">无匹配任务</div>
           </div>
@@ -96,11 +96,11 @@
         :wxa-list="worker?.wxaList"
         :worker-key="workerKey"
         @removed="handleTaskRemoved"
-        @changed="refresh"
+        @changed="reload"
       />
     </el-dialog>
 
-    <AddWXTaskDialog ref="addTaskDialog" :wxa-list="worker?.wxaList ?? []" @success="refresh" />
+    <AddWXTaskDialog ref="addTaskDialog" :wxa-list="worker?.wxaList ?? []" @success="reload" />
   </div>
 </template>
 
@@ -117,7 +117,8 @@ import {
   WXTaskType
 } from "@mp-assistant/common/dist/work/const.js";
 import { requestAddTask, requestGetWorkerDetail } from "@/api";
-import { useLatestCall } from "@/hooks/useLatestCall";
+import { useApiCall } from "@/hooks/useApiCall";
+import { latestCall } from "@/utils/latestCall";
 import { WSConnection } from "@/ws/WSConnection";
 import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
 import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
@@ -144,16 +145,32 @@ const selectedTaskKey = ref<string | null>(null);
 const dialogVisible = ref(false);
 const addTaskDialog = ref<InstanceType<typeof AddWXTaskDialog> | null>(null);
 
-const { run: refresh, loading, data: worker } = useLatestCall(() => requestGetWorkerDetail({ key: props.workerKey }), 1000);
+const { call: fetchDetail, loading, data: worker } = useApiCall(() => requestGetWorkerDetail({ key: props.workerKey }));
+// WS 通知触发的刷新用 latestCall 合并高频，保持静默
+const refreshOnWs = latestCall(() => fetchDetail(), 1000);
+
+// 用户操作触发的刷新带 loading，提升感知度；WS 通知触发的 refreshOnWs 保持静默
+const refreshing = ref(false);
+
+const reload = async () => {
+  refreshing.value = true;
+  try {
+    await fetchDetail();
+  } catch {
+    // 请求失败已有统一提示
+  } finally {
+    refreshing.value = false;
+  }
+};
 
 const handleDetailChange = (data: WSMessage.WorkerDetailChanged.Data) => {
   if (data.workerKey === props.workerKey) {
-    refresh();
+    refreshOnWs();
   }
 };
 
 onMounted(() => {
-  refresh();
+  reload();
   WSConnection.instance.on(WSMessage.WorkerDetailChanged.type, handleDetailChange);
 });
 
@@ -167,13 +184,13 @@ watch(
   () => {
     selectedTaskKey.value = null;
     dialogVisible.value = false;
-    refresh();
+    reload();
   }
 );
 
 // 列表项（名称/权重/状态）变化后刷新详情，编辑/暂停后不等 WS 推送
 watch(() => props.workerListItem, () => {
-  refresh();
+  reload();
 });
 
 const currentStatus = computed(() => worker.value?.status ?? props.workerListItem.status);
@@ -218,7 +235,7 @@ const openTaskDialog = (taskKey: string) => {
 const handleTaskRemoved = () => {
   selectedTaskKey.value = null;
   dialogVisible.value = false;
-  refresh();
+  reload();
 };
 
 const handleAddLoginTask = async () => {
@@ -229,7 +246,7 @@ const handleAddLoginTask = async () => {
       options: { action: "login" }
     });
     ElMessage.success("登录任务已添加");
-    refresh();
+    reload();
   } catch {}
 };
 

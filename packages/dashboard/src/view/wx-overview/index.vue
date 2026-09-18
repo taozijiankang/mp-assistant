@@ -98,7 +98,8 @@ import { computed, onMounted, onUnmounted } from "vue";
 import { storeToRefs } from "pinia";
 import { usePanelStore } from "@/stores/panel";
 import { useTagStore } from "@/stores/tag";
-import { useLatestCall } from "@/hooks/useLatestCall";
+import { useApiCall } from "@/hooks/useApiCall";
+import { latestCall } from "@/utils/latestCall";
 import { requestGetWorkerOverview } from "@/api";
 import { WSConnection, WSMessageEvent } from "@/ws/WSConnection";
 import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
@@ -115,7 +116,9 @@ interface OverviewRow {
 
 const tagStore = useTagStore();
 
-const { run: refresh, loading, data: overviewList } = useLatestCall(requestGetWorkerOverview, 2000);
+const { call: fetchOverview, loading, data: overviewList } = useApiCall(requestGetWorkerOverview);
+// WS 通知高频触发，用 latestCall 合并请求
+const refresh = latestCall(() => fetchOverview(), 2000);
 
 onMounted(() => {
   refresh();

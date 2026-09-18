@@ -202,7 +202,7 @@ import { VersionPositioningTypeDict, VersionPositioningCriteriaDict } from "@mp-
 import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
 import { getFileUrl, requestAbortTask, requestResetTaskStatus, requestRemoveTask, requestSetTaskScheduled, requestGetTaskDetail } from "@/api";
 import { useApiCall } from "@/hooks/useApiCall";
-import { useLatestCall } from "@/hooks/useLatestCall";
+import { latestCall } from "@/utils/latestCall";
 import { useScheduleCountdown } from "@/hooks/useScheduleCountdown";
 import { WSConnection } from "@/ws/WSConnection";
 import { WSMessage } from "@mp-assistant/common/dist/ws/index.js";
@@ -224,18 +224,26 @@ const tabs = [
 ];
 const activeTab = ref("detail");
 
-const { run: refresh, data: task } = useLatestCall(() => requestGetTaskDetail({ key: props.workerKey, taskKey: props.taskKey }), 1000);
+const { call: fetchTask, data: task } = useApiCall(() => requestGetTaskDetail({ key: props.workerKey, taskKey: props.taskKey }));
+// WS 通知触发：用 latestCall 合并高频，静默刷新
+const refreshOnWs = latestCall(() => fetchTask(), 1000);
+// 用户/初始触发：直接调用，吞掉错误避免未处理拒绝（接口失败已有统一提示）
+const reloadTask = async () => {
+  try {
+    await fetchTask();
+  } catch {}
+};
 
 const reportCount = computed(() => task.value?.reports.length ?? 0);
 
 const handleTaskChange = (data: WSMessage.TaskDetailChanged.Data) => {
   if (data.workerKey === props.workerKey && data.taskKey === props.taskKey) {
-    refresh();
+    refreshOnWs();
   }
 };
 
 onMounted(() => {
-  refresh();
+  reloadTask();
   WSConnection.instance.on(WSMessage.TaskDetailChanged.type, handleTaskChange);
 });
 
@@ -243,7 +251,7 @@ onUnmounted(() => {
   WSConnection.instance.off(WSMessage.TaskDetailChanged.type, handleTaskChange);
 });
 
-watch(() => props.taskKey, () => refresh());
+watch(() => props.taskKey, () => reloadTask());
 
 const { call: abortTask, loading: abortLoading } = useApiCall(requestAbortTask);
 const { call: resetTask, loading: resetLoading } = useApiCall(requestResetTaskStatus);

@@ -36,7 +36,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { storeToRefs } from "pinia";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useApiCall } from "@/hooks/useApiCall";
-import { useLatestCall } from "@/hooks/useLatestCall";
+import { latestCall } from "@/utils/latestCall";
 import { requestGetWorkerList, requestRemoveWorker, requestPauseAndRecoverWorker } from "@/api";
 import { WorkerStatus } from "@mp-assistant/common/dist/work/const.js";
 import type { WorkerListItem, BaseWorkerInfo } from "@mp-assistant/common/dist/work/BaseWorker.js";
@@ -50,7 +50,9 @@ import AddWorkerDialog from "@/component/AddWorkerDialog/index.vue";
 const { selectedWorkerKey: selectedKey } = storeToRefs(usePanelStore());
 const addWorkerDialog = ref<InstanceType<typeof AddWorkerDialog> | null>(null);
 
-const { run: refreshList, loading, data: workerList } = useLatestCall(requestGetWorkerList, 2000);
+const { call: fetchWorkerList, loading, data: workerList } = useApiCall(requestGetWorkerList);
+// WS 通知高频触发，用 latestCall 合并请求
+const refreshList = latestCall(() => fetchWorkerList(), 2000);
 
 onMounted(() => {
   refreshList();
