@@ -75,9 +75,7 @@
                 :class="{ selected: isSelectedCell(row.appid, worker.key) }"
                 @click.stop="toggleCell(row.appid, worker.key)"
               >
-                <AppInfo :appid="row.appid" :app-name="row.appName" :avatar="row.appHeadimg">
-                  <div class="app-id">{{ row.appid }}</div>
-                </AppInfo>
+                <AppInfo :appid="row.appid" :app-name="row.appName" :avatar="row.appHeadimg" />
                 <img v-if="isSelectedCell(row.appid, worker.key)" src="@/assets/check.png" class="cell-check" />
               </div>
               <span v-else class="member-empty">-</span>

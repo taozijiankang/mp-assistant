@@ -3,6 +3,7 @@
     <img :src="avatar" class="avatar" />
     <div class="body">
       <div class="name">{{ appName }}</div>
+      <div class="appid">{{ appid }}</div>
       <div v-if="tags.length" class="tags">
         <span v-for="tag in tags" :key="tag.name" class="tag" :style="tagStyle(tag.color)">
           {{ tag.name }}
