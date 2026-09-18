@@ -202,8 +202,11 @@ const statusFilterOptions = [
 
 const filteredTaskList = computed(() => {
   if (!worker.value) return [];
-  if (!statusFilter.value) return worker.value.taskList;
-  return worker.value.taskList.filter(t => t.status === statusFilter.value);
+  const list = statusFilter.value
+    ? worker.value.taskList.filter(t => t.status === statusFilter.value)
+    : worker.value.taskList;
+  // 定时任务始终置顶（稳定排序，其余顺序保持不变）
+  return [...list].sort((a, b) => (b.options.scheduled ? 1 : 0) - (a.options.scheduled ? 1 : 0));
 });
 
 const openTaskDialog = (taskKey: string) => {
