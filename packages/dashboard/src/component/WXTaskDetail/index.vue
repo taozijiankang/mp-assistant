@@ -282,6 +282,8 @@ const handleRemove = async () => {
   try {
     await removeTask({ key: props.workerKey, taskKey: task.value.key });
     ElMessage.success("删除成功");
+    // 删除成功后立刻取消详情监听，避免卸载前窗口期继续拉取已删除任务的详情
+    WSConnection.instance.off(WSMessage.TaskDetailChanged.type, handleTaskChange);
     emit("removed");
   } catch {}
 };
