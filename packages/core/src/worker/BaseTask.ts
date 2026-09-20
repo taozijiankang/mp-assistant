@@ -204,11 +204,7 @@ export abstract class BaseTask<
         if (this.status !== TaskStatus.FAILED && this.status !== TaskStatus.COMPLETED) {
             return;
         }
-        this.reports.push({
-            type: 'text',
-            message: '任务被重置',
-            time: Date.now(),
-        });
+        this.reports = [];
         this.aborted = false;
         this.retryCount = 0;
         this.onReset();
