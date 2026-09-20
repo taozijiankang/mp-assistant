@@ -5,11 +5,7 @@ import { ChildProcess } from "node:child_process";
 import { invokeExecuteTask } from "../bin/invoke.js";
 import { ExecutorCommonMessage, ExecutorCustomMessage } from "./type.js";
 import { BrowserContext, Page } from "playwright";
-
-export interface TaskWorker {
-    changeDetail(): void;
-    changeTask(taskKey: string): void;
-}
+import type { BaseWorker } from "./BaseWorker.js";
 
 export interface BaseTaskExecutorMessage {
     /** 初始化 */
@@ -50,7 +46,7 @@ export abstract class BaseTask<
     protected browserContent: BrowserContext | null = null;
     protected installType: 'A' | 'B';
 
-    protected worker: TaskWorker | null = null;
+    protected worker: BaseWorker | null = null;
 
     private executorCP: ChildProcess | null = null;
 
@@ -109,7 +105,7 @@ export abstract class BaseTask<
         } as Info;
     }
 
-    setWorker(worker: TaskWorker | null): void {
+    setWorker(worker: BaseWorker | null): void {
         this.worker = worker;
     }
 
@@ -205,6 +201,11 @@ export abstract class BaseTask<
         // 子类实现
     }
 
+    /** 处理 executor 上报的属性写回；子类可重写以路由到 worker */
+    protected onSetProperty(key: string, value: any): void {
+        (this as any)[key] = value;
+    }
+
     /** 设置是否为定时任务，供详情面板开关控制 */
     setScheduled(scheduled: boolean): void {
         this.options.scheduled = scheduled;
@@ -282,7 +283,7 @@ export abstract class BaseTask<
             }
             case 'TO_A_SET_PROPERTY': {
                 const { key, value } = data;
-                (this as any)[key] = value;
+                this.onSetProperty(key, value);
                 this.notifyWorkerChange();
                 break;
             }

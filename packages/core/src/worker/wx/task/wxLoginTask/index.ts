@@ -1,7 +1,6 @@
 import { TaskStatus, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
 import { WXTask } from "../../WXTask.js";
 import { WXLoginTaskInfo, WXLoginTaskOptions } from "@mp-assistant/common/dist/work/index.js";
-import { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
 import { Page } from "playwright";
 import { expect } from "playwright/test";
 import { requestWxaList } from "../../../../api/index.js";
@@ -9,25 +8,6 @@ import { WXMP_URL, WXMP_USER_PAGE_PATH_REX, WXMP_NO_LOGIN_PATH } from "../../../
 
 export class WXLoginTask extends WXTask<WXLoginTaskOptions, WXLoginTaskInfo> {
     readonly type = WXTaskType.WX_LOGIN;
-
-    /** 微信小程序列表，由 executor 通过 UPDATE_WXA_LIST 消息上报 */
-    private wxaList?: WXMPItem[];
-
-    getInfo(): WXLoginTaskInfo {
-        return {
-            ...super.getInfo(),
-            wxaList: this.wxaList
-        } as WXLoginTaskInfo;
-    }
-
-    protected onReset(): void {
-        super.onReset();
-        this.wxaList = undefined;
-    }
-
-    protected setAWxaList(wxaList: WXMPItem[]): void {
-        this.setAProperty("wxaList", wxaList);
-    }
 
     async execute(): Promise<void> {
         try {

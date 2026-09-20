@@ -3,11 +3,14 @@ import { BaseWorker } from "../BaseWorker.js";
 import { WXWorkerInfo, WXWorkerOptions, WXWorkerWxaItem, WXWorkerDetailInfo, WorkerOverviewItem } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
 import { WXTaskSummary } from "@mp-assistant/common/dist/work/wx/WXTask.js";
 import { BaseTaskInfo } from "@mp-assistant/common/dist/work/BaseTask.js";
-import { isWXLoginTaskInfo, isWXInspectVersionTaskInfo, isWXAuditTaskInfo, isWXTaskInfo, isWXPublishTaskInfo } from "@mp-assistant/common/dist/work/index.js";
-import type { WXVersionCodeData } from "@mp-assistant/common/dist/types/wx.js";
+import { isWXTaskInfo } from "@mp-assistant/common/dist/work/index.js";
+import type { WXVersionCodeData, WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
 
 export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
     readonly type = WorkerType.WX;
+
+    /** 登录任务写回的小程序列表（含版本信息） */
+    private wxaList: WXWorkerWxaItem[] = [];
 
     info(): WXWorkerInfo {
         return {
@@ -80,32 +83,9 @@ export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
         }
     }
 
-    /** 获取最近完成的登录任务的小程序列表，并聚合版本信息与任务摘要 */
+    /** 返回 worker 自身持有的小程序列表，仅补算每 app 的任务摘要 */
     private getWxaList(): WXWorkerWxaItem[] {
         const taskList = super.info().taskList;
-
-        // 获取原始小程序列表
-        let wxaLis: WXWorkerWxaItem[] = [];
-        for (const task of taskList) {
-            if (task.status === TaskStatus.COMPLETED && isWXLoginTaskInfo(task) && task.wxaList) {
-                wxaLis = task.wxaList as WXWorkerWxaItem[];
-            }
-        }
-        if (!wxaLis.length) return [];
-
-        // 按创建时间升序，最新的任务最后遍历，Map.set 覆盖后取到最新版本
-        taskList.sort((a, b) => a.createdTime.localeCompare(b.createdTime));
-
-        // 聚合版本信息
-        const versionMap = new Map<string, WXVersionCodeData>();
-        for (const task of taskList) {
-            if (
-                (isWXInspectVersionTaskInfo(task) || isWXAuditTaskInfo(task) || isWXPublishTaskInfo(task))
-                && task.versionData
-            ) {
-                versionMap.set(task.options.appId, task.versionData);
-            }
-        }
 
         // 聚合关联任务摘要
         const taskMap = new Map<string, WXTaskSummary[]>();
@@ -117,12 +97,24 @@ export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
             taskMap.get(appId)!.push(this.toTaskSummary(task));
         }
 
-        const workerWxaList: WXWorkerWxaItem[] = wxaLis.map(item => ({
+        return this.wxaList.map(item => ({
             ...item,
-            versionData: versionMap.get(item.appid),
             tasks: taskMap.get(item.appid) ?? [],
         }));
+    }
 
-        return workerWxaList;
+    /** 登录任务上报的小程序列表写回；按 appid 保留已有 versionData */
+    setWxaList(list: WXMPItem[]): void {
+        const prev = new Map(this.wxaList.map(item => [item.appid, item.versionData]));
+        this.wxaList = list.map(item => ({
+            ...item,
+            versionData: prev.get(item.appid),
+        }));
+    }
+
+    /** 版本类任务上报的版本信息写回；列表外的 app 忽略 */
+    setVersionData(appId: string, versionData: WXVersionCodeData): void {
+        const item = this.wxaList.find(i => i.appid === appId);
+        if (item) item.versionData = versionData;
     }
 }

@@ -1,38 +1,36 @@
 import { TaskStatus, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
 import { WXTask } from "../../WXTask.js";
 import { WXPublishTaskInfo, WXPublishTaskOptions } from "@mp-assistant/common/dist/work/index.js";
-import { WXVersionCodeData } from "@mp-assistant/common/dist/types/wx.js";
 import { requestVersionList } from "../../../../api/index.js";
 import { versionSatisfy } from "@mp-assistant/common/dist/utils/wx/index.js";
 import { WXAuditStatus } from "@mp-assistant/common/dist/constant/wx.js";
 import { WXMP_URL, WXMP_VERSION_MANAGEMENT_URL } from "../../../../constant/wx.js";
 import { expect } from "playwright/test";
 
+/** 发布任务独有的上报 key：发布二维码 */
+const WX_PUBLISH_TASK_PROPERTY = {
+    publishQRCode: 'publishQRCode',
+} as const;
+
 export class WXPublishTask extends WXTask<WXPublishTaskOptions, WXPublishTaskInfo> {
     readonly type = WXTaskType.WX_PUBLISH;
 
-    private versionData?: WXVersionCodeData;
     private publishQRCode?: string;
 
     getInfo(): WXPublishTaskInfo {
         return {
             ...super.getInfo(),
-            versionData: this.versionData,
             publishQRCode: this.publishQRCode
         } as WXPublishTaskInfo;
     }
 
     protected onReset(): void {
         super.onReset();
-        this.versionData = undefined;
         this.publishQRCode = undefined;
     }
 
-    protected setAVersionData(versionData: WXVersionCodeData): void {
-        this.setAProperty("versionData", versionData);
-    }
     protected setAPublishQRCode(publishQRCode: string): void {
-        this.setAProperty("publishQRCode", publishQRCode);
+        this.setAProperty(WX_PUBLISH_TASK_PROPERTY.publishQRCode, publishQRCode);
     }
 
     async execute(): Promise<void> {

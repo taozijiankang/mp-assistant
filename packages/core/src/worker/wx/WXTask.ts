@@ -1,9 +1,22 @@
 import { WXTaskInfo, WXTaskOptions, WXTaskType } from "@mp-assistant/common/dist/work/index.js";
 import { BaseTask } from "../BaseTask.js";
+import type { WXWorker } from "./WXWorker.js";
 import { Page } from "playwright";
 import { WXMP_NO_LOGIN_PATH, WXMP_URL, WXMP_USER_PAGE_PATH_REX } from "../../constant/wx.js";
 import { expect } from "playwright/test";
 import { requestWxaList } from "../../api/index.js";
+import type { WXMPItem, WXVersionCodeData } from "@mp-assistant/common/dist/types/wx.js";
+
+/**
+ * WX 任务通过 IPC 上报父进程的属性 key（消除魔法字符串，key 与值类型一一对应）。
+ * wxaList / versionData 会写回 worker，故其 key 与基类 onSetProperty 路由聚合在此。
+ */
+export const WX_TASK_PROPERTY = {
+    loginQRCode: 'loginQRCode',
+    timeoutCountdown: 'timeoutCountdown',
+    wxaList: 'wxaList',
+    versionData: 'versionData',
+} as const;
 
 export abstract class WXTask<
     Options extends WXTaskOptions = WXTaskOptions,
@@ -30,12 +43,32 @@ export abstract class WXTask<
         this.timeoutCountdown = undefined;
     }
 
+    protected onSetProperty(key: string, value: any): void {
+        if (key === WX_TASK_PROPERTY.wxaList) {
+            (this.worker as WXWorker | null)?.setWxaList(value);
+            return;
+        }
+        if (key === WX_TASK_PROPERTY.versionData) {
+            (this.worker as WXWorker | null)?.setVersionData((this.options as any).appId, value);
+            return;
+        }
+        super.onSetProperty(key, value);
+    }
+
     protected setLoginQRCode(loginQRCode: string): void {
-        this.setAProperty('loginQRCode', loginQRCode);
+        this.setAProperty(WX_TASK_PROPERTY.loginQRCode, loginQRCode);
     }
 
     protected setTimeoutCountdown(timeoutCountdown: number): void {
-        this.setAProperty('timeoutCountdown', timeoutCountdown);
+        this.setAProperty(WX_TASK_PROPERTY.timeoutCountdown, timeoutCountdown);
+    }
+
+    protected setAWxaList(wxaList: WXMPItem[]): void {
+        this.setAProperty(WX_TASK_PROPERTY.wxaList, wxaList);
+    }
+
+    protected setAVersionData(versionData: WXVersionCodeData): void {
+        this.setAProperty(WX_TASK_PROPERTY.versionData, versionData);
     }
 
     protected async login(page: Page) {

@@ -1,29 +1,10 @@
 import { TaskStatus, WXTaskType } from "@mp-assistant/common/dist/work/const.js";
 import { WXTask } from "../../WXTask.js";
 import { WXInspectVersionTaskInfo, WXInspectVersionTaskOptions } from "@mp-assistant/common/dist/work/index.js";
-import { WXVersionCodeData } from "@mp-assistant/common/dist/types/wx.js";
 import { requestVersionList } from "../../../../api/index.js";
 
 export class WXInspectVersionTask extends WXTask<WXInspectVersionTaskOptions, WXInspectVersionTaskInfo> {
     readonly type = WXTaskType.WX_INSPECT_VERSION;
-
-    private versionData?: WXVersionCodeData;
-
-    getInfo(): WXInspectVersionTaskInfo {
-        return {
-            ...super.getInfo(),
-            versionData: this.versionData,
-        } as WXInspectVersionTaskInfo;
-    }
-
-    protected onReset(): void {
-        super.onReset();
-        this.versionData = undefined;
-    }
-
-    protected setAVersionData(versionData: WXVersionCodeData): void {
-        this.setAProperty('versionData', versionData);
-    }
 
     async execute(): Promise<void> {
         try {

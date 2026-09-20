@@ -157,46 +157,6 @@
     }
   }
 
-  .wxa-section {
-    margin-top: 14px;
-
-    .section-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: #606266;
-      margin-bottom: 8px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #ebeef5;
-    }
-
-    .wxa-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .wxa-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 10px;
-      background: #fff;
-      border-radius: 6px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-
-      .wxa-avatar {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-      }
-
-      .wxa-name {
-        font-size: 13px;
-        font-weight: 500;
-      }
-    }
-  }
-
   .reports-section {
     .reports-list {
       display: flex;

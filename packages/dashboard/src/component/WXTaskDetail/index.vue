@@ -125,15 +125,6 @@
                 <img :src="publishInfo.publishQRCode" class="qrcode-image" />
               </div>
             </div>
-            <div v-if="wxaList.length > 0" class="wxa-section">
-              <div class="section-title">小程序列表 ({{ wxaList.length }})</div>
-              <div class="wxa-list">
-                <div v-for="item in wxaList" :key="item.appid" class="wxa-item">
-                  <img :src="item.app_headimg" class="wxa-avatar" />
-                  <span class="wxa-name">{{ item.app_name }}</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           <div v-show="activeTab === 'report'" class="tab-pane-scroll">
@@ -193,7 +184,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import type { WXLoginTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXLoginTask.js";
 import type { WXAuditTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXAuditTask.js";
 import type { WXPublishTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXPublishTask.js";
 import type { WXMPItem } from "@mp-assistant/common/dist/types/wx.js";
@@ -312,13 +302,6 @@ const statusTagType = computed(() => {
     case TaskStatus.FAILED: return "danger";
     default: return "info";
   }
-});
-
-const isWXLoginTask = computed(() => task.value?.type === WXTaskType.WX_LOGIN);
-
-const wxaList = computed<WXMPItem[]>(() => {
-  if (!isWXLoginTask.value) return [];
-  return (task.value as WXLoginTaskInfo).wxaList ?? [];
 });
 
 // 需要展示小程序信息的任务类型：检查版本 / 审核 / 发布

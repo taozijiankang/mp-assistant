@@ -6,28 +6,10 @@ import { versionSatisfy } from "@mp-assistant/common/dist/utils/index.js";
 import { WXAuditStatus } from "@mp-assistant/common/dist/constant/wx.js";
 import { WXMP_AUDIT_PAGE_URL, WXMP_URL, WXMP_VERSION_MANAGEMENT_URL } from "../../../../constant/wx.js";
 import { expect } from "playwright/test";
-import { WXVersionBasicInfo, WXVersionCodeData } from "@mp-assistant/common/dist/types/wx.js";
+import { WXVersionBasicInfo } from "@mp-assistant/common/dist/types/wx.js";
 
 export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
     readonly type = WXTaskType.WX_AUDIT;
-
-    private versionData?: WXVersionCodeData;
-
-    getInfo(): WXAuditTaskInfo {
-        return {
-            ...super.getInfo(),
-            versionData: this.versionData,
-        } as WXAuditTaskInfo;
-    }
-
-    protected onReset(): void {
-        super.onReset();
-        this.versionData = undefined;
-    }
-
-    protected setAVersionData(versionData: WXVersionCodeData): void {
-        this.setAProperty('versionData', versionData);
-    }
 
     private describeVersion(info: WXVersionBasicInfo): string {
         return `v${info.version} ${info.nick_name} (${info.describe})`;
