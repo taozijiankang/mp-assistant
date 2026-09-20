@@ -77,9 +77,6 @@ export abstract class BaseTask<
         this.browserContent = browserContent ?? null;
         this.installType = this.browserContent ? 'B' : 'A';
         if (this.browserContent) {
-            this.browserContent.on('page', (page) => {
-                this.pages.push(page);
-            });
             process.on('message', (message) => {
                 this.onAMessage(message as any);
             });
@@ -173,6 +170,19 @@ export abstract class BaseTask<
     }
 
     async execute(): Promise<void> { }
+
+    /** 打开新页面并登记到任务自身，确保终止时只关闭本任务打开的页面 */
+    protected async newPage(): Promise<Page> {
+        const page = await this.browserContent!.newPage();
+        this.trackPage(page);
+        return page;
+    }
+
+    /** 登记页面，并监听其弹出的新页面（popup）递归纳入本任务 */
+    private trackPage(page: Page): void {
+        this.pages.push(page);
+        page.on('popup', (popup) => this.trackPage(popup));
+    }
 
     abort(): void {
         this.reports.push({
