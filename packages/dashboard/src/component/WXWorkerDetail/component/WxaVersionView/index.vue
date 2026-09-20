@@ -121,6 +121,15 @@
                 </div>
                 <div class="version-desc">{{ getDevInfo(row, dev.nick_name)!.describe }}</div>
                 <div v-if="canAudit(row, dev.nick_name)" class="version-action">
+                  <el-button
+                    v-if="hasAuditingTask(row, dev.nick_name)"
+                    size="small"
+                    text
+                    type="warning"
+                    @click="$emit('showTask', hasAuditingTask(row, dev.nick_name)!.key)"
+                  >
+                    {{ WXTaskTypeDict[WXTaskType.WX_AUDIT] }}进行中
+                  </el-button>
                   <el-button size="small" text type="primary" @click="handleAudit(row, dev.nick_name)">提交审核</el-button>
                 </div>
               </div>
@@ -142,8 +151,9 @@ import { TaskStatus, WXTaskType, WXTaskTypeDict } from "@mp-assistant/common/dis
 import { WXAuditStatus, WXAuditStatusDict } from "@mp-assistant/common/dist/constant/wx.js";
 import type { WXWorkerWxaItem } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
 import type { WXPublishTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXPublishTask.js";
+import type { WXAuditTaskInfo } from "@mp-assistant/common/dist/work/wx/tasks/WXAuditTask.js";
 import type { WXVersionBasicInfo } from "@mp-assistant/common/dist/types/wx.js";
-import { VersionPositioningType, VersionPositioningCriteria } from "@mp-assistant/common/dist/utils/index.js";
+import { VersionPositioningType, VersionPositioningCriteria, versionSatisfy } from "@mp-assistant/common/dist/utils/index.js";
 import type { VersionPositioner } from "@mp-assistant/common/dist/utils/index.js";
 import AppInfo from "@/component/AppInfo/index.vue";
 import TagFilter from "@/component/TagFilter/index.vue";
@@ -227,6 +237,19 @@ const hasPublishingTask = (row: WXWorkerWxaItem) => {
         getVal(VersionPositioningType.NickName) === exp.nick_name &&
         getVal(VersionPositioningType.Describe) === exp.describe
       );
+    }) ?? null
+  );
+};
+
+// 判断是否存在与当前待提交开发版本（提交者/版本号/描述）一致的「提交审核」任务
+const hasAuditingTask = (row: WXWorkerWxaItem, nickName: string) => {
+  const dev = getDevInfo(row, nickName);
+  if (!dev) return null;
+  return (
+    row.tasks?.find(t => {
+      if (t.status !== TaskStatus.RUNNING && t.status !== TaskStatus.IDLE) return false;
+      if (t.type !== WXTaskType.WX_AUDIT) return false;
+      return versionSatisfy(dev, (t as WXAuditTaskInfo).options.positioner ?? []);
     }) ?? null
   );
 };

@@ -164,9 +164,17 @@
 
 .version-action {
   margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 
   .el-button {
     padding: 0;
+  }
+
+  .el-button + .el-button {
+    margin-left: 0;
   }
 }
 
