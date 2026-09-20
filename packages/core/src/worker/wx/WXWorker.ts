@@ -1,5 +1,10 @@
 import { TaskStatus, WorkerType } from "@mp-assistant/common/dist/work/const.js";
 import { BaseWorker } from "../BaseWorker.js";
+import type { BaseTask } from "../BaseTask.js";
+import { WXLoginTask } from "./task/wxLoginTask/index.js";
+import { WXInspectVersionTask } from "./task/wxInspectVersionTask/index.js";
+import { WXAuditTask } from "./task/wxAuditTask/index.js";
+import { WXPublishTask } from "./task/wxPublishTask/index.js";
 import { WXWorkerInfo, WXWorkerOptions, WXWorkerWxaItem, WXWorkerDetailInfo, WorkerOverviewItem } from "@mp-assistant/common/dist/work/wx/WXWorker.js";
 import { WXTaskSummary } from "@mp-assistant/common/dist/work/wx/WXTask.js";
 import { BaseTaskInfo } from "@mp-assistant/common/dist/work/BaseTask.js";
@@ -11,6 +16,41 @@ export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
 
     /** 登录任务写回的小程序列表（含版本信息） */
     private wxaList: WXWorkerWxaItem[] = [];
+
+    /** 添加任务前去重：登录任务按 action，检查版本/审核/发布按 appId */
+    addTask(task: BaseTask): void {
+        this.removeSameTask(task);
+        super.addTask(task);
+    }
+
+    private removeSameTask(task: BaseTask): void {
+        const sameKeys = this.taskList
+            .filter(t => this.isSameTask(t, task))
+            .map(t => t.key);
+        for (const key of sameKeys) {
+            this.removeTask(key);
+        }
+    }
+
+    private isSameTask(a: BaseTask, b: BaseTask): boolean {
+        if (a.type !== b.type) return false;
+
+        if (a instanceof WXLoginTask && b instanceof WXLoginTask) {
+            return a.options.action === b.options.action;
+        }
+
+        const aAppId = this.getTaskAppId(a);
+        if (aAppId == null) return false;
+        return aAppId === this.getTaskAppId(b);
+    }
+
+    /** 提取检查版本/审核/发布任务的 appId；其余类型返回 undefined */
+    private getTaskAppId(task: BaseTask): string | undefined {
+        if (task instanceof WXInspectVersionTask) return task.options.appId;
+        if (task instanceof WXAuditTask) return task.options.appId;
+        if (task instanceof WXPublishTask) return task.options.appId;
+        return undefined;
+    }
 
     info(): WXWorkerInfo {
         return {

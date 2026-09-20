@@ -25,7 +25,7 @@ export abstract class BaseWorker<
   /** Chrome DevTools Protocol 远程调试端口 */
   protected debugPort?: number;
 
-  private taskList: BaseTask[] = [];
+  protected taskList: BaseTask[] = [];
 
   private destroyed = false;
   private processExiting = false;
