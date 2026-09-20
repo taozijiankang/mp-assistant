@@ -5,6 +5,8 @@ export interface BaseTaskOptions {
     scheduled?: boolean;
     /** 定时任务间隔时间（秒） */
     interval?: number;
+    /** 失败后自动重试的最大次数；0 或不设置为不重试 */
+    retryTimes?: number;
 }
 
 export interface TaskReport {
@@ -27,6 +29,8 @@ export interface BaseTaskInfo {
     completedTime?: number;
     /** 执行次数，任务每次运行累加 */
     runCount?: number;
+    /** 失败后已自动重试的次数 */
+    retryCount?: number;
 }
 
 /** 任务摘要（精简，供 worker 详情面板的任务卡片使用，不含全量报告） */
@@ -40,6 +44,8 @@ export interface BaseTaskSummary {
     completedTime?: number;
     /** 执行次数，任务每次运行累加 */
     runCount?: number;
+    /** 失败后已自动重试的次数 */
+    retryCount?: number;
     options: BaseTaskOptions;
     /** 只保留最新一条报告 */
     lastReport?: TaskReport;

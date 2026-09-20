@@ -17,6 +17,18 @@
     gap: 8px;
   }
 
+  .retry-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+
+    .retry-label {
+      color: var(--el-text-color-secondary);
+      font-size: 12px;
+    }
+  }
+
   .positioner-item {
     display: flex;
     flex-direction: column;

@@ -50,6 +50,10 @@
               <span class="label">执行次数</span>
               <span class="detail-value">{{ task.runCount }}</span>
             </div>
+            <div v-if="task.options.retryTimes" class="detail-row">
+              <span class="label">失败重试</span>
+              <span class="detail-value">{{ task.retryCount ?? 0 }} / {{ task.options.retryTimes }} 次</span>
+            </div>
             <div v-if="scheduleCountdown != null" class="detail-row">
               <span class="label">下次运行</span>
               <span class="detail-value">{{ formatCountdown(scheduleCountdown) }}</span>

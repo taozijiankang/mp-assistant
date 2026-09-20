@@ -1,4 +1,4 @@
-import { TaskStatus } from "@mp-assistant/common/dist/work/const.js";
+import { TaskStatus, TaskStatusDict } from "@mp-assistant/common/dist/work/const.js";
 import { BaseTaskOptions, BaseTaskInfo, TaskReport } from "@mp-assistant/common/dist/work/BaseTask.js";
 import { getUUID } from "@mp-assistant/common/dist/utils/index.js";
 import { ChildProcess } from "node:child_process";
@@ -59,13 +59,17 @@ export abstract class BaseTask<
     protected completedTime?: number;
     /** 执行次数，任务每次运行累加 */
     protected runCount: number;
+    /** 失败后已自动重试的次数 */
+    protected retryCount: number;
+    /** 是否被手动终止（终止后不再自动重试） */
+    private aborted = false;
 
     private pages: Page[] = [];
 
     constructor({ options, info, browserContent }: { options: Options, info?: Omit<Partial<Info>, 'options'>, browserContent?: BrowserContext }) {
         this.options = options;
 
-        const { key, status, createdTime, reports, completedMessage, completedTime, runCount } = info ?? {};
+        const { key, status, createdTime, reports, completedMessage, completedTime, runCount, retryCount } = info ?? {};
         this.key = key || `task-${getUUID()}`;
         this.status = status || TaskStatus.IDLE;
         this.createdTime = createdTime || new Date().toISOString();
@@ -73,6 +77,7 @@ export abstract class BaseTask<
         this.completedMessage = completedMessage || '';
         this.completedTime = completedTime;
         this.runCount = runCount || 0;
+        this.retryCount = retryCount || 0;
 
         this.browserContent = browserContent ?? null;
         this.installType = this.browserContent ? 'B' : 'A';
@@ -99,6 +104,7 @@ export abstract class BaseTask<
             completedMessage: this.completedMessage,
             completedTime: this.completedTime,
             runCount: this.runCount,
+            retryCount: this.retryCount,
         } as Info;
     }
 
@@ -185,6 +191,7 @@ export abstract class BaseTask<
     }
 
     abort(): void {
+        this.aborted = true;
         this.reports.push({
             type: 'text',
             message: '任务被终止',
@@ -200,6 +207,24 @@ export abstract class BaseTask<
         this.reports.push({
             type: 'text',
             message: '任务被重置',
+            time: Date.now(),
+        });
+        this.aborted = false;
+        this.retryCount = 0;
+        this.onReset();
+        this.setStatus(TaskStatus.IDLE);
+    }
+
+    /** 失败后自动重试：未达上限则立即重置为空闲等待重跑 */
+    private tryRetry(): void {
+        const retryTimes = this.options.retryTimes ?? 0;
+        if (retryTimes <= 0 || this.aborted) return;
+        if (this.retryCount >= retryTimes) return;
+
+        this.retryCount += 1;
+        this.reports.push({
+            type: 'text',
+            message: `任务失败，自动重试（第 ${this.retryCount}/${retryTimes} 次）`,
             time: Date.now(),
         });
         this.onReset();
@@ -228,8 +253,16 @@ export abstract class BaseTask<
                 if (this.status !== TaskStatus.RUNNING) {
                     return;
                 }
+                this.reports.push({
+                    type: 'text',
+                    message: `任务结束，状态: ${TaskStatusDict[status]}, 消息: ${message || ''}`,
+                    time: Date.now(),
+                });
                 this.completedMessage = message || '';
                 this.setStatus(status);
+                if (status === TaskStatus.FAILED) {
+                    this.tryRetry();
+                }
                 break;
             }
             case 'B': {

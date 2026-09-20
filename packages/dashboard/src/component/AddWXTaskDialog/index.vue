@@ -18,6 +18,12 @@
                     </template>
                 </div>
             </el-form-item>
+            <el-form-item label="失败重试">
+                <div class="scheduled-wrap">
+                    <el-input-number v-model="form.retryTimes" :min="0" :max="100" :step="1" style="width: 140px" />
+                    <span class="scheduled-label">次（0 为不重试）</span>
+                </div>
+            </el-form-item>
             <el-divider content-position="left">任务参数</el-divider>
             <el-form-item v-if="form.type === WXTaskType.WX_LOGIN" label="操作" prop="action">
                 <el-radio-group v-model="form.action">
@@ -149,7 +155,8 @@ const form = reactive({
     imagePreviews: [] as string[],
     videoPreviews: [] as string[],
     scheduled: false,
-    interval: 60
+    interval: 60,
+    retryTimes: 0
 });
 
 const isAppIdRequired = computed(
@@ -211,6 +218,7 @@ const resetForm = () => {
     form.videoPreviews = [];
     form.scheduled = false;
     form.interval = 60;
+    form.retryTimes = 0;
     currentWorkerKey.value = "";
     formRef.value?.resetFields();
 };
@@ -255,10 +263,11 @@ const buildPublishOptions = (appId: string): WXPublishTaskOptions => {
     };
 };
 
-// 定时任务参数：仅开启定时时携带间隔
+// 定时任务参数：仅开启定时时携带间隔；失败重试次数始终携带
 const buildScheduledOptions = () => ({
     scheduled: form.scheduled,
-    interval: form.scheduled ? form.interval : undefined
+    interval: form.scheduled ? form.interval : undefined,
+    retryTimes: form.retryTimes
 });
 
 const handleSubmit = async () => {

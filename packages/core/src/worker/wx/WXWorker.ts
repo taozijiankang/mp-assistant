@@ -106,6 +106,7 @@ export class WXWorker extends BaseWorker<WXWorkerOptions, WXWorkerInfo> {
             completedMessage: task.completedMessage,
             completedTime: task.completedTime,
             runCount: task.runCount,
+            retryCount: task.retryCount,
             options: task.options,
             loginQRCode: (task as any).loginQRCode,
             timeoutCountdown: (task as any).timeoutCountdown,

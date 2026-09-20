@@ -11,6 +11,13 @@
         </el-radio-group>
       </el-form-item>
 
+      <el-form-item label="失败重试">
+        <div class="retry-wrap">
+          <el-input-number v-model="form.retryTimes" :min="0" :max="100" :step="1" style="width: 140px" />
+          <span class="retry-label">次（0 为不重试）</span>
+        </div>
+      </el-form-item>
+
       <template v-if="isPositionerRequired">
         <el-form-item label="筛选条件" prop="positioners">
           <div class="positioner-list">
@@ -114,6 +121,7 @@ const form = reactive({
   versionDescription: "",
   imagePreviews: [] as string[],
   videoPreviews: [] as string[],
+  retryTimes: 0
 });
 
 const isPositionerRequired = computed(() =>
@@ -166,10 +174,10 @@ const buildPositioners = () => form.positioners.filter(p => p.value.trim());
 const buildBody = (cell: SelectedCell) => {
   const type = form.type as WXTaskType;
   if (type === WXTaskType.WX_INSPECT_VERSION) {
-    return { key: cell.workerKey, type, options: { appId: cell.appid } };
+    return { key: cell.workerKey, type, options: { appId: cell.appid, retryTimes: form.retryTimes } };
   }
   if (type === WXTaskType.WX_PUBLISH) {
-    return { key: cell.workerKey, type, options: { appId: cell.appid, positioner: buildPositioners() } };
+    return { key: cell.workerKey, type, options: { appId: cell.appid, positioner: buildPositioners(), retryTimes: form.retryTimes } };
   }
   const populateData: WXAuditTaskOptions["populateData"] = {
     versionDescription: form.versionDescription.trim(),
@@ -179,7 +187,7 @@ const buildBody = (cell: SelectedCell) => {
   return {
     key: cell.workerKey,
     type,
-    options: { appId: cell.appid, positioner: buildPositioners(), populateData },
+    options: { appId: cell.appid, positioner: buildPositioners(), populateData, retryTimes: form.retryTimes },
   };
 };
 
