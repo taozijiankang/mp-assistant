@@ -200,6 +200,7 @@ export abstract class BaseWorker<
     } catch (error) {
       console.error('[BaseWorker] taskCycle error', error);
     } finally {
+      // 自调度循环：waitTime(0) 让出事件循环，使 IPC/事件回调有机会执行，再进入下一轮调度
       await waitTime(0);
       this.taskCycle();
     }

@@ -116,7 +116,6 @@ export class WXPublishTask extends WXTask<WXPublishTaskOptions, WXPublishTaskInf
                     await expect(publishVerifyModalLocator).toBeVisible({ timeout: 30 * 1000 });
 
                     let qrReported = false;
-                    // 扫码验证：用 promise 包裹计时器，二维码轮询出错时 reject，发布成功时由检测端 resolve 结束
                     await new Promise<void>((resolve, reject) => {
                         const interval = setInterval(async () => {
                             try {

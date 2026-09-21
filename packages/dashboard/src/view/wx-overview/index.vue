@@ -135,6 +135,7 @@ const wxWorkers = computed(() =>
   [...(overviewList.value ?? [])].sort((a, b) => b.weight - a.weight)
 );
 
+// 把各 worker 的小程序列表按 appid 合并，得到「每个小程序出现在哪些 worker」的矩阵行（表格行 = 小程序，列 = worker）
 const rows = computed<OverviewRow[]>(() => {
   const map = new Map<string, OverviewRow>();
   for (const worker of wxWorkers.value) {

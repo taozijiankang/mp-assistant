@@ -10,6 +10,8 @@ import fs from "node:fs";
  */
 
 async function start(taskType: WXTaskType, options: BaseTaskOptions, info: BaseTaskInfo, debugPort: number) {
+    // 复用父进程 worker 已启动的浏览器：经调试端口连上去而非重新 launch，
+    // 保证所有任务共用同一份浏览器实例与登录态
     const browser = await chromium.connectOverCDP(`http://localhost:${debugPort}`);
     const browserContext = browser.contexts()[0];
 

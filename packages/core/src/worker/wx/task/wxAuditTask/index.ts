@@ -72,6 +72,8 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                 }
             }
 
+            // 三路并发：主线操作 + 检测轮询 + 超时兜底。Promise.all 任一路 reject 即整体失败，
+            // 因此超时或异常能在 catch 里统一 end 并终止整个任务
             await Promise.all([
                 // 主线
                 (async () => {

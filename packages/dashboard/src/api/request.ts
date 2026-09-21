@@ -30,7 +30,7 @@ export async function request<T>(
     const resolvedURL = getBaseApiURL() + url + (query ? `?${qs.stringify({
         ...query,
         /** 
-         * TODO:因为是局域网请求，所以不需要浏览器做流量限制
+         * 局域网环境，追加随机参数破浏览器 GET 缓存
          */
         __random: `${Date.now()}-${Math.random()}`
     })}` : "");

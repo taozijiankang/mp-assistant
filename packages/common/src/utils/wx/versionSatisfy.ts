@@ -44,9 +44,10 @@ export interface VersionPositioner {
 }
 
 /**
- * 版本是否满足条件
- * @param version 
- * @param positioners 
+ * 判断版本是否满足一组筛选条件。
+ * - positioners 之间是「且」关系，须全部满足才返回 true
+ * - 空条件数组返回 false（无筛选 = 不匹配任何版本）
+ * - 值比较前会 trim；criteria 为 Inclusion 且值为空时视为不匹配
  */
 export function versionSatisfy(version: WXVersionBasicInfo, positioners: VersionPositioner[]) {
     if (!positioners.length) return false;

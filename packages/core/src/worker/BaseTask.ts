@@ -7,6 +7,10 @@ import { ExecutorCommonMessage, ExecutorCustomMessage } from "./type.js";
 import { BrowserContext, Page } from "playwright";
 import type { BaseWorker } from "./BaseWorker.js";
 
+/**
+ * A/B 进程间消息。类型名以「目的地」为准：
+ * TO_A_* 由 B 发给 A（任务结束/报告/属性写回），TO_B_* 由 A 发给 B（如自杀命令）。
+ */
 export interface BaseTaskExecutorMessage {
     /** 初始化 */
     TO_A_INIT: undefined;
@@ -30,10 +34,8 @@ export interface BaseTaskExecutorMessage {
 }
 
 /**
- * 任务基类，负责管理任务的创建、运行、完成、失败等生命周期
- * 任务实例会被不同进程创建
- * A 进程：负责管理任务的创建、运行、完成、失败等生命周期
- * B 进程：负责执行任务，与 A 进程通信
+ * 任务基类：管理任务状态、生命周期与父子进程间通信。
+ * 同一份代码会在 A（父，worker）/ B（子，executor）两种进程各实例化一次，分工见构造函数注释。
  */
 export abstract class BaseTask<
     Options extends BaseTaskOptions = BaseTaskOptions,
@@ -79,9 +81,13 @@ export abstract class BaseTask<
         this.runCount = runCount || 0;
         this.retryCount = retryCount || 0;
 
+        // 同一份 BaseTask 代码在两种进程各实例化一次：
+        // A 进程（父，worker）没有 browserContent，负责 fork 子进程并维护状态；
+        // B 进程（子，executor）经 CDP 拿到 browserContent，只执行任务并把结果回报给 A。
         this.browserContent = browserContent ?? null;
         this.installType = this.browserContent ? 'B' : 'A';
         if (this.browserContent) {
+            // B 进程：监听 A 发来的消息，并主动上报一次「初始化完成」
             process.on('message', (message) => {
                 this.onAMessage(message as any);
             });
@@ -150,6 +156,7 @@ export abstract class BaseTask<
             time: Date.now(),
         });
 
+        // fork 出独立子进程（B）执行任务，参数经临时文件传递；A 只负责监听它的消息与退出
         this.executorCP = invokeExecuteTask(
             this.type,
             this.options,
@@ -244,6 +251,7 @@ export abstract class BaseTask<
     }
 
     protected end(status: TaskStatus.COMPLETED | TaskStatus.FAILED, message?: string): void {
+        // A 是状态的权威来源，直接落地；B 不自己改状态，只把结束结果回报给 A
         switch (this.installType) {
             case 'A': {
                 if (this.status !== TaskStatus.RUNNING) {
@@ -275,6 +283,7 @@ export abstract class BaseTask<
     }
 
     protected report(type: 'text' | 'image', message: string): void {
+        // 与 end 同理：A 本地记录，B 上报给 A
         switch (this.installType) {
             case 'A': {
                 this.reports.push({

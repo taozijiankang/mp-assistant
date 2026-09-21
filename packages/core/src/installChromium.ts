@@ -12,8 +12,7 @@ export async function installChromium() {
         // 先检测是否安装了 Chromium
         console.log('Starting browser installation...');
         try {
-            // 方式 A：通过 child_process 调用（最稳定，推荐）
-            // 这本质上是在代码里执行 npx 命令
+            // 通过 child_process 同步执行 npx，在项目根目录安装 chromium
             execSync('npx playwright install chromium', { stdio: 'inherit', cwd: getRootDir() });
             console.log('✅ Chromium installed successfully.');
         } catch (error) {
