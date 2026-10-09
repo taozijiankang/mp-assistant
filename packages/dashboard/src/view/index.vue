@@ -5,7 +5,6 @@
         <div class="header-title">
           <img src="@/assets/logo.png" alt="小程序助手" class="header-title-logo" />
           <span class="header-title-text">小程序助手 控制台</span>
-          <span class="header-title-version">v{{ packageInfo.version }}</span>
         </div>
         <div class="header-menu-group">
           <el-menu class="header-menu" mode="horizontal" :default-active="activeMenu" :ellipsis="false" @select="handleMenuSelect">
@@ -28,6 +27,9 @@
         </keep-alive>
       </router-view>
     </div>
+    <div class="footer">
+      <span class="footer-version">版本号：{{ packageInfo.version }}，代码版本：{{ commitInfo.hash }}</span>
+    </div>
     <ConfigDialog ref="configDialog" />
     <TagEditDialog ref="tagEditDialog" />
     <ReviewTemplateEditDialog ref="reviewTemplateEditDialog" />
@@ -43,6 +45,7 @@ import TagEditDialog from "@/component/TagEditDialog/index.vue";
 import ReviewTemplateEditDialog from "@/component/ReviewTemplateEditDialog/index.vue";
 
 const packageInfo = __PACKAGE_INFO__;
+const commitInfo = __COMMIT_INFO__;
 const route = useRoute();
 const router = useRouter();
 

@@ -37,12 +37,6 @@
         font-weight: bold;
         white-space: nowrap;
       }
-
-      .header-title-version {
-        font-size: 12px;
-        color: #86909c;
-        font-weight: 400;
-      }
     }
 
     .header-menu {
@@ -86,5 +80,19 @@
   .page-content {
     flex: 1;
     min-height: 0;
+  }
+
+  .footer {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 24px;
+    padding: 0 10px;
+
+    .footer-version {
+      font-size: 12px;
+      color: #86909c;
+    }
   }
 }
