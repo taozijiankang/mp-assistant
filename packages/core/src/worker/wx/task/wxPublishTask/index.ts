@@ -36,11 +36,13 @@ export class WXPublishTask extends WXTask<WXPublishTaskOptions, WXPublishTaskInf
     async execute(): Promise<void> {
         try {
             const page = await this.newPage();
+            this.closePageInterferencePopup(page);
 
             await this.switchMP(page, this.options.appId);
 
             // 专门调用接口的页面
             const specialPage = await this.newPage();
+            this.closePageInterferencePopup(specialPage);
             await specialPage.goto(page.url());
 
             const getVersionList = async () => {

@@ -12,10 +12,10 @@ import type { WXMPItem, WXVersionCodeData } from "@mp-assistant/common/dist/type
  * wxaList / versionData 会写回 worker，故其 key 与基类 onSetProperty 路由聚合在此。
  */
 export const WX_TASK_PROPERTY = {
-    loginQRCode: 'loginQRCode',
-    timeoutCountdown: 'timeoutCountdown',
-    wxaList: 'wxaList',
-    versionData: 'versionData',
+    loginQRCode: "loginQRCode",
+    timeoutCountdown: "timeoutCountdown",
+    wxaList: "wxaList",
+    versionData: "versionData"
 } as const;
 
 export abstract class WXTask<
@@ -34,12 +34,12 @@ export abstract class WXTask<
         return {
             ...super.getInfo(),
             loginQRCode: this.loginQRCode,
-            timeoutCountdown: this.timeoutCountdown,
+            timeoutCountdown: this.timeoutCountdown
         } as Info;
     }
 
     protected onReset(): void {
-        this.loginQRCode = '';
+        this.loginQRCode = "";
         this.timeoutCountdown = undefined;
     }
 
@@ -75,25 +75,28 @@ export abstract class WXTask<
         await new Promise<void>((resolve, reject) => {
             page.goto(WXMP_URL);
 
-            const loginTimeout = setTimeout(() => {
-                reject(new Error('登录超时'));
-            }, 3 * 60 * 1000);
+            const loginTimeout = setTimeout(
+                () => {
+                    reject(new Error("登录超时"));
+                },
+                3 * 60 * 1000
+            );
 
             const complete = (error?: any) => {
                 clearTimeout(loginTimeout);
-                this.report('text', '已登录');
+                this.report("text", "已登录");
 
-                page.off('close', onClose);
-                page.off('load', onLoad);
+                page.off("close", onClose);
+                page.off("load", onLoad);
 
-                this.setLoginQRCode('');
+                this.setLoginQRCode("");
 
                 if (error) {
                     reject(error);
                 } else {
                     resolve();
                 }
-            }
+            };
 
             const onLoad = async () => {
                 try {
@@ -105,13 +108,15 @@ export abstract class WXTask<
                     }
                     // 登录页面
                     else if (url.pathname === WXMP_NO_LOGIN_PATH) {
-                        this.report('text', '正在获取登录二维码...');
+                        this.report("text", "正在获取登录二维码...");
                         // 扫码登录的二维码元素
-                        const loginQRCodeLocator = page.locator('img.login__type__container__scan__qrcode');
+                        const loginQRCodeLocator = page.locator("img.login__type__container__scan__qrcode");
                         // 检查二维码图片地址是否设置完成 （如果是前端渲染的话，这个元素的src值可能会延迟出来）
-                        await expect(loginQRCodeLocator).toHaveAttribute('src', /^\/cgi-bin\/scanloginqrcode/, { timeout: 3 * 1000 });
+                        await expect(loginQRCodeLocator).toHaveAttribute("src", /^\/cgi-bin\/scanloginqrcode/, {
+                            timeout: 3 * 1000
+                        });
                         // 获取二维码图片地址
-                        const loginQRCodeURL = await loginQRCodeLocator.getAttribute('src') || '';
+                        const loginQRCodeURL = (await loginQRCodeLocator.getAttribute("src")) || "";
                         // 如果二维码图片地址存在，则检查图片资源加载情况
                         if (loginQRCodeURL) {
                             // 检查图片资源加载情况
@@ -123,33 +128,32 @@ export abstract class WXTask<
                                     } else {
                                         // 否则监听 load 和 error 事件
                                         img.onload = () => resolve2();
-                                        img.onerror = () => reject2(new Error('Image load failed'));
+                                        img.onerror = () => reject2(new Error("Image load failed"));
                                     }
                                 });
                             });
                             const buffer = await loginQRCodeLocator.screenshot();
-                            const base64 = buffer.toString('base64');
+                            const base64 = buffer.toString("base64");
                             const imageSrc = `data:image/png;base64,${base64}`;
-                            this.report('text', '二维码已生成，请扫码登录');
+                            this.report("text", "二维码已生成，请扫码登录");
 
                             this.setLoginQRCode(imageSrc);
                         } else {
-                            throw new Error('登录二维码获取失败');
+                            throw new Error("登录二维码获取失败");
                         }
                     }
-                }
-                catch (error) {
+                } catch (error) {
                     clearTimeout(loginTimeout);
                     complete(error);
                 }
-            }
+            };
             const onClose = async () => {
                 clearTimeout(loginTimeout);
-                complete(new Error('页面关闭'));
-            }
+                complete(new Error("页面关闭"));
+            };
 
-            page.on('close', onClose);
-            page.on('load', onLoad);
+            page.on("close", onClose);
+            page.on("load", onLoad);
         });
     }
 
@@ -164,25 +168,24 @@ export abstract class WXTask<
         const wxaItem = wxaList.find(item => item.appid === appId);
 
         if (!wxaItem) {
-            throw new Error('未找到小程序');
+            throw new Error("未找到小程序");
         }
 
-        this.report('text', `切换小程序 ${wxaItem.app_name} - ${wxaItem.appid} - ${wxaItem.username}`);
+        this.report("text", `切换小程序 ${wxaItem.app_name} - ${wxaItem.appid} - ${wxaItem.username}`);
 
         // 如果侧边栏被隐藏了，则点击侧边栏展开按钮
-        const sidebarLocator = page.locator('div.little_menu_button');
+        const sidebarLocator = page.locator("div.little_menu_button");
         if (await sidebarLocator.isVisible()) {
             await sidebarLocator.click();
         }
         // 点击侧边栏中的账号信息栏
-        const accountInfoLocator = page.locator('div.menu_box_other_item_wrapper.account_info');
+        const accountInfoLocator = page.locator("div.menu_box_other_item_wrapper.account_info");
         await expect(accountInfoLocator).toBeVisible({
             timeout: 3 * 1000
         });
         await accountInfoLocator.hover();
         //点击切换小程序按钮
-        const switchMPButtonLocator = page.locator('.menu_box_account_info_item')
-            .filter({ hasText: '切换账号' });
+        const switchMPButtonLocator = page.locator(".menu_box_account_info_item").filter({ hasText: "切换账号" });
         await expect(switchMPButtonLocator).toBeVisible({
             timeout: 3 * 1000
         });
@@ -191,43 +194,78 @@ export abstract class WXTask<
          * 切换小程序
          */
         // 定位到切换账号弹窗
-        const switchAccountPanelLocator = page.locator('.switch_account_panel', {
-            has: page.getByText('切换账号'),
+        const switchAccountPanelLocator = page.locator(".switch_account_panel", {
+            has: page.getByText("切换账号")
         });
         // 确保小程序列表加载出来
         await expect(
-            switchAccountPanelLocator
-                .locator('.platform_title')
-                .and(switchAccountPanelLocator.getByText('小程序'))
-        )
-            .toBeVisible({
-                timeout: 30 * 1000
-            });
+            switchAccountPanelLocator.locator(".platform_title").and(switchAccountPanelLocator.getByText("小程序"))
+        ).toBeVisible({
+            timeout: 30 * 1000
+        });
         // 定位到小程序账号项
         const mpItemLocator = switchAccountPanelLocator.locator(
-            page.locator('.account_item.account_item_gap', {
-                has: page.getByText(wxaItem.app_name)
-            }).and(
-                page.locator('.account_item.account_item_gap', {
-                    has: page.getByText(wxaItem.username)
+            page
+                .locator(".account_item.account_item_gap", {
+                    has: page.getByText(wxaItem.app_name)
                 })
-            )
+                .and(
+                    page.locator(".account_item.account_item_gap", {
+                        has: page.getByText(wxaItem.username)
+                    })
+                )
         );
-        if (!await expect(mpItemLocator).toBeVisible({ timeout: 1000 }).then(() => true, () => false)) {
-            throw new Error('未找到小程序账号项');
+        if (
+            !(await expect(mpItemLocator)
+                .toBeVisible({ timeout: 1000 })
+                .then(
+                    () => true,
+                    () => false
+                ))
+        ) {
+            throw new Error("未找到小程序账号项");
         }
 
         const buffer = await mpItemLocator.screenshot();
-        const base64 = buffer.toString('base64');
+        const base64 = buffer.toString("base64");
         const imageSrc = `data:image/png;base64,${base64}`;
 
-        this.report('image', imageSrc);
+        this.report("image", imageSrc);
 
-        if (!await mpItemLocator.locator('.current_login').filter({ hasText: '当前登录' }).isVisible()) {
+        if (!(await mpItemLocator.locator(".current_login").filter({ hasText: "当前登录" }).isVisible())) {
             await mpItemLocator.click();
-            await page.waitForEvent('load');
+            await page.waitForEvent("load");
         }
 
-        this.report('text', '切换小程序成功');
+        this.report("text", "切换小程序成功");
+    }
+
+    protected closePageInterferencePopup(page: Page) {
+        const dismiss = async () => {
+            // 页面已关闭则停止轮询
+            if (page.isClosed()) {
+                return;
+            }
+            let dismissed = false;
+            try {
+                // 仅在微信小程序后台页面处理“请尽快进行年审”弹窗
+                if (page.url().startsWith(WXMP_URL)) {
+                    const publishModalLocator = page.locator(".weui-desktop-dialog", {
+                        hasText: "请尽快进行年审"
+                    });
+                    if (await publishModalLocator.isVisible()) {
+                        await publishModalLocator.locator(".weui-desktop-dialog__ft button", { hasText: "取消" }).click();
+                        dismissed = true;
+                    }
+                }
+            } catch {
+                // 单次关闭失败不影响任务，忽略异常避免未处理的 Promise rejection
+            }
+            // 关闭成功后停止轮询，否则稍后重试
+            if (!dismissed) {
+                setTimeout(dismiss, 300);
+            }
+        };
+        dismiss();
     }
 }

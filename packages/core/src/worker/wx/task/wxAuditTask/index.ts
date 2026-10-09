@@ -18,11 +18,13 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
     async execute(): Promise<void> {
         try {
             const page = await this.newPage();
+            this.closePageInterferencePopup(page);
 
             await this.switchMP(page, this.options.appId);
 
             // 专门调用接口的页面
             const specialPage = await this.newPage();
+            this.closePageInterferencePopup(specialPage);
             await specialPage.goto(page.url());
 
             const getVersionList = async () => {
@@ -124,6 +126,8 @@ export class WXAuditTask extends WXTask<WXAuditTaskOptions, WXAuditTaskInfo> {
                     url.searchParams.append('openid', developVersionInfo.open_id);
                     url.searchParams.append('user_name', developVersionInfo.nick_name);
                     await auditPage.goto(`${WXMP_AUDIT_PAGE_URL}${url.search}`);
+
+                    this.closePageInterferencePopup(auditPage);
 
                     /**
                      * 填写表单
