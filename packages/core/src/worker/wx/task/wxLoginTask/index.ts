@@ -22,7 +22,16 @@ export class WXLoginTask extends WXTask<WXLoginTaskOptions, WXLoginTaskInfo> {
 
             await this.login(page);
 
-            await this.getWxaList(page);
+            this.report("text", "正在获取小程序列表...");
+
+            if (!page.url().startsWith(WXMP_URL)) {
+                await page.goto(WXMP_URL);
+            }
+            const wxaList = await requestWxaList(page);
+
+            this.setAWxaList(wxaList);
+
+            this.report("text", "小程序列表获取完成");
 
             this.end(TaskStatus.COMPLETED, "登录任务完成");
         } catch (error) {
@@ -65,16 +74,5 @@ export class WXLoginTask extends WXTask<WXLoginTaskOptions, WXLoginTaskInfo> {
         }
 
         this.report("text", "退出登录成功");
-    }
-
-    private async getWxaList(page: Page) {
-        this.report("text", "正在获取小程序列表...");
-
-        await page.goto(WXMP_URL);
-        const wxaList = await requestWxaList(page);
-
-        this.setAWxaList(wxaList);
-
-        this.report("text", "小程序列表获取完成");
     }
 }
