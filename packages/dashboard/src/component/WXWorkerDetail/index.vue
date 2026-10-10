@@ -68,7 +68,14 @@
             <el-button size="small" type="primary" @click="addTaskDialog?.open(workerKey)">添加任务</el-button>
           </div>
           <div class="task-filter">
-            <el-select v-model="statusFilter" size="small" placeholder="状态筛选" style="width: 100%">
+            <el-select
+              v-model="statusFilter"
+              size="small"
+              multiple
+              clearable
+              placeholder="状态筛选"
+              style="width: 100%"
+            >
               <el-option v-for="opt in statusFilterOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
             </el-select>
           </div>
@@ -208,9 +215,8 @@ const statusTagType = computed(() => {
   }
 });
 
-const statusFilter = ref("");
+const statusFilter = ref<TaskStatus[]>([]);
 const statusFilterOptions = [
-  { value: "", label: "全部" },
   { value: TaskStatus.IDLE, label: TaskStatusDict[TaskStatus.IDLE] },
   { value: TaskStatus.RUNNING, label: TaskStatusDict[TaskStatus.RUNNING] },
   { value: TaskStatus.COMPLETED, label: TaskStatusDict[TaskStatus.COMPLETED] },
@@ -219,8 +225,8 @@ const statusFilterOptions = [
 
 const filteredTaskList = computed(() => {
   if (!worker.value) return [];
-  const list = statusFilter.value
-    ? worker.value.taskList.filter(t => t.status === statusFilter.value)
+  const list = statusFilter.value.length
+    ? worker.value.taskList.filter(t => statusFilter.value.includes(t.status))
     : worker.value.taskList;
   // 定时任务始终置顶（稳定排序，其余顺序保持不变）
   return [...list].sort((a, b) => (b.options.scheduled ? 1 : 0) - (a.options.scheduled ? 1 : 0));
