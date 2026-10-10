@@ -114,7 +114,7 @@
               class="detail-row detail-msg-row"
             >
               <span class="label">{{ task.status === TaskStatus.FAILED ? '失败原因' : '完成信息' }}</span>
-              <span class="detail-value">{{ task.completedMessage }}</span>
+              <span class="detail-value" :class="{ 'text-danger': task.status === TaskStatus.FAILED }">{{ task.completedMessage }}</span>
             </div>
             <div v-if="task.status === TaskStatus.RUNNING && task.loginQRCode" class="detail-row qrcode-row">
               <span class="label">登录二维码</span>
